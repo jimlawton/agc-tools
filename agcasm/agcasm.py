@@ -30,23 +30,25 @@ class Assembler:
     def __init__(self, listfile, binfile):
         self.listfile = listfile
         self.binfile = binfile
-        pass
     
-    def assemble(self, srcfile, symtab=None, code=None):
+    def assemble(self, srcfile, source=None, symtab=None, code=None):
         print "Assembling", srcfile
+        if source == None:
+            source = []
         if symtab == None:
             symtab = {}
         if code == None:
             code = {}
         lines = open(srcfile).readlines()
         for line in lines:
+            source.append(line)
             if line.startswith('$'):
                 modname = line[1:].split()[0]
                 if not os.path.isfile(modname):
                     print >>sys.stderr, "File \"%s\" does not exist" % modname
                     sys.exit(1)
                 self.assemble(modname, symtab, code)
-        pass
+            # Real parsing starts here.
     
 
 def main():
