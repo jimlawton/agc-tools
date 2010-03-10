@@ -191,12 +191,12 @@ def main():
                 bank = i / 02000
                 if bank < 4:
                     bank ^= 2
-                address = "%06o (" % i
+                line += "%06o (" % i
                 if i < 04000:
-                    address += "   %04o)   " % (i + 04000)
+                    address = "   %04o" % (i + 04000)
                 else:
-                    address += "%02o,%04o)   " % (bank, offset)
-                line += address
+                    address = "%02o,%04o" % (bank, offset)
+                line += "%s)   " % address
                 line += "%05o   %05o" % (leftval, rightval)
                 if options.analyse:
                     block = listing_analyser.findBlock(blocks, i)
@@ -266,77 +266,80 @@ def main():
     print
     print "%s %d" % ("Total differences:", difftotal)
     print
-    print "Core address       Left    Right   Block Start Addr   Page   Module"
-    print "----------------   -----   -----   ----------------   ----   ------------------------------------------------"
-    print
-    print '\n'.join(lines)
 
-    if options.analyse:
-
-        diffblocks = []
-        index = 0
-        while index < len(diffs) - 1:
-            cur = index
-            end = index + 1
-            while diffs[end] == diffs[cur] + 1:
-                cur += 1
-                end += 1
-            length = end - index - 1
-            if length > 1:
-                diffblocks.append((diffs[index], length))
-            index = end
-
-        diffblocks.sort()
-
-        if len(diffblocks) > 0:
-            print
-            print "Difference blocks: (sorted by length, ignoring single isolated differences)"
-            print "-" * 80
+    if difftotal > 0:
+        print "Core address       Left    Right   Block Start Addr   Page   Module"
+        print "----------------   -----   -----   ----------------   ----   ------------------------------------------------"
+        print
+        for diff in diffs:
+            print diff.__str__()
     
-            for diff in sorted(diffblocks, key=operator.itemgetter(1), reverse=True):
-                i = diff[0]
-                line = "%06o (" % i
-                offset = 02000 + (i % 02000)
-                bank = i / 02000
-                if bank < 4:
-                    bank ^= 2
-                if i < 04000:
-                    line += "   %04o)   " % (i + 04000)
-                else:
-                    line += "%02o,%04o)   " % (bank, offset)
-                line += "%6d" % diff[1]
-                block = listing_analyser.findBlock(blocks, i)
-                if block:
-                    line += "   " + block.getInfo()
-                print line
-            print "-" * 80
-
-        counts = []
-        for module in diffcount:
-            counts.append((module, diffcount[module]))
-        counts.sort()
-
-        if options.stats:
-            print
-            print "Per-module differences: (sorted by errors)"
-            print "-" * 80
-            for count in sorted(counts, key=operator.itemgetter(1), reverse=True):
-                print "%-48s %6d" % count
-            print "-" * 80
+        if options.analyse:
     
-            print
-            print "Per-module differences: (sorted by module)"
-            print "-" * 80
-            for count in counts:
-                print "%-48s %6d" % count
-            print "-" * 80
+            diffblocks = []
+            index = 0
+            while index < len(diffs) - 1:
+                cur = index
+                end = index + 1
+                while diffs[end].coreaddr == diffs[cur].coreaddr + 1:
+                    cur += 1
+                    end += 1
+                length = end - index - 1
+                if length > 1:
+                    diffblocks.append((diffs[index], length))
+                index = end
     
-            print
-            print "Per-module differences: (sorted by include order)"
-            print "-" * 80
-            for module in includelist:
-                print "%-48s %6d" % (module, diffcount[module])
-            print "-" * 80
+            diffblocks.sort()
+    
+            if len(diffblocks) > 0:
+                print
+                print "Difference blocks: (sorted by length, ignoring single isolated differences)"
+                print "-" * 80
+        
+                for diff in sorted(diffblocks, key=operator.itemgetter(1), reverse=True):
+                    i = diff[0]
+                    line = "%06o (" % i
+                    offset = 02000 + (i % 02000)
+                    bank = i / 02000
+                    if bank < 4:
+                        bank ^= 2
+                    if i < 04000:
+                        line += "   %04o)   " % (i + 04000)
+                    else:
+                        line += "%02o,%04o)   " % (bank, offset)
+                    line += "%6d" % diff[1]
+                    block = listing_analyser.findBlock(blocks, i)
+                    if block:
+                        line += "   " + block.getInfo()
+                    print line
+                print "-" * 80
+    
+            counts = []
+            for module in diffcount:
+                counts.append((module, diffcount[module]))
+            counts.sort()
+    
+            if options.stats:
+                print
+                print "Per-module differences: (sorted by errors)"
+                print "-" * 80
+                for count in sorted(counts, key=operator.itemgetter(1), reverse=True):
+                    print "%-48s %6d" % count
+                print "-" * 80
+        
+                print
+                print "Per-module differences: (sorted by module)"
+                print "-" * 80
+                for count in counts:
+                    print "%-48s %6d" % count
+                print "-" * 80
+        
+                print
+                print "Per-module differences: (sorted by include order)"
+                print "-" * 80
+                for module in includelist:
+                    print "%-48s %6d" % (module, diffcount[module])
+                print "-" * 80
 
 
 if __name__=="__main__":
