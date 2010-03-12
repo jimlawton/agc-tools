@@ -24,6 +24,7 @@ import sys
 import glob
 from optparse import OptionParser
 
+
 class Architecture:
     AGC1    = 0    # Mod1
     AGC2C   = 1    # Mod2C
@@ -31,10 +32,31 @@ class Architecture:
     AGC4_B1 = 3    # AGC4 Block I
     AGC4_B2 = 4    # AGC4 Block II
 
+class MemoryType:
+    ERASABLE = 0
+    FIXED    = 1
+
+class ErasableMemoryType:
+    UNSWITCHED = 0
+    SWITCHED   = 1
+
+NUM_BANKS = {
+    MemoryType.ERASABLE: {
+        Architecture.AGC4_B1: , 
+        Architecture.AGC4_B2: 9
+    },
+    MemoryType.FIXED: {
+        Architecture.AGC4_B1: 24, 
+        Architecture.AGC4_B2: 36
+    }    
+}
+
+
 class OpcodeType:
-    BASIC = 0
+    BASIC    = 0
     EXTENDED = 1
-    BOTH = 2
+    BOTH     = 2
+
 
 class OperandType:
     NONE        = 0    # No operand.
@@ -43,106 +65,627 @@ class OperandType:
     FIXED_9     = 3    # 9-bit fixed address. Only used by EDRUPT?
     FIXED_12    = 4    # 12-bit fixed address.
     GENERAL_12  = 5    # 12-bit general address (fixed or erasable).
-    CHANNEL_9   = 6    # 9-bit I/O channel address.
-    
-class Instruction:
-    def __init__(self, mnemonic, opcode, extend, operandType):
+    CHANNEL     = 6    # 9-bit I/O channel address.
+
+
+class SymbolTableEntry:
+    def __init__(self, name=None, symbolic=None, value=-1):
+        self.name = name
+        self.symbolic = symbolic
+        self.value = value
+        
+# NOTE: Must be a new-style class.
+class Instruction(object):
+    def __init__(self, mnemonic, opcode, operandType):
         self.mnemonic = mnemonic
         self.opcode = opcode
-        self.extend = extend
         self.operandType = operandType
+        self.loc = 0
+
+    def process(self, operand, loc):
+        self.loc = loc
+        self.__getattribute__("process_" + self.mnemonic)(operand)
+        return self.loc
+        
+    def process_AD(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-instructions = { 
-    Architecture.AGC4_B2 : { 
-        Instruction("AD",     060000,  OpcodeType.BASIC,     OperandType.ERASABLE_12), 
-        Instruction("ADS",    026000,  OpcodeType.EXTENDED,  OperandType.ERASABLE_10),
-        Instruction("AUG",    024000,  OpcodeType.EXTENDED,  OperandType.ERASABLE_10), 
-        Instruction("BZF",    010000,  OpcodeType.EXTENDED,  OperandType.FIXED_12),  
-        Instruction("BZMF",   060000,  OpcodeType.EXTENDED,  OperandType.FIXED_12),
-        Instruction("CA",     030000,  OpcodeType.BASIC,     OperandType.GENERAL_12),
-        Instruction("CAE",    030000,  OpcodeType.BASIC,     OperandType.ERASABLE_12),
-        Instruction("CAF",    030000,  OpcodeType.BASIC,     OperandType.FIXED_12),
-        Instruction("CCS",    010000,  OpcodeType.BASIC,     OperandType.ERASABLE_10),
-        Instruction("COM",    040000,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("CS",     040000,  OpcodeType.BASIC,     OperandType.GENERAL_12),
-        Instruction("DAS",    020001,  OpcodeType.BASIC,     OperandType.ERASABLE_10),
-        Instruction("DCA",    030001,  OpcodeType.EXTENDED,  OperandType.GENERAL_12),
-        Instruction("DCOM",   040001,  OpcodeType.EXTENDED,  OperandType.NONE),
-        Instruction("DDOUBL", 020001,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("DIM",    026000,  OpcodeType.EXTENDED,  OperandType.ERASABLE_10),
-        Instruction("DOUBLE", 060000,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("DTCB",   052006,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("DTCF",   052005,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("DV",     010000,  OpcodeType.BASIC,     OperandType.GENERAL_12),
-        Instruction("DXCH",   050001,  OpcodeType.BASIC,     OperandType.ERASABLE_10
-        Instruction("EDRUPT", 007000,  OpcodeType.EXTENDED,  OperandType.FIXED_9),
-        Instruction("EXTEND", 000006,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("INCR",   024000,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("INDEX",  050000,  OpcodeType.BASIC,     OperandType.ERASABLE_10),
-        Instruction("INDEX",  050000,  OpcodeType.EXTENDED,  OperandType.GENERAL_12),
-        Instruction("INHINT", 000004,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("LXCH",   022000,  OpcodeType.BASIC,     OperandType.ERASABLE_10),
-        Instruction("MASK",   070000,  OpcodeType.BASIC,     OperandType.GENERAL_12),
-        Instruction("MP",     070000,  OpcodeType.EXTENDED,  OperandType.GENERAL_12),
-        Instruction("MSK",    070000,  OpcodeType.BASIC,     OperandType.GENERAL_12),    # Alias for MASK.
-        Instruction("MSU",    020000,  OpcodeType.EXTENDED,  OperandType.ERASABLE_10),
-        Instruction("NDX",    050000,  OpcodeType.BASIC,     OperandType.ERASABLE_10),
-        Instruction("NDX",    050000,  OpcodeType.EXTENDED,  OperandType.GENERAL_12),
-        Instruction("NOOP",   030000,  OpcodeType.BASIC,     OperandType.NONE),          # Erasable memory: CA A
-        Instruction("NOOP",   010000,  OpcodeType.BASIC,     OperandType.NONE),          # Fixed memory: TCF nextaddr
-        Instruction("OVSK",   054000,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("QXCH",   022000,  OpcodeType.EXTENDED,  OperandType.ERASABLE_10),
-        Instruction("RAND",   002000,  OpcodeType.EXTENDED,  OperandType.CHANNEL),
-        Instruction("READ",   000000,  OpcodeType.EXTENDED,  OperandType.CHANNEL),
-        Instruction("RELINT", 000003,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("RESUME", 050017,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("RETURN", 000002,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("ROR",    004000,  OpcodeType.EXTENDED,  OperandType.CHANNEL),
-        Instruction("RXOR",   006000,  OpcodeType.EXTENDED,  OperandType.CHANNEL),
-        Instruction("SQUARE", 070000,  OpcodeType.EXTENDED,  OperandType.NONE),
-        Instruction("SU",     060000,  OpcodeType.EXTENDED,  OperandType.ERASABLE_10),
-        Instruction("TC",     000000,  OpcodeType.BASIC,     OperandType.GENERAL_12),
-        Instruction("TCAA",   054005,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("TCF",    010000,  OpcodeType.BASIC,     OperandType.FIXED_12),
-        Instruction("TCR",    000000,  OpcodeType.BASIC,     OperandType.GENERAL_12),
-        Instruction("TS",     054000,  OpcodeType.BASIC,     OperandType.ERASABLE_10),
-        Instruction("WAND",   003000,  OpcodeType.EXTENDED,  OperandType.CHANNEL),
-        Instruction("WOR",    005000,  OpcodeType.EXTENDED,  OperandType.CHANNEL),
-        Instruction("WRITE",  001000,  OpcodeType.EXTENDED,  OperandType.CHANNEL),
-        Instruction("XCH",    056000,  OpcodeType.BASIC,     OperandType.ERASABLE_10),
-        Instruction("XLQ",    000001,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("XXALQ",  000000,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("ZL",     022007,  OpcodeType.BASIC,     OperandType.NONE),
-        Instruction("ZQ",     022007,  OpcodeType.EXTENDED,  OperandType.NONE)
+    def process_ADS(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_AUG(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_BZF(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_BZMF(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_CA(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_CAE(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_CAF(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_CCS(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_COM(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_CS(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_DAS(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_DCA(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_DCOM(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_DDOUBL(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_DIM(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_DOUBLE(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_DTCB(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_DTCF(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_DV(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_DXCH(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_EDRUPT(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_EXTEND(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_INCR(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_INDEX(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_INHINT(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_LXCH(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_MASK(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_MP(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_MSU(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_NDX(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_NOOP(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_OVSK(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_QXCH(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_RAND(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_READ(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_RELINT(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_RESUME(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_RETURN(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_ROR(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_RXOR(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_SQUARE(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_SU(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_TC(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_TCAA(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_TCF(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_TS(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_WAND(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_WOR(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_WRITE(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_XCH(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_XLQ(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_XXALQ(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_ZL(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+    def process_ZQ(self, operand):
+        sys.exit("Unsupported opcode: %s" % self.mnemonic)
+    
+# NOTE: Must be a new-style class.
+class Directive(object):
+    def __init__(self, mnemonic): 
+        self.mnemonic = mnemonic
+        self.loc = 0
+        
+    def process(self, loc, symtab, symbol, operand):
+        print "Opcode: \"%s\", Operand: \"%s\"" % (self.mnemonic, operand)
+        return self.__getattribute__("process_" + self.mnemonic)(loc, symtab, symbol, operand)
+        
+    def process_Minus1_DNADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_Minus2_CADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_Minus2_DNADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_Minus3_DNADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_Minus4_DNADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_Minus5_DNADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_Minus6_DNADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_Minus_DNCHAN(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_Minus_DNPTR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_Minus_GENADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_1DNADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_2BCADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_2CADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_2DEC(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_2DEC_Star(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_2DNADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_2FCADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_2OCT(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_3DNADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_4DNADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_5DNADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_6DNADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_Equals_Sign(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_Equals_ECADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_Equals_MINUS(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_ADRES(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_BANK(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_BBCON(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_BBCON_Star(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_BLOCK(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_BNKSUM(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_CADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_CHECK_Equals(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_COUNT(self, loc, symtab, symbol, operand):
+        print "Ignoring directive: %s %s" % (self.mnemonic, operand)
+        return loc
+    
+    def process_COUNT_Star(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_DEC(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_DEC_Star(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_DNCHAN(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_DNPTR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_EBANK_Equals(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_ECADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_EQUALS(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_ERASE(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_FCADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_GENADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_MEMORY(self, loc, symtab, symbol, operand):
+        if '-' in operand:
+            op1 = int(operand.split('-')[0], 8)
+            op2 = int(operand.split('-')[1], 8)
+            if symbol:
+                symtab[symbol] = op2
+        else:
+            sys.exit("Syntax error: %s %s" % (self.mnemonic, self.operand))
+        return loc
+    
+    def process_MM(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_NV(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_OCT(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_OCTAL(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_REMADR(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_SBANK_Equals(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_SETLOC(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_SUBRO(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+    
+    def process_VN(self, loc, symtab, symbol, operand):
+        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        return loc
+
+
+INSTRUCTIONS = { 
+    Architecture.AGC4_B2 : {
+        OpcodeType.BASIC: {
+            "AD":     Instruction("AD",     060000,  OperandType.ERASABLE_12), 
+            "CA":     Instruction("CA",     030000,  OperandType.GENERAL_12),
+            "CAE":    Instruction("CAE",    030000,  OperandType.ERASABLE_12),
+            "CAF":    Instruction("CAF",    030000,  OperandType.FIXED_12),
+            "CCS":    Instruction("CCS",    010000,  OperandType.ERASABLE_10),
+            "COM":    Instruction("COM",    040000,  OperandType.NONE),
+            "CS":     Instruction("CS",     040000,  OperandType.GENERAL_12),
+            "DAS":    Instruction("DAS",    020001,  OperandType.ERASABLE_10),
+            "DDOUBL": Instruction("DDOUBL", 020001,  OperandType.NONE),
+            "DOUBLE": Instruction("DOUBLE", 060000,  OperandType.NONE),
+            "DTCB":   Instruction("DTCB",   052006,  OperandType.NONE),
+            "DTCF":   Instruction("DTCF",   052005,  OperandType.NONE),
+            "DV":     Instruction("DV",     010000,  OperandType.GENERAL_12),
+            "DXCH":   Instruction("DXCH",   050001,  OperandType.ERASABLE_10),
+            "EXTEND": Instruction("EXTEND", 000006,  OperandType.NONE),
+            "INCR":   Instruction("INCR",   024000,  OperandType.NONE),
+            "INDEX":  Instruction("INDEX",  050000,  OperandType.ERASABLE_10),
+            "INHINT": Instruction("INHINT", 000004,  OperandType.NONE),
+            "LXCH":   Instruction("LXCH",   022000,  OperandType.ERASABLE_10),
+            "MASK":   Instruction("MASK",   070000,  OperandType.GENERAL_12),
+            "MSK":    Instruction("MASK",   070000,  OperandType.GENERAL_12),
+            "NDX":    Instruction("INDEX",  050000,  OperandType.ERASABLE_10),
+            "NOOP":   Instruction("NOOP",   010000,  OperandType.NONE),           # TODO: For fixed memory only. Handle erasable case.
+            "OVSK":   Instruction("OVSK",   054000,  OperandType.NONE),
+            "RELINT": Instruction("RELINT", 000003,  OperandType.NONE),
+            "RESUME": Instruction("RESUME", 050017,  OperandType.NONE),
+            "RETURN": Instruction("RETURN", 000002,  OperandType.NONE),
+            "TC":     Instruction("TC",     000000,  OperandType.GENERAL_12),
+            "TCAA":   Instruction("TCAA",   054005,  OperandType.NONE),
+            "TCF":    Instruction("TCF",    010000,  OperandType.FIXED_12),
+            "TCR":    Instruction("TC",     000000,  OperandType.GENERAL_12),
+            "TS":     Instruction("TS",     054000,  OperandType.ERASABLE_10),
+            "XCH":    Instruction("XCH",    056000,  OperandType.ERASABLE_10),
+            "XLQ":    Instruction("XLQ",    000001,  OperandType.NONE),
+            "XXALQ":  Instruction("XXALQ",  000000,  OperandType.NONE),
+            "ZL":     Instruction("ZL",     022007,  OperandType.NONE)
+        }, 
+        OpcodeType.EXTENDED: {
+            "ADS":    Instruction("ADS",    026000,  OperandType.ERASABLE_10),
+            "AUG":    Instruction("AUG",    024000,  OperandType.ERASABLE_10), 
+            "BZF":    Instruction("BZF",    010000,  OperandType.FIXED_12),  
+            "BZMF":   Instruction("BZMF",   060000,  OperandType.FIXED_12),
+            "DCA":    Instruction("DCA",    030001,  OperandType.GENERAL_12),
+            "DCOM":   Instruction("DCOM",   040001,  OperandType.NONE),
+            "DIM":    Instruction("DIM",    026000,  OperandType.ERASABLE_10),
+            "EDRUPT": Instruction("EDRUPT", 007000,  OperandType.FIXED_9),
+            "INDEX":  Instruction("INDEX",  050000,  OperandType.GENERAL_12),
+            "MP":     Instruction("MP",     070000,  OperandType.GENERAL_12),
+            "MSU":    Instruction("MSU",    020000,  OperandType.ERASABLE_10),
+            "NDX":    Instruction("INDEX",  050000,  OperandType.GENERAL_12),
+            "QXCH":   Instruction("QXCH",   022000,  OperandType.ERASABLE_10),
+            "RAND":   Instruction("RAND",   002000,  OperandType.CHANNEL),
+            "READ":   Instruction("READ",   000000,  OperandType.CHANNEL),
+            "ROR":    Instruction("ROR",    004000,  OperandType.CHANNEL),
+            "RXOR":   Instruction("RXOR",   006000,  OperandType.CHANNEL),
+            "SQUARE": Instruction("SQUARE", 070000,  OperandType.NONE),
+            "SU":     Instruction("SU",     060000,  OperandType.ERASABLE_10),
+            "WAND":   Instruction("WAND",   003000,  OperandType.CHANNEL),
+            "WOR":    Instruction("WOR",    005000,  OperandType.CHANNEL),
+            "WRITE":  Instruction("WRITE",  001000,  OperandType.CHANNEL),
+            "ZQ":     Instruction("ZQ",     022007,  OperandType.NONE)
+        }
     }
 }
+
+
+DIRECTIVES = {
+    Architecture.AGC4_B2 : {
+        "-1DNADR":  Directive("Minus1_DNADR"),
+        "-2CADR":   Directive("Minus2_CADR"),
+        "-2DNADR":  Directive("Minus2_DNADR"),
+        "-3DNADR":  Directive("Minus3_DNADR"),
+        "-4DNADR":  Directive("Minus4_DNADR"),
+        "-5DNADR":  Directive("Minus5_DNADR"),
+        "-6DNADR":  Directive("Minus6_DNADR"),
+        "-DNCHAN":  Directive("Minus_DNCHAN"),
+        "-DNPTR":   Directive("Minus_DNPTR"),
+        "-GENADR":  Directive("Minus_GENADR"),
+        "1DNADR":   Directive("1DNADR"),
+        "2BCADR":   Directive("2BCADR"),
+        "2CADR":    Directive("2CADR"),
+        "2DEC":     Directive("2DEC"),
+        "2DEC*":    Directive("2DEC_Star"),
+        "2DNADR":   Directive("2DNADR"),
+        "2FCADR":   Directive("2FCADR"), 
+        "2OCT":     Directive("2OCT"),
+        "3DNADR":   Directive("3DNADR"),
+        "4DNADR":   Directive("4DNADR"),
+        "5DNADR":   Directive("5DNADR"),
+        "6DNADR":   Directive("6DNADR"),
+        "=":        Directive("Equals_Sign"),
+        "=ECADR":   Directive("Equals_ECADR"),
+        "=MINUS":   Directive("Equals_MINUS"),
+        "ADRES":    Directive("ADRES"),
+        "BANK":     Directive("BANK"),
+        "BBCON":    Directive("BBCON"),
+        "BBCON*":   Directive("BBCON_Star"),
+        "BLOCK":    Directive("BLOCK"),
+        "BNKSUM":   Directive("BNKSUM"),
+        "CADR":     Directive("CADR"),
+        "CHECK=":   Directive("CHECK_Equals"),
+        "COUNT":    Directive("COUNT"),
+        "COUNT*":   Directive("COUNT_Star"),
+        "DEC":      Directive("DEC"),
+        "DEC*":     Directive("DEC_Star"),
+        "DNCHAN":   Directive("DNCHAN"),
+        "DNPTR":    Directive("DNPTR"),
+        "EBANK=":   Directive("EBANK_Equals"),
+        "ECADR":    Directive("ECADR"),
+        "EQUALS":   Directive("EQUALS"),
+        "ERASE":    Directive("ERASE"),
+        "FCADR":    Directive("FCADR"),
+        "GENADR":   Directive("GENADR"),
+        "MEMORY":   Directive("MEMORY"),
+        "MM":       Directive("MM"),
+        "NV":       Directive("NV"),
+        "OCT":      Directive("OCT"),
+        "OCTAL":    Directive("OCTAL"),
+        "REMADR":   Directive("REMADR"),
+        "SBANK=":   Directive("SBANK_Equals"),
+        "SETLOC":   Directive("SETLOC"),
+        "SUBRO":    Directive("SUBRO"),
+        "VN":       Directive("VN")
+    }
+}
+
 
 class Assembler:
     """Class defining an AGC assembler."""
 
-    def __init__(self, listfile, binfile):
+    def __init__(self, architecture, listfile, binfile):
+        self.architecture = architecture
         self.listfile = listfile
         self.binfile = binfile
+        self.linecounter = 0
+        self.mode = OpcodeType.BASIC
+        self.loc = 0
     
-    def assemble(self, srcfile, source=None, symtab=None, code=None):
+    def assemble(self, srcfile, source, symtab, code):
         print "Assembling", srcfile
-        if source == None:
-            source = []
-        if symtab == None:
-            symtab = {}
-        if code == None:
-            code = {}
         lines = open(srcfile).readlines()
         for line in lines:
-            source.append(line)
+            source.append(line.expandtabs(8))
+            self.linecounter += 1
             if line.startswith('$'):
                 modname = line[1:].split()[0]
                 if not os.path.isfile(modname):
                     print >>sys.stderr, "File \"%s\" does not exist" % modname
                     sys.exit(1)
-                self.assemble(modname, symtab, code)
+                self.assemble(modname, source, symtab, code)
+                continue
+            if len(line.strip()) == 0:
+                continue
             # Real parsing starts here.
-    
+            fields = line.split()
+            label = None
+            pseudolabel = None
+            opcode = None
+            operand = None
+            comment = None
+            if line.startswith('#'):
+                comment = line
+            else:
+                if '#' in line:
+                    comment = line[line.index('#'):]
+                if not line.startswith(' ') and not line.startswith('\t'):
+                    label = fields[0]
+                    if len(fields) == 1:
+                        # Label only.
+                        symtab[label] = SymbolTableEntry(label, None, loc)
+                        continue
+                    fields = fields[1:]
+                else:
+                    if line[1] == '+' or line[1] == '-':
+                        pseudolabel = fields[0]
+                        fields = fields[1:]
+                # TODO: how to handle interpretive code?
+                try:
+                    opcode = fields[0]
+                    operand = ""
+                    for field in fields[1:]:
+                        if field.startswith('#'):
+                            break
+                        operand += field
+                    if opcode == "EXTEND":
+                        self.mode = OpcodeType.EXTENDED
+                    if opcode in DIRECTIVES[self.architecture]:
+                        self.loc = DIRECTIVES[self.architecture][opcode].process(self.loc, symtab, label, operand)
+                    if opcode in INSTRUCTIONS[self.architecture]:
+                        self.loc = INSTRUCTIONS[self.architecture][opcode][self.mode].process(operand, self.loc)
+                except:
+                    print line
+                    print symtab
+                    raise
 
 def main():
 
@@ -166,10 +709,14 @@ def main():
     listfile = open(args[0].split('.')[0] + ".lst", 'w')
     binfile = open(args[0] + ".bin", 'wb')
 
-    assembler = Assembler(listfile, binfile)
+    assembler = Assembler(Architecture.AGC4_B2, listfile, binfile)
 
+    source = []
+    symtab = {}
+    code = {}
     for arg in args:
-        assembler.assemble(arg)
+        assembler.assemble(arg, source, symtab, code)
 
+    
 if __name__=="__main__":
     sys.exit(main())
