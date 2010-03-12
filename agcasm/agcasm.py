@@ -40,14 +40,16 @@ class ErasableMemoryType:
     UNSWITCHED = 0
     SWITCHED   = 1
 
-NUM_BANKS = {
+
+BANKS = {
+    # Each entry contains (start_address, size, number)
     MemoryType.ERASABLE: {
-        Architecture.AGC4_B1: , 
-        Architecture.AGC4_B2: 9
+        Architecture.AGC4_B1: (0, 0400, 0),    # TODO: number of erasable banks in Block I 
+        Architecture.AGC4_B2: (0, 0400, 8)
     },
     MemoryType.FIXED: {
-        Architecture.AGC4_B1: 24, 
-        Architecture.AGC4_B2: 36
+        Architecture.AGC4_B1: (02000, 02000, 24), 
+        Architecture.AGC4_B2: (02000, 02000, 36)
     }    
 }
 
@@ -69,13 +71,19 @@ class OperandType:
 
 
 class SymbolTableEntry:
+    
     def __init__(self, name=None, symbolic=None, value=-1):
         self.name = name
         self.symbolic = symbolic
         self.value = value
-        
+
+    def __str__(self):
+        return ("(%s, \"%s\", %s)" % (self.name, self.symbolic, self.value))
+
+
 # NOTE: Must be a new-style class.
 class Instruction(object):
+    
     def __init__(self, mnemonic, opcode, operandType):
         self.mnemonic = mnemonic
         self.opcode = opcode
@@ -254,6 +262,7 @@ class Instruction(object):
     
 # NOTE: Must be a new-style class.
 class Directive(object):
+    
     def __init__(self, mnemonic): 
         self.mnemonic = mnemonic
         self.loc = 0
@@ -379,7 +388,12 @@ class Directive(object):
         return loc
     
     def process_BLOCK(self, loc, symtab, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        if operand.isdigit():
+            bank = int(operand, 8)            
+            self.fbank = bank
+            self.loc = self.fbankloc[bank]
+        else:
+            print >>sys.stderr, "Invalid syntax"
         return loc
     
     def process_BNKSUM(self, loc, symtab, symbol, operand):
@@ -447,7 +461,7 @@ class Directive(object):
             op1 = int(operand.split('-')[0], 8)
             op2 = int(operand.split('-')[1], 8)
             if symbol:
-                symtab[symbol] = op2
+                symtab[symbol] = SymbolTableEntry(symbol, operand, op2)
         else:
             sys.exit("Syntax error: %s %s" % (self.mnemonic, self.operand))
         return loc
@@ -619,17 +633,29 @@ DIRECTIVES = {
 }
 
 
+class AssemblerData:
+    def __init__(self, architecture):
+        self.architecture = architecture
+        self.linecounter = 0
+        self.mode = OpcodeType.BASIC
+        self.loc = 0
+        self.bank = 0
+        self.ebankloc = {}
+        for bank in range(BANKS[MemoryType.ERASABLE][architecture][2]):
+            self.ebankloc[bank] = 0
+        self.fbankloc = {}
+        for bank in range(BANKS[MemoryType.FIXED][architecture][2]):
+            self.fbankloc[bank] = 0
+
+
 class Assembler:
     """Class defining an AGC assembler."""
 
     def __init__(self, architecture, listfile, binfile):
-        self.architecture = architecture
         self.listfile = listfile
         self.binfile = binfile
-        self.linecounter = 0
-        self.mode = OpcodeType.BASIC
-        self.loc = 0
-    
+        self.asmdata = AssemblerData(architecture)
+
     def assemble(self, srcfile, source, symtab, code):
         print "Assembling", srcfile
         lines = open(srcfile).readlines()
@@ -684,7 +710,10 @@ class Assembler:
                         self.loc = INSTRUCTIONS[self.architecture][opcode][self.mode].process(operand, self.loc)
                 except:
                     print line
-                    print symtab
+                    symbols = symtab.keys()
+                    symbols.sort()
+                    for symbol in symbols:
+                        print symtab[symbol]
                     raise
 
 def main():
