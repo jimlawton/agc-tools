@@ -71,15 +71,22 @@ class OperandType:
 
 
 class SymbolTableEntry:
-    
     def __init__(self, name=None, symbolic=None, value=-1):
         self.name = name
         self.symbolic = symbolic
         self.value = value
 
     def __str__(self):
-        return ("(%s, \"%s\", %06o)" % (self.name, self.symbolic, self.value))
-
+        text = "(%8s, "  % (self.name)
+        if self.symbolic:
+            text += "\"%-30s\", "  % (self.symbolic)
+        else:
+            text += "%-32s, " % ("None")
+        if self.value == -1:
+            text += "UNDEFINED)"
+        else:
+            text += "%06o)" % (self.value)
+        return text
 
 # NOTE: Must be a new-style class.
 class Instruction(object):
@@ -90,6 +97,9 @@ class Instruction(object):
         self.operandType = operandType
 
     def process(self, context, operand):
+        if context.mode == OpcodeType.EXTENDED and opcode not in INSTRUCTIONS[context.arch][OpcodeType.EXTENDED]:
+            Assembler.error("missing EXTEND before extended instruction")
+            sys.exit()
         self.__getattribute__("process_" + self.mnemonic)(operand)
         
     def process_AD(self, context, operand):
@@ -354,12 +364,15 @@ class Directive(object):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
     
     def process_BLOCK(self, context, symbol, operand):
-        if operand.isdigit():
-            bank = int(operand, 8)            
-            context.fbank = bank
-            context.loc = context.fbankloc[bank]
+        if operand:
+            if operand.isdigit():
+                bank = int(operand, 8)            
+                context.fbank = bank
+                context.loc = context.fbankloc[bank]
+            else:
+                Assembler.error("Invalid syntax")
         else:
-            print >>sys.stderr, "Invalid syntax"
+            Assembler.error("Invalid syntax")
     
     def process_BNKSUM(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
@@ -395,10 +408,14 @@ class Directive(object):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
     
     def process_EQUALS(self, context, symbol, operand):
-        if operand.isdigit():
-            context.symtab[symbol] = SymbolTableEntry(symbol, operand, int(operand, 8))
+        if operand:
+            if operand.isdigit():
+                context.symtab[symbol] = SymbolTableEntry(symbol, operand, int(operand, 8))
+            else:
+                context.symtab[symbol] = SymbolTableEntry(symbol, operand)
         else:
-            context.symtab[symbol] = SymbolTableEntry(symbol, operand)
+            context.symtab[symbol] = SymbolTableEntry(symbol, operand, context.loc)
+            context.loc += 1
     
     def process_ERASE(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
@@ -414,9 +431,9 @@ class Directive(object):
             op1 = int(operand.split('-')[0], 8)
             op2 = int(operand.split('-')[1], 8)
             if symbol:
-                context.symtab[symbol] = SymbolTableEntry(symbol, operand, op2)
+                context.symtab[symbol] = SymbolTableEntry(symbol, operand, op1)
         else:
-            sys.exit("Syntax error: %s %s" % (self.mnemonic, self.operand))
+            Assembler.error("syntax error: %s %s" % (self.mnemonic, self.operand))
     
     def process_MM(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
@@ -647,6 +664,8 @@ class Assembler:
                         if field.startswith('#'):
                             break
                         operand += field
+                    if operand == "":
+                            operand = None
                     if opcode == "EXTEND":
                         self.context.mode = OpcodeType.EXTENDED
                     if opcode in DIRECTIVES[self.context.arch]:
@@ -654,12 +673,21 @@ class Assembler:
                     if opcode in INSTRUCTIONS[self.context.arch]:
                         INSTRUCTIONS[self.context.arch][opcode][self.context.mode].process(self.context, operand)
                 except:
-                    print line
                     symbols = self.context.symtab.keys()
                     symbols.sort()
                     for symbol in symbols:
                         print self.context.symtab[symbol]
                     raise
+
+    def error(self, text):
+        print >>sys.stderr, "%s, line %d, error: %s" % (self.context.srcfile, self.context.linenum, text)
+
+    def warn(self, text):
+        print >>sys.stderr, "%s, line %d, warning: %s" % (self.context.srcfile, self.context.linenum, text)
+
+    def info(self, text):
+        print >>sys.stderr, "%s, line %d, %s" % (self.context.srcfile, self.context.linenum, text)
+
 
 def main():
 
