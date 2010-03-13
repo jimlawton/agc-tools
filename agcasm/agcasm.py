@@ -395,7 +395,10 @@ class Directive(object):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
     
     def process_EQUALS(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        if operand.isdigit():
+            context.symtab[symbol] = SymbolTableEntry(symbol, operand, int(operand, 8))
+        else:
+            context.symtab[symbol] = SymbolTableEntry(symbol, operand)
     
     def process_ERASE(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
