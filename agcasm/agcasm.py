@@ -78,7 +78,7 @@ class SymbolTableEntry:
         self.value = value
 
     def __str__(self):
-        return ("(%s, \"%s\", %s)" % (self.name, self.symbolic, self.value))
+        return ("(%s, \"%s\", %06o)" % (self.name, self.symbolic, self.value))
 
 
 # NOTE: Must be a new-style class.
