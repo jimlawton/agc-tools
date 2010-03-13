@@ -88,176 +88,173 @@ class Instruction(object):
         self.mnemonic = mnemonic
         self.opcode = opcode
         self.operandType = operandType
-        self.loc = 0
 
-    def process(self, operand, loc):
-        self.loc = loc
+    def process(self, context, operand):
         self.__getattribute__("process_" + self.mnemonic)(operand)
-        return self.loc
         
-    def process_AD(self, operand):
+    def process_AD(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_ADS(self, operand):
+    def process_ADS(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_AUG(self, operand):
+    def process_AUG(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_BZF(self, operand):
+    def process_BZF(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_BZMF(self, operand):
+    def process_BZMF(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_CA(self, operand):
+    def process_CA(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_CAE(self, operand):
+    def process_CAE(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_CAF(self, operand):
+    def process_CAF(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_CCS(self, operand):
+    def process_CCS(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_COM(self, operand):
+    def process_COM(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_CS(self, operand):
+    def process_CS(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DAS(self, operand):
+    def process_DAS(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DCA(self, operand):
+    def process_DCA(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DCOM(self, operand):
+    def process_DCOM(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DDOUBL(self, operand):
+    def process_DDOUBL(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DIM(self, operand):
+    def process_DIM(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DOUBLE(self, operand):
+    def process_DOUBLE(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DTCB(self, operand):
+    def process_DTCB(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DTCF(self, operand):
+    def process_DTCF(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DV(self, operand):
+    def process_DV(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DXCH(self, operand):
+    def process_DXCH(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_EDRUPT(self, operand):
+    def process_EDRUPT(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_EXTEND(self, operand):
+    def process_EXTEND(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_INCR(self, operand):
+    def process_INCR(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_INDEX(self, operand):
+    def process_INDEX(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_INHINT(self, operand):
+    def process_INHINT(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_LXCH(self, operand):
+    def process_LXCH(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_MASK(self, operand):
+    def process_MASK(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_MP(self, operand):
+    def process_MP(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_MSU(self, operand):
+    def process_MSU(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_NDX(self, operand):
+    def process_NDX(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_NOOP(self, operand):
+    def process_NOOP(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_OVSK(self, operand):
+    def process_OVSK(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_QXCH(self, operand):
+    def process_QXCH(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_RAND(self, operand):
+    def process_RAND(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_READ(self, operand):
+    def process_READ(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_RELINT(self, operand):
+    def process_RELINT(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_RESUME(self, operand):
+    def process_RESUME(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_RETURN(self, operand):
+    def process_RETURN(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_ROR(self, operand):
+    def process_ROR(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_RXOR(self, operand):
+    def process_RXOR(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_SQUARE(self, operand):
+    def process_SQUARE(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_SU(self, operand):
+    def process_SU(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_TC(self, operand):
+    def process_TC(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_TCAA(self, operand):
+    def process_TCAA(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_TCF(self, operand):
+    def process_TCF(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_TS(self, operand):
+    def process_TS(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_WAND(self, operand):
+    def process_WAND(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_WOR(self, operand):
+    def process_WOR(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_WRITE(self, operand):
+    def process_WRITE(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_XCH(self, operand):
+    def process_XCH(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_XLQ(self, operand):
+    def process_XLQ(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_XXALQ(self, operand):
+    def process_XXALQ(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_ZL(self, operand):
+    def process_ZL(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_ZQ(self, operand):
+    def process_ZQ(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
 # NOTE: Must be a new-style class.
@@ -265,242 +262,185 @@ class Directive(object):
     
     def __init__(self, mnemonic): 
         self.mnemonic = mnemonic
-        self.loc = 0
         
-    def process(self, loc, symtab, symbol, operand):
-        print "Opcode: \"%s\", Operand: \"%s\"" % (self.mnemonic, operand)
-        return self.__getattribute__("process_" + self.mnemonic)(loc, symtab, symbol, operand)
+    def process(self, context, symbol, operand):
+        self.__getattribute__("process_" + self.mnemonic)(context, symbol, operand)
         
-    def process_Minus1_DNADR(self, loc, symtab, symbol, operand):
+    def process_Minus1_DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_Minus2_CADR(self, loc, symtab, symbol, operand):
+    def process_Minus2_CADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_Minus2_DNADR(self, loc, symtab, symbol, operand):
+    def process_Minus2_DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_Minus3_DNADR(self, loc, symtab, symbol, operand):
+    def process_Minus3_DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_Minus4_DNADR(self, loc, symtab, symbol, operand):
+    def process_Minus4_DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_Minus5_DNADR(self, loc, symtab, symbol, operand):
+    def process_Minus5_DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_Minus6_DNADR(self, loc, symtab, symbol, operand):
+    def process_Minus6_DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_Minus_DNCHAN(self, loc, symtab, symbol, operand):
+    def process_Minus_DNCHAN(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_Minus_DNPTR(self, loc, symtab, symbol, operand):
+    def process_Minus_DNPTR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_Minus_GENADR(self, loc, symtab, symbol, operand):
+    def process_Minus_GENADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_1DNADR(self, loc, symtab, symbol, operand):
+    def process_1DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_2BCADR(self, loc, symtab, symbol, operand):
+    def process_2BCADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_2CADR(self, loc, symtab, symbol, operand):
+    def process_2CADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_2DEC(self, loc, symtab, symbol, operand):
+    def process_2DEC(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_2DEC_Star(self, loc, symtab, symbol, operand):
+    def process_2DEC_Star(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_2DNADR(self, loc, symtab, symbol, operand):
+    def process_2DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_2FCADR(self, loc, symtab, symbol, operand):
+    def process_2FCADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_2OCT(self, loc, symtab, symbol, operand):
+    def process_2OCT(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_3DNADR(self, loc, symtab, symbol, operand):
+    def process_3DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_4DNADR(self, loc, symtab, symbol, operand):
+    def process_4DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_5DNADR(self, loc, symtab, symbol, operand):
+    def process_5DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_6DNADR(self, loc, symtab, symbol, operand):
+    def process_6DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_Equals_Sign(self, loc, symtab, symbol, operand):
+    def process_Equals_Sign(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_Equals_ECADR(self, loc, symtab, symbol, operand):
+    def process_Equals_ECADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_Equals_MINUS(self, loc, symtab, symbol, operand):
+    def process_Equals_MINUS(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_ADRES(self, loc, symtab, symbol, operand):
+    def process_ADRES(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_BANK(self, loc, symtab, symbol, operand):
+    def process_BANK(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_BBCON(self, loc, symtab, symbol, operand):
+    def process_BBCON(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_BBCON_Star(self, loc, symtab, symbol, operand):
+    def process_BBCON_Star(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_BLOCK(self, loc, symtab, symbol, operand):
+    def process_BLOCK(self, context, symbol, operand):
         if operand.isdigit():
             bank = int(operand, 8)            
-            self.fbank = bank
-            self.loc = self.fbankloc[bank]
+            context.fbank = bank
+            context.loc = context.fbankloc[bank]
         else:
             print >>sys.stderr, "Invalid syntax"
-        return loc
     
-    def process_BNKSUM(self, loc, symtab, symbol, operand):
+    def process_BNKSUM(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_CADR(self, loc, symtab, symbol, operand):
+    def process_CADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_CHECK_Equals(self, loc, symtab, symbol, operand):
+    def process_CHECK_Equals(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_COUNT(self, loc, symtab, symbol, operand):
+    def process_COUNT(self, context, symbol, operand):
         print "Ignoring directive: %s %s" % (self.mnemonic, operand)
-        return loc
     
-    def process_COUNT_Star(self, loc, symtab, symbol, operand):
+    def process_COUNT_Star(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_DEC(self, loc, symtab, symbol, operand):
+    def process_DEC(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_DEC_Star(self, loc, symtab, symbol, operand):
+    def process_DEC_Star(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_DNCHAN(self, loc, symtab, symbol, operand):
+    def process_DNCHAN(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_DNPTR(self, loc, symtab, symbol, operand):
+    def process_DNPTR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_EBANK_Equals(self, loc, symtab, symbol, operand):
+    def process_EBANK_Equals(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_ECADR(self, loc, symtab, symbol, operand):
+    def process_ECADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_EQUALS(self, loc, symtab, symbol, operand):
+    def process_EQUALS(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_ERASE(self, loc, symtab, symbol, operand):
+    def process_ERASE(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_FCADR(self, loc, symtab, symbol, operand):
+    def process_FCADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_GENADR(self, loc, symtab, symbol, operand):
+    def process_GENADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_MEMORY(self, loc, symtab, symbol, operand):
+    def process_MEMORY(self, context, symbol, operand):
         if '-' in operand:
             op1 = int(operand.split('-')[0], 8)
             op2 = int(operand.split('-')[1], 8)
             if symbol:
-                symtab[symbol] = SymbolTableEntry(symbol, operand, op2)
+                context.symtab[symbol] = SymbolTableEntry(symbol, operand, op2)
         else:
             sys.exit("Syntax error: %s %s" % (self.mnemonic, self.operand))
-        return loc
     
-    def process_MM(self, loc, symtab, symbol, operand):
+    def process_MM(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_NV(self, loc, symtab, symbol, operand):
+    def process_NV(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_OCT(self, loc, symtab, symbol, operand):
+    def process_OCT(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_OCTAL(self, loc, symtab, symbol, operand):
+    def process_OCTAL(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_REMADR(self, loc, symtab, symbol, operand):
+    def process_REMADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_SBANK_Equals(self, loc, symtab, symbol, operand):
+    def process_SBANK_Equals(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_SETLOC(self, loc, symtab, symbol, operand):
+    def process_SETLOC(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_SUBRO(self, loc, symtab, symbol, operand):
+    def process_SUBRO(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
     
-    def process_VN(self, loc, symtab, symbol, operand):
+    def process_VN(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
-        return loc
 
 
 INSTRUCTIONS = { 
@@ -633,41 +573,43 @@ DIRECTIVES = {
 }
 
 
-class AssemblerData:
-    def __init__(self, architecture):
-        self.architecture = architecture
-        self.linecounter = 0
-        self.mode = OpcodeType.BASIC
-        self.loc = 0
-        self.bank = 0
-        self.ebankloc = {}
-        for bank in range(BANKS[MemoryType.ERASABLE][architecture][2]):
-            self.ebankloc[bank] = 0
-        self.fbankloc = {}
-        for bank in range(BANKS[MemoryType.FIXED][architecture][2]):
-            self.fbankloc[bank] = 0
-
-
 class Assembler:
     """Class defining an AGC assembler."""
 
-    def __init__(self, architecture, listfile, binfile):
-        self.listfile = listfile
-        self.binfile = binfile
-        self.asmdata = AssemblerData(architecture)
+    class Context:
+        def __init__(self, arch, listfile, binfile):
+            self.arch = arch
+            self.listfile = listfile
+            self.binfile = binfile
+            self.source = []
+            self.symtab = {}
+            self.code = {}
+            self.linecounter = 0
+            self.mode = OpcodeType.BASIC
+            self.loc = 0
+            self.bank = 0
+            self.ebankloc = {}
+            for bank in range(BANKS[MemoryType.ERASABLE][arch][2]):
+                self.ebankloc[bank] = 0
+            self.fbankloc = {}
+            for bank in range(BANKS[MemoryType.FIXED][arch][2]):
+                self.fbankloc[bank] = 0
 
-    def assemble(self, srcfile, source, symtab, code):
+    def __init__(self, arch, listfile, binfile):
+        self.context = Assembler.Context(arch, listfile, binfile)
+        
+    def assemble(self, srcfile):
         print "Assembling", srcfile
         lines = open(srcfile).readlines()
         for line in lines:
-            source.append(line.expandtabs(8))
-            self.linecounter += 1
+            self.context.source.append(line.expandtabs(8))
+            self.context.linecounter += 1
             if line.startswith('$'):
                 modname = line[1:].split()[0]
                 if not os.path.isfile(modname):
                     print >>sys.stderr, "File \"%s\" does not exist" % modname
                     sys.exit(1)
-                self.assemble(modname, source, symtab, code)
+                self.assemble(modname)
                 continue
             if len(line.strip()) == 0:
                 continue
@@ -687,7 +629,7 @@ class Assembler:
                     label = fields[0]
                     if len(fields) == 1:
                         # Label only.
-                        symtab[label] = SymbolTableEntry(label, None, loc)
+                        self.context.symtab[label] = SymbolTableEntry(label, None, loc)
                         continue
                     fields = fields[1:]
                 else:
@@ -703,17 +645,17 @@ class Assembler:
                             break
                         operand += field
                     if opcode == "EXTEND":
-                        self.mode = OpcodeType.EXTENDED
-                    if opcode in DIRECTIVES[self.architecture]:
-                        self.loc = DIRECTIVES[self.architecture][opcode].process(self.loc, symtab, label, operand)
-                    if opcode in INSTRUCTIONS[self.architecture]:
-                        self.loc = INSTRUCTIONS[self.architecture][opcode][self.mode].process(operand, self.loc)
+                        self.context.mode = OpcodeType.EXTENDED
+                    if opcode in DIRECTIVES[self.context.arch]:
+                        DIRECTIVES[self.context.arch][opcode].process(self.context, label, operand)
+                    if opcode in INSTRUCTIONS[self.context.arch]:
+                        INSTRUCTIONS[self.context.arch][opcode][self.context.mode].process(self.context, operand)
                 except:
                     print line
-                    symbols = symtab.keys()
+                    symbols = self.context.symtab.keys()
                     symbols.sort()
                     for symbol in symbols:
-                        print symtab[symbol]
+                        print self.context.symtab[symbol]
                     raise
 
 def main():
@@ -740,11 +682,8 @@ def main():
 
     assembler = Assembler(Architecture.AGC4_B2, listfile, binfile)
 
-    source = []
-    symtab = {}
-    code = {}
     for arg in args:
-        assembler.assemble(arg, source, symtab, code)
+        assembler.assemble(arg)
 
     
 if __name__=="__main__":
