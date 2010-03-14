@@ -22,6 +22,7 @@
 import os
 import sys
 import glob
+import re
 from optparse import OptionParser
 
 
@@ -88,6 +89,17 @@ class SymbolTableEntry:
             text += "%06o)" % (self.value)
         return text
 
+
+def parseNumber(text):
+    # TODO: make sure it's a number
+    
+    if text.endswith('D'):
+        number = int(text[:-1])
+    else:
+        number = int(text, 8)
+    return number
+
+
 # NOTE: Must be a new-style class.
 class Instruction(object):
     
@@ -98,7 +110,7 @@ class Instruction(object):
 
     def process(self, context, operand):
         if context.mode == OpcodeType.EXTENDED and opcode not in INSTRUCTIONS[context.arch][OpcodeType.EXTENDED]:
-            Assembler.error("missing EXTEND before extended instruction")
+            context.error("missing EXTEND before extended instruction")
             sys.exit()
         self.__getattribute__("process_" + self.mnemonic)(operand)
         
@@ -270,11 +282,15 @@ class Instruction(object):
 # NOTE: Must be a new-style class.
 class Directive(object):
     
-    def __init__(self, mnemonic): 
-        self.mnemonic = mnemonic
+    def __init__(self, name, mnemonic=None):
+        if mnemonic:
+            self.mnemonic = mnemonic
+        else:
+            self.mnemonic = name
+        self.name = name
         
     def process(self, context, symbol, operand):
-        self.__getattribute__("process_" + self.mnemonic)(context, symbol, operand)
+        self.__getattribute__("process_" + self.name)(context, symbol, operand)
         
     def process_Minus1_DNADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
@@ -355,7 +371,15 @@ class Directive(object):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
     
     def process_BANK(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        if operand:
+            if operand.isdigit():
+                bank = int(operand, 8)            
+                context.fbank = bank
+                context.loc = (bank * 02000) + context.fbankloc[bank]
+            else:
+                context.error("Invalid syntax")
+        else:
+            context.loc = (context.fbank * 02000) + context.fbankloc[context.fbank]
     
     def process_BBCON(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
@@ -366,16 +390,20 @@ class Directive(object):
     def process_BLOCK(self, context, symbol, operand):
         if operand:
             if operand.isdigit():
-                bank = int(operand, 8)            
-                context.fbank = bank
-                context.loc = context.fbankloc[bank]
+                bank = int(operand, 8)
+                if bank == 0:
+                    context.ebank = bank
+                    context.loc = (bank * 0400) + context.ebankloc[bank]
+                else:
+                    context.fbank = bank
+                    context.loc = (bank * 02000) + context.fbankloc[bank]
             else:
-                Assembler.error("Invalid syntax")
+                context.error("Invalid syntax")
         else:
-            Assembler.error("Invalid syntax")
+            context.error("Invalid syntax")
     
     def process_BNKSUM(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.info("ignoring BNKSUM directive")
     
     def process_CADR(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
@@ -384,7 +412,7 @@ class Directive(object):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
     
     def process_COUNT(self, context, symbol, operand):
-        print "Ignoring directive: %s %s" % (self.mnemonic, operand)
+        context.info("ignoring COUNT directive")
     
     def process_COUNT_Star(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
@@ -433,7 +461,7 @@ class Directive(object):
             if symbol:
                 context.symtab[symbol] = SymbolTableEntry(symbol, operand, op1)
         else:
-            Assembler.error("syntax error: %s %s" % (self.mnemonic, self.operand))
+            context.error("syntax error: %s %s" % (self.mnemonic, self.operand))
     
     def process_MM(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
@@ -534,21 +562,21 @@ INSTRUCTIONS = {
 
 DIRECTIVES = {
     Architecture.AGC4_B2 : {
-        "-1DNADR":  Directive("Minus1_DNADR"),
-        "-2CADR":   Directive("Minus2_CADR"),
-        "-2DNADR":  Directive("Minus2_DNADR"),
-        "-3DNADR":  Directive("Minus3_DNADR"),
-        "-4DNADR":  Directive("Minus4_DNADR"),
-        "-5DNADR":  Directive("Minus5_DNADR"),
-        "-6DNADR":  Directive("Minus6_DNADR"),
-        "-DNCHAN":  Directive("Minus_DNCHAN"),
-        "-DNPTR":   Directive("Minus_DNPTR"),
-        "-GENADR":  Directive("Minus_GENADR"),
+        "-1DNADR":  Directive("Minus1_DNADR", "-1DNADR"),
+        "-2CADR":   Directive("Minus2_CADR",  "-2CADR"),
+        "-2DNADR":  Directive("Minus2_DNADR", "-2DNADR"),
+        "-3DNADR":  Directive("Minus3_DNADR", "-3DNADR"),
+        "-4DNADR":  Directive("Minus4_DNADR", "-4DNADR"),
+        "-5DNADR":  Directive("Minus5_DNADR", "-5DNADR"),
+        "-6DNADR":  Directive("Minus6_DNADR", "-6DNADR"),
+        "-DNCHAN":  Directive("Minus_DNCHAN", "-DNCHAN"),
+        "-DNPTR":   Directive("Minus_DNPTR",  "-DNPTR"),
+        "-GENADR":  Directive("Minus_GENADR", "-GENADR"),
         "1DNADR":   Directive("1DNADR"),
         "2BCADR":   Directive("2BCADR"),
         "2CADR":    Directive("2CADR"),
         "2DEC":     Directive("2DEC"),
-        "2DEC*":    Directive("2DEC_Star"),
+        "2DEC*":    Directive("2DEC_Star",    "2DEC*"),
         "2DNADR":   Directive("2DNADR"),
         "2FCADR":   Directive("2FCADR"), 
         "2OCT":     Directive("2OCT"),
@@ -556,24 +584,24 @@ DIRECTIVES = {
         "4DNADR":   Directive("4DNADR"),
         "5DNADR":   Directive("5DNADR"),
         "6DNADR":   Directive("6DNADR"),
-        "=":        Directive("Equals_Sign"),
-        "=ECADR":   Directive("Equals_ECADR"),
-        "=MINUS":   Directive("Equals_MINUS"),
+        "=":        Directive("Equals_Sign",  "="),
+        "=ECADR":   Directive("Equals_ECADR", "=ECADR"),
+        "=MINUS":   Directive("Equals_MINUS"  "=MINUS"),
         "ADRES":    Directive("ADRES"),
         "BANK":     Directive("BANK"),
         "BBCON":    Directive("BBCON"),
-        "BBCON*":   Directive("BBCON_Star"),
+        "BBCON*":   Directive("BBCON_Star",   "BBCON*"),
         "BLOCK":    Directive("BLOCK"),
         "BNKSUM":   Directive("BNKSUM"),
         "CADR":     Directive("CADR"),
-        "CHECK=":   Directive("CHECK_Equals"),
+        "CHECK=":   Directive("CHECK_Equals", "CHECK="),
         "COUNT":    Directive("COUNT"),
-        "COUNT*":   Directive("COUNT_Star"),
+        "COUNT*":   Directive("COUNT_Star",   "COUNT*"),
         "DEC":      Directive("DEC"),
-        "DEC*":     Directive("DEC_Star"),
+        "DEC*":     Directive("DEC_Star",     "DEC*"),
         "DNCHAN":   Directive("DNCHAN"),
         "DNPTR":    Directive("DNPTR"),
-        "EBANK=":   Directive("EBANK_Equals"),
+        "EBANK=":   Directive("EBANK_Equals", "EBANK="),
         "ECADR":    Directive("ECADR"),
         "EQUALS":   Directive("EQUALS"),
         "ERASE":    Directive("ERASE"),
@@ -585,7 +613,7 @@ DIRECTIVES = {
         "OCT":      Directive("OCT"),
         "OCTAL":    Directive("OCTAL"),
         "REMADR":   Directive("REMADR"),
-        "SBANK=":   Directive("SBANK_Equals"),
+        "SBANK=":   Directive("SBANK_Equals", "SBANK="),
         "SETLOC":   Directive("SETLOC"),
         "SUBRO":    Directive("SUBRO"),
         "VN":       Directive("VN")
@@ -601,10 +629,12 @@ class Assembler:
             self.arch = arch
             self.listfile = listfile
             self.binfile = binfile
+            self.srcfile = None
             self.source = []
             self.symtab = {}
             self.code = {}
-            self.linecounter = 0
+            self.linenum = 0
+            self.global_linenum = 0
             self.mode = OpcodeType.BASIC
             self.loc = 0
             self.bank = 0
@@ -617,13 +647,19 @@ class Assembler:
 
     def __init__(self, arch, listfile, binfile):
         self.context = Assembler.Context(arch, listfile, binfile)
+        self.context.error = self.error
+        self.context.warn = self.warn
+        self.context.info = self.info
         
     def assemble(self, srcfile):
         print "Assembling", srcfile
+        self.context.srcfile = srcfile
+        self.context.linenum = 0
         lines = open(srcfile).readlines()
         for line in lines:
             self.context.source.append(line.expandtabs(8))
-            self.context.linecounter += 1
+            self.context.linenum += 1
+            self.context.global_linenum += 1
             if line.startswith('$'):
                 modname = line[1:].split()[0]
                 if not os.path.isfile(modname):
