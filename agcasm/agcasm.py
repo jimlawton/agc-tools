@@ -27,7 +27,7 @@ from optparse import OptionParser
 
 class Architecture:
     AGC1    = 0    # Mod1
-    AGC2C   = 1    # Mod2C
+    AGC2    = 1    # Mod2
     AGC3    = 2    # AGC3
     AGC4_B1 = 3    # AGC4 Block I
     AGC4_B2 = 4    # AGC4 Block II
@@ -53,71 +53,104 @@ class BankDescriptor:
             self.name = name
         else:
             if banknum:
-                self.name = "%02o" % banknum
+                self.name = "%03o" % banknum
         self.superbank = superbank
 
 # Memory Map
-MAP = {
+MAPS = {
     # Each entry contains (start_address, size, number)
     Architecture.AGC4_B1: {
     }, 
     Architecture.AGC4_B2: {
-        000000: BankDescriptor(000000, MemoryType.ERASABLE,    BankType.UNSWITCHED, 00,  0400, "E0"),
-        000400: BankDescriptor(000400, MemoryType.ERASABLE,    BankType.UNSWITCHED, 01,  0400, "E1"),
-        001000: BankDescriptor(001000, MemoryType.ERASABLE,    BankType.UNSWITCHED, 02,  0400, "E2"),
-        001400: BankDescriptor(001400, MemoryType.ERASABLE,    BankType.SWITCHED,   03,  0400, "E3"),
-        002000: BankDescriptor(002000, MemoryType.ERASABLE,    BankType.SWITCHED,   04,  0400, "E4"),
-        002400: BankDescriptor(002400, MemoryType.ERASABLE,    BankType.SWITCHED,   05,  0400, "E5"),
-        003000: BankDescriptor(003000, MemoryType.ERASABLE,    BankType.SWITCHED,   06,  0400, "E6"),
-        003400: BankDescriptor(003400, MemoryType.ERASABLE,    BankType.SWITCHED,   07,  0400, "E7"),
-        004000: BankDescriptor(004000, MemoryType.FIXED,       BankType.UNSWITCHED, 002, 02000),
-        006000: BankDescriptor(006000, MemoryType.FIXED,       BankType.UNSWITCHED, 003, 02000),
-        010000: BankDescriptor(010000, MemoryType.FIXED,       BankType.SWITCHED,   000, 02000),
-        012000: BankDescriptor(012000, MemoryType.FIXED,       BankType.SWITCHED,   001, 02000),
-        014000: BankDescriptor(014000, MemoryType.NONEXISTENT),        
-        016000: BankDescriptor(016000, MemoryType.NONEXISTENT),        
-        020000: BankDescriptor(020000, MemoryType.FIXED,       BankType.SWITCHED,   004, 02000),
-        022000: BankDescriptor(022000, MemoryType.FIXED,       BankType.SWITCHED,   005, 02000),
-        024000: BankDescriptor(024000, MemoryType.FIXED,       BankType.SWITCHED,   006, 02000),
-        026000: BankDescriptor(026000, MemoryType.FIXED,       BankType.SWITCHED,   007, 02000),
-        030000: BankDescriptor(030000, MemoryType.FIXED,       BankType.SWITCHED,   010, 02000),
-        032000: BankDescriptor(032000, MemoryType.FIXED,       BankType.SWITCHED,   011, 02000),
-        034000: BankDescriptor(034000, MemoryType.FIXED,       BankType.SWITCHED,   012, 02000),
-        036000: BankDescriptor(036000, MemoryType.FIXED,       BankType.SWITCHED,   013, 02000),
-        040000: BankDescriptor(040000, MemoryType.FIXED,       BankType.SWITCHED,   014, 02000),
-        042000: BankDescriptor(042000, MemoryType.FIXED,       BankType.SWITCHED,   015, 02000),
-        044000: BankDescriptor(044000, MemoryType.FIXED,       BankType.SWITCHED,   016, 02000),
-        046000: BankDescriptor(046000, MemoryType.FIXED,       BankType.SWITCHED,   017, 02000),
-        050000: BankDescriptor(050000, MemoryType.FIXED,       BankType.SWITCHED,   020, 02000),
-        052000: BankDescriptor(052000, MemoryType.FIXED,       BankType.SWITCHED,   021, 02000),
-        054000: BankDescriptor(054000, MemoryType.FIXED,       BankType.SWITCHED,   022, 02000),
-        056000: BankDescriptor(056000, MemoryType.FIXED,       BankType.SWITCHED,   023, 02000),
-        060000: BankDescriptor(060000, MemoryType.FIXED,       BankType.SWITCHED,   024, 02000),
-        062000: BankDescriptor(062000, MemoryType.FIXED,       BankType.SWITCHED,   025, 02000),
-        064000: BankDescriptor(064000, MemoryType.FIXED,       BankType.SWITCHED,   026, 02000),
-        066000: BankDescriptor(066000, MemoryType.FIXED,       BankType.SWITCHED,   027, 02000),
-        070000: BankDescriptor(070000, MemoryType.FIXED,       BankType.SWITCHED,   030, 02000, 0),
-        072000: BankDescriptor(072000, MemoryType.FIXED,       BankType.SWITCHED,   031, 02000, 0),
-        074000: BankDescriptor(074000, MemoryType.FIXED,       BankType.SWITCHED,   032, 02000, 0),
-        076000: BankDescriptor(076000, MemoryType.FIXED,       BankType.SWITCHED,   033, 02000, 0),
-        100000: BankDescriptor(100000, MemoryType.FIXED,       BankType.SWITCHED,   034, 02000, 0),
-        102000: BankDescriptor(102000, MemoryType.FIXED,       BankType.SWITCHED,   035, 02000, 0),
-        104000: BankDescriptor(104000, MemoryType.FIXED,       BankType.SWITCHED,   036, 02000, 0),
-        106000: BankDescriptor(106000, MemoryType.FIXED,       BankType.SWITCHED,   037, 02000, 0),
-        110000: BankDescriptor(110000, MemoryType.FIXED,       BankType.SWITCHED,   040, 02000, 1),
-        112000: BankDescriptor(112000, MemoryType.FIXED,       BankType.SWITCHED,   041, 02000, 1),
-        114000: BankDescriptor(114000, MemoryType.FIXED,       BankType.SWITCHED,   042, 02000, 1),
-        116000: BankDescriptor(116000, MemoryType.FIXED,       BankType.SWITCHED,   043, 02000, 1)
+        0000000: BankDescriptor(0000000, MemoryType.ERASABLE, BankType.UNSWITCHED, 00,  0400, "E0"),
+        0000400: BankDescriptor(0000400, MemoryType.ERASABLE, BankType.UNSWITCHED, 01,  0400, "E1"),
+        0001000: BankDescriptor(0001000, MemoryType.ERASABLE, BankType.UNSWITCHED, 02,  0400, "E2"),
+        0001400: BankDescriptor(0001400, MemoryType.ERASABLE, BankType.SWITCHED,   03,  0400, "E3"),
+        0002000: BankDescriptor(0002000, MemoryType.ERASABLE, BankType.SWITCHED,   04,  0400, "E4"),
+        0002400: BankDescriptor(0002400, MemoryType.ERASABLE, BankType.SWITCHED,   05,  0400, "E5"),
+        0003000: BankDescriptor(0003000, MemoryType.ERASABLE, BankType.SWITCHED,   06,  0400, "E6"),
+        0003400: BankDescriptor(0003400, MemoryType.ERASABLE, BankType.SWITCHED,   07,  0400, "E7"),
+        0004000: BankDescriptor(0004000, MemoryType.FIXED,    BankType.UNSWITCHED, 002, 02000),
+        0006000: BankDescriptor(0006000, MemoryType.FIXED,    BankType.UNSWITCHED, 003, 02000),
+        0010000: BankDescriptor(0010000, MemoryType.FIXED,    BankType.SWITCHED,   000, 02000),
+        0012000: BankDescriptor(0012000, MemoryType.FIXED,    BankType.SWITCHED,   001, 02000),
+        0014000: BankDescriptor(0014000, MemoryType.NONEXISTENT),        
+        0016000: BankDescriptor(0016000, MemoryType.NONEXISTENT),        
+        0020000: BankDescriptor(0020000, MemoryType.FIXED,    BankType.SWITCHED,   004, 02000),
+        0022000: BankDescriptor(0022000, MemoryType.FIXED,    BankType.SWITCHED,   005, 02000),
+        0024000: BankDescriptor(0024000, MemoryType.FIXED,    BankType.SWITCHED,   006, 02000),
+        0026000: BankDescriptor(0026000, MemoryType.FIXED,    BankType.SWITCHED,   007, 02000),
+        0030000: BankDescriptor(0030000, MemoryType.FIXED,    BankType.SWITCHED,   010, 02000),
+        0032000: BankDescriptor(0032000, MemoryType.FIXED,    BankType.SWITCHED,   011, 02000),
+        0034000: BankDescriptor(0034000, MemoryType.FIXED,    BankType.SWITCHED,   012, 02000),
+        0036000: BankDescriptor(0036000, MemoryType.FIXED,    BankType.SWITCHED,   013, 02000),
+        0040000: BankDescriptor(0040000, MemoryType.FIXED,    BankType.SWITCHED,   014, 02000),
+        0042000: BankDescriptor(0042000, MemoryType.FIXED,    BankType.SWITCHED,   015, 02000),
+        0044000: BankDescriptor(0044000, MemoryType.FIXED,    BankType.SWITCHED,   016, 02000),
+        0046000: BankDescriptor(0046000, MemoryType.FIXED,    BankType.SWITCHED,   017, 02000),
+        0050000: BankDescriptor(0050000, MemoryType.FIXED,    BankType.SWITCHED,   020, 02000),
+        0052000: BankDescriptor(0052000, MemoryType.FIXED,    BankType.SWITCHED,   021, 02000),
+        0054000: BankDescriptor(0054000, MemoryType.FIXED,    BankType.SWITCHED,   022, 02000),
+        0056000: BankDescriptor(0056000, MemoryType.FIXED,    BankType.SWITCHED,   023, 02000),
+        0060000: BankDescriptor(0060000, MemoryType.FIXED,    BankType.SWITCHED,   024, 02000),
+        0062000: BankDescriptor(0062000, MemoryType.FIXED,    BankType.SWITCHED,   025, 02000),
+        0064000: BankDescriptor(0064000, MemoryType.FIXED,    BankType.SWITCHED,   026, 02000),
+        0066000: BankDescriptor(0066000, MemoryType.FIXED,    BankType.SWITCHED,   027, 02000),
+        0070000: BankDescriptor(0070000, MemoryType.FIXED,    BankType.SWITCHED,   030, 02000, 0),
+        0072000: BankDescriptor(0072000, MemoryType.FIXED,    BankType.SWITCHED,   031, 02000, 0),
+        0074000: BankDescriptor(0074000, MemoryType.FIXED,    BankType.SWITCHED,   032, 02000, 0),
+        0076000: BankDescriptor(0076000, MemoryType.FIXED,    BankType.SWITCHED,   033, 02000, 0),
+        0100000: BankDescriptor(0100000, MemoryType.FIXED,    BankType.SWITCHED,   034, 02000, 0),
+        0102000: BankDescriptor(0102000, MemoryType.FIXED,    BankType.SWITCHED,   035, 02000, 0),
+        0104000: BankDescriptor(0104000, MemoryType.FIXED,    BankType.SWITCHED,   036, 02000, 0),
+        0106000: BankDescriptor(0106000, MemoryType.FIXED,    BankType.SWITCHED,   037, 02000, 0),
+        0110000: BankDescriptor(0110000, MemoryType.FIXED,    BankType.SWITCHED,   040, 02000, 1),
+        0112000: BankDescriptor(0112000, MemoryType.FIXED,    BankType.SWITCHED,   041, 02000, 1),
+        0114000: BankDescriptor(0114000, MemoryType.FIXED,    BankType.SWITCHED,   042, 02000, 1),
+        0116000: BankDescriptor(0116000, MemoryType.FIXED,    BankType.SWITCHED,   043, 02000, 1)
     } 
 }
 
 
-def convertBankToPA(bank, address):
-    pass
-
-def convertPAToBank(pa):
-    pass
-
+class MemoryMap:
+    def __init__(self, arch, verbose=False):
+        self.verbose = verbose
+        self.arch = arch
+        self.memmap = MAPS[arch]
+        self.banks = { MemoryType.ERASABLE: {}, MemoryType.FIXED: {} }
+        for startaddr in self.memmap:
+            if self.memmap[startaddr].memtype == MemoryType.ERASABLE:
+                self.banks[MemoryType.ERASABLE][self.memmap[startaddr].banknum] = self.memmap[startaddr]
+            elif self.memmap[startaddr].memtype == MemoryType.FIXED:
+                self.banks[MemoryType.FIXED][self.memmap[startaddr].banknum] = self.memmap[startaddr]
+        
+    def convertBankToPA(self, banktype, bank, address=0):
+        pa = self.banks[banktype][bank].startaddr + address
+        #print "(%2s,%04o) -> %06o" % (self.banks[banktype][bank].name, address, pa)
+        print "(%02o,%04o) -> %06o" % (bank, address, pa)
+        return pa
+    
+    def convertBankToString(self, bank, address=0):
+        return "%02o,%04o" % (bank, address)
+        
+    def convertPAToBank(self, pa):
+        bank = -1
+        offset = 0
+        found = False
+        for startaddr in self.memmap:
+            if pa < startaddr:
+                found = True
+                break
+        if found:
+            bank = self.memmap[startaddr].banknum
+            offset = pa - self.memmap[startaddr].startaddr
+            print "%06o -> (%2s,%04o)" % (pa, self.memmap[startaddr].name, address)
+    
+        return (bank, offset)
+    
+    def convertPAToString(self, pa):
+        return "%06o" % (pa)
+    
 
 class OpcodeType:
     BASIC    = 0
@@ -137,7 +170,8 @@ class OperandType:
 
 class SymbolTableEntry:
     
-    def __init__(self, name=None, symbolic=None, value=-1):
+    def __init__(self, context, name, symbolic=None, value=-1):
+        self.context = context
         self.name = name
         self.symbolic = symbolic
         self.value = value
@@ -151,19 +185,20 @@ class SymbolTableEntry:
         if self.value == -1:
             text += "UNDEFINED)"
         else:
-            text += "%06o)" % (self.value)
+            text += "%s)" % self.context.memmap.convertPAToString(self.value)
         return text
 
 class SymbolTable:
-    def __init__(self):
+    def __init__(self, context):
         self.symbols = {}
+        self.context = context
         
     def add(self, name=None, symbolic=None, value=-1):
         if name in self.symbols:
             print >>sys.stderr, "Error, symbol \"%s\" already defined!" % (name)
             sys.exit()
         else:
-            self.symbols[name] = SymbolTableEntry(name, symbolic, value)
+            self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value)
 
     def keys(self):
         return self.symbols.keys()
@@ -176,6 +211,7 @@ class SymbolTable:
         symbols.sort()
         for symbol in symbols:
             print self.symbols[symbol]
+
 
 def parseNumber(text):
     # TODO: make sure it's a number
@@ -380,99 +416,132 @@ class Directive(object):
         self.__getattribute__("process_" + self.name)(context, symbol, operand)
         
     def process_Minus1_DNADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_Minus2_CADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_Minus2_DNADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_Minus3_DNADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_Minus4_DNADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_Minus5_DNADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_Minus6_DNADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_Minus_DNCHAN(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_Minus_DNPTR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_Minus_GENADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_1DNADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_2BCADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_2CADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_2DEC(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_2DEC_Star(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_2DNADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_2FCADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_2OCT(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_3DNADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_4DNADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_5DNADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_6DNADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_Equals_Sign(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        if operand:
+            if operand.isdigit():
+                context.symtab.add(symbol, operand, int(operand, 8))
+            else:
+                context.symtab.add(symbol, operand)
+        else:
+            context.symtab.add(symbol, operand, context.loc)
     
     def process_Equals_ECADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_Equals_MINUS(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_ADRES(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_BANK(self, context, symbol, operand):
         if operand:
             if operand.isdigit():
                 bank = int(operand, 8)            
                 context.fbank = bank
-                context.loc = (bank * 02000) + context.bankloc[bank]
+                context.loc = context.memmap.convertBankToPA(MemoryType.FIXED, bank, context.bankloc[bank])
             else:
-                context.error("Invalid syntax")
+                context.error("invalid syntax")
         else:
-            context.loc = (context.fbank * 02000) + context.bankloc[context.fbank]
+            context.loc = context.memmap.convertBanktoPA(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
     
     def process_BBCON(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_BBCON_Star(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_BLOCK(self, context, symbol, operand):
         if operand:
@@ -480,47 +549,56 @@ class Directive(object):
                 bank = int(operand, 8)
                 if bank == 0:
                     context.ebank = bank
-                    context.loc = (bank * 0400) + context.bankloc[bank]
+                    context.loc = context.memmap.convertBankToPA(MemoryType.ERASABLE, bank, context.bankloc[bank])
                 else:
                     context.fbank = bank
-                    context.loc = (bank * 02000) + context.bankloc[bank]
+                    context.loc = context.memmap.convertBankToPA(MemoryType.FIXED, bank, context.bankloc[bank])
             else:
-                context.error("Invalid syntax")
+                context.error("invalid syntax")
         else:
-            context.error("Invalid syntax")
+            context.error("invalid syntax")
     
     def process_BNKSUM(self, context, symbol, operand):
         context.info("ignoring BNKSUM directive")
     
     def process_CADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_CHECK_Equals(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_COUNT(self, context, symbol, operand):
         context.info("ignoring COUNT directive")
     
     def process_COUNT_Star(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_DEC(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_DEC_Star(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_DNCHAN(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_DNPTR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_EBANK_Equals(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_ECADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_EQUALS(self, context, symbol, operand):
         if operand:
@@ -530,16 +608,18 @@ class Directive(object):
                 context.symtab.add(symbol, operand)
         else:
             context.symtab.add(symbol, operand, context.loc)
-            context.loc += 1
     
     def process_ERASE(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_FCADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_GENADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_MEMORY(self, context, symbol, operand):
         if '-' in operand:
@@ -548,34 +628,43 @@ class Directive(object):
             if symbol:
                 context.symtab.add(symbol, operand, op1)
         else:
-            context.error("syntax error: %s %s" % (self.mnemonic, self.operand))
+            context.error("syntax error: %s %s" % (self.mnemonic, operand))
     
     def process_MM(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_NV(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_OCT(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_OCTAL(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_REMADR(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_SBANK_Equals(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_SETLOC(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_SUBRO(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
     
     def process_VN(self, context, symbol, operand):
-        sys.exit("Unsupported directive: %s" % self.mnemonic)
+        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
+        sys.exit()
 
 
 INSTRUCTIONS = { 
@@ -712,25 +801,28 @@ class Assembler:
     """Class defining an AGC assembler."""
 
     class Context:
-        def __init__(self, arch, listfile, binfile):
+        def __init__(self, arch, listfile, binfile, verbose=False):
+            self.verbose = verbose
             self.arch = arch
             self.listfile = listfile
             self.binfile = binfile
             self.srcfile = None
             self.source = []
-            self.symtab = SymbolTable()
+            self.symtab = SymbolTable(self)
             self.code = {}
             self.linenum = 0
             self.global_linenum = 0
             self.mode = OpcodeType.BASIC
+            self.memmap = MemoryMap(arch, verbose)
             self.loc = 0
             self.bank = 0
             self.bankloc = {}
-            for bank in range(len(MAP[arch])):
+            for bank in range(len(self.memmap.memmap)):
                 self.bankloc[bank] = 0
 
-    def __init__(self, arch, listfile, binfile):
-        self.context = Assembler.Context(arch, listfile, binfile)
+    def __init__(self, arch, listfile, binfile, verbose=False):
+        self.verbose = verbose
+        self.context = Assembler.Context(arch, listfile, binfile, verbose)
         self.context.error = self.error
         self.context.warn = self.warn
         self.context.info = self.info
@@ -803,12 +895,14 @@ class Assembler:
         print >>sys.stderr, "%s, line %d, warning: %s" % (self.context.srcfile, self.context.linenum, text)
 
     def info(self, text):
-        print >>sys.stderr, "%s, line %d, %s" % (self.context.srcfile, self.context.linenum, text)
+        if self.verbose:
+            print >>sys.stderr, "%s, line %d, %s" % (self.context.srcfile, self.context.linenum, text)
 
 
 def main():
 
     parser = OptionParser("usage: %prog [options] src_file [src_file...]")
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="Verbose output.")
     (options, args) = parser.parse_args()
 
     if len(args) < 1:
@@ -828,7 +922,7 @@ def main():
     listfile = open(args[0].split('.')[0] + ".lst", 'w')
     binfile = open(args[0] + ".bin", 'wb')
 
-    assembler = Assembler(Architecture.AGC4_B2, listfile, binfile)
+    assembler = Assembler(Architecture.AGC4_B2, listfile, binfile, options.verbose)
 
     for arg in args:
         assembler.assemble(arg)
