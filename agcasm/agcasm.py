@@ -25,7 +25,6 @@ import glob
 import re
 from optparse import OptionParser
 
-
 class Architecture:
     AGC1    = 0    # Mod1
     AGC2C   = 1    # Mod2C
@@ -34,25 +33,90 @@ class Architecture:
     AGC4_B2 = 4    # AGC4 Block II
 
 class MemoryType:
-    ERASABLE = 0
-    FIXED    = 1
+    ERASABLE    = 0
+    FIXED       = 1
+    NONEXISTENT = 2
 
-class ErasableMemoryType:
-    UNSWITCHED = 0
-    SWITCHED   = 1
+class BankType:
+    UNSWITCHED  = 0
+    SWITCHED    = 1
+    NONEXISTENT = 2
 
+class BankDescriptor:
+    def __init__(self, startaddr, memtype, banktype=None, banknum=None, size=0, name=None, superbank=None):
+        self.startaddr = startaddr
+        self.memtype = memtype
+        self.banknum = banknum
+        self.size = size
+        self.name = None
+        if name:
+            self.name = name
+        else:
+            if banknum:
+                self.name = "%02o" % banknum
+        self.superbank = superbank
 
-BANKS = {
+# Memory Map
+MAP = {
     # Each entry contains (start_address, size, number)
-    MemoryType.ERASABLE: {
-        Architecture.AGC4_B1: (0, 0400, 0),    # TODO: number of erasable banks in Block I 
-        Architecture.AGC4_B2: (0, 0400, 8)
-    },
-    MemoryType.FIXED: {
-        Architecture.AGC4_B1: (02000, 02000, 24), 
-        Architecture.AGC4_B2: (02000, 02000, 36)
-    }    
+    Architecture.AGC4_B1: {
+    }, 
+    Architecture.AGC4_B2: {
+        000000: BankDescriptor(000000, MemoryType.ERASABLE,    BankType.UNSWITCHED, 00,  0400, "E0"),
+        000400: BankDescriptor(000400, MemoryType.ERASABLE,    BankType.UNSWITCHED, 01,  0400, "E1"),
+        001000: BankDescriptor(001000, MemoryType.ERASABLE,    BankType.UNSWITCHED, 02,  0400, "E2"),
+        001400: BankDescriptor(001400, MemoryType.ERASABLE,    BankType.SWITCHED,   03,  0400, "E3"),
+        002000: BankDescriptor(002000, MemoryType.ERASABLE,    BankType.SWITCHED,   04,  0400, "E4"),
+        002400: BankDescriptor(002400, MemoryType.ERASABLE,    BankType.SWITCHED,   05,  0400, "E5"),
+        003000: BankDescriptor(003000, MemoryType.ERASABLE,    BankType.SWITCHED,   06,  0400, "E6"),
+        003400: BankDescriptor(003400, MemoryType.ERASABLE,    BankType.SWITCHED,   07,  0400, "E7"),
+        004000: BankDescriptor(004000, MemoryType.FIXED,       BankType.UNSWITCHED, 002, 02000),
+        006000: BankDescriptor(006000, MemoryType.FIXED,       BankType.UNSWITCHED, 003, 02000),
+        010000: BankDescriptor(010000, MemoryType.FIXED,       BankType.SWITCHED,   000, 02000),
+        012000: BankDescriptor(012000, MemoryType.FIXED,       BankType.SWITCHED,   001, 02000),
+        014000: BankDescriptor(014000, MemoryType.NONEXISTENT),        
+        016000: BankDescriptor(016000, MemoryType.NONEXISTENT),        
+        020000: BankDescriptor(020000, MemoryType.FIXED,       BankType.SWITCHED,   004, 02000),
+        022000: BankDescriptor(022000, MemoryType.FIXED,       BankType.SWITCHED,   005, 02000),
+        024000: BankDescriptor(024000, MemoryType.FIXED,       BankType.SWITCHED,   006, 02000),
+        026000: BankDescriptor(026000, MemoryType.FIXED,       BankType.SWITCHED,   007, 02000),
+        030000: BankDescriptor(030000, MemoryType.FIXED,       BankType.SWITCHED,   010, 02000),
+        032000: BankDescriptor(032000, MemoryType.FIXED,       BankType.SWITCHED,   011, 02000),
+        034000: BankDescriptor(034000, MemoryType.FIXED,       BankType.SWITCHED,   012, 02000),
+        036000: BankDescriptor(036000, MemoryType.FIXED,       BankType.SWITCHED,   013, 02000),
+        040000: BankDescriptor(040000, MemoryType.FIXED,       BankType.SWITCHED,   014, 02000),
+        042000: BankDescriptor(042000, MemoryType.FIXED,       BankType.SWITCHED,   015, 02000),
+        044000: BankDescriptor(044000, MemoryType.FIXED,       BankType.SWITCHED,   016, 02000),
+        046000: BankDescriptor(046000, MemoryType.FIXED,       BankType.SWITCHED,   017, 02000),
+        050000: BankDescriptor(050000, MemoryType.FIXED,       BankType.SWITCHED,   020, 02000),
+        052000: BankDescriptor(052000, MemoryType.FIXED,       BankType.SWITCHED,   021, 02000),
+        054000: BankDescriptor(054000, MemoryType.FIXED,       BankType.SWITCHED,   022, 02000),
+        056000: BankDescriptor(056000, MemoryType.FIXED,       BankType.SWITCHED,   023, 02000),
+        060000: BankDescriptor(060000, MemoryType.FIXED,       BankType.SWITCHED,   024, 02000),
+        062000: BankDescriptor(062000, MemoryType.FIXED,       BankType.SWITCHED,   025, 02000),
+        064000: BankDescriptor(064000, MemoryType.FIXED,       BankType.SWITCHED,   026, 02000),
+        066000: BankDescriptor(066000, MemoryType.FIXED,       BankType.SWITCHED,   027, 02000),
+        070000: BankDescriptor(070000, MemoryType.FIXED,       BankType.SWITCHED,   030, 02000, 0),
+        072000: BankDescriptor(072000, MemoryType.FIXED,       BankType.SWITCHED,   031, 02000, 0),
+        074000: BankDescriptor(074000, MemoryType.FIXED,       BankType.SWITCHED,   032, 02000, 0),
+        076000: BankDescriptor(076000, MemoryType.FIXED,       BankType.SWITCHED,   033, 02000, 0),
+        100000: BankDescriptor(100000, MemoryType.FIXED,       BankType.SWITCHED,   034, 02000, 0),
+        102000: BankDescriptor(102000, MemoryType.FIXED,       BankType.SWITCHED,   035, 02000, 0),
+        104000: BankDescriptor(104000, MemoryType.FIXED,       BankType.SWITCHED,   036, 02000, 0),
+        106000: BankDescriptor(106000, MemoryType.FIXED,       BankType.SWITCHED,   037, 02000, 0),
+        110000: BankDescriptor(110000, MemoryType.FIXED,       BankType.SWITCHED,   040, 02000, 1),
+        112000: BankDescriptor(112000, MemoryType.FIXED,       BankType.SWITCHED,   041, 02000, 1),
+        114000: BankDescriptor(114000, MemoryType.FIXED,       BankType.SWITCHED,   042, 02000, 1),
+        116000: BankDescriptor(116000, MemoryType.FIXED,       BankType.SWITCHED,   043, 02000, 1)
+    } 
 }
+
+
+def convertBankToPA(bank, address):
+    pass
+
+def convertPAToBank(pa):
+    pass
 
 
 class OpcodeType:
@@ -72,6 +136,7 @@ class OperandType:
 
 
 class SymbolTableEntry:
+    
     def __init__(self, name=None, symbolic=None, value=-1):
         self.name = name
         self.symbolic = symbolic
@@ -89,6 +154,28 @@ class SymbolTableEntry:
             text += "%06o)" % (self.value)
         return text
 
+class SymbolTable:
+    def __init__(self):
+        self.symbols = {}
+        
+    def add(self, name=None, symbolic=None, value=-1):
+        if name in self.symbols:
+            print >>sys.stderr, "Error, symbol \"%s\" already defined!" % (name)
+            sys.exit()
+        else:
+            self.symbols[name] = SymbolTableEntry(name, symbolic, value)
+
+    def keys(self):
+        return self.symbols.keys()
+
+    def get(self, name):
+        return self.symbols[name]
+
+    def printTable(self):
+        symbols = self.symbols.keys()
+        symbols.sort()
+        for symbol in symbols:
+            print self.symbols[symbol]
 
 def parseNumber(text):
     # TODO: make sure it's a number
@@ -375,11 +462,11 @@ class Directive(object):
             if operand.isdigit():
                 bank = int(operand, 8)            
                 context.fbank = bank
-                context.loc = (bank * 02000) + context.fbankloc[bank]
+                context.loc = (bank * 02000) + context.bankloc[bank]
             else:
                 context.error("Invalid syntax")
         else:
-            context.loc = (context.fbank * 02000) + context.fbankloc[context.fbank]
+            context.loc = (context.fbank * 02000) + context.bankloc[context.fbank]
     
     def process_BBCON(self, context, symbol, operand):
         sys.exit("Unsupported directive: %s" % self.mnemonic)
@@ -393,10 +480,10 @@ class Directive(object):
                 bank = int(operand, 8)
                 if bank == 0:
                     context.ebank = bank
-                    context.loc = (bank * 0400) + context.ebankloc[bank]
+                    context.loc = (bank * 0400) + context.bankloc[bank]
                 else:
                     context.fbank = bank
-                    context.loc = (bank * 02000) + context.fbankloc[bank]
+                    context.loc = (bank * 02000) + context.bankloc[bank]
             else:
                 context.error("Invalid syntax")
         else:
@@ -438,11 +525,11 @@ class Directive(object):
     def process_EQUALS(self, context, symbol, operand):
         if operand:
             if operand.isdigit():
-                context.symtab[symbol] = SymbolTableEntry(symbol, operand, int(operand, 8))
+                context.symtab.add(symbol, operand, int(operand, 8))
             else:
-                context.symtab[symbol] = SymbolTableEntry(symbol, operand)
+                context.symtab.add(symbol, operand)
         else:
-            context.symtab[symbol] = SymbolTableEntry(symbol, operand, context.loc)
+            context.symtab.add(symbol, operand, context.loc)
             context.loc += 1
     
     def process_ERASE(self, context, symbol, operand):
@@ -459,7 +546,7 @@ class Directive(object):
             op1 = int(operand.split('-')[0], 8)
             op2 = int(operand.split('-')[1], 8)
             if symbol:
-                context.symtab[symbol] = SymbolTableEntry(symbol, operand, op1)
+                context.symtab.add(symbol, operand, op1)
         else:
             context.error("syntax error: %s %s" % (self.mnemonic, self.operand))
     
@@ -631,19 +718,16 @@ class Assembler:
             self.binfile = binfile
             self.srcfile = None
             self.source = []
-            self.symtab = {}
+            self.symtab = SymbolTable()
             self.code = {}
             self.linenum = 0
             self.global_linenum = 0
             self.mode = OpcodeType.BASIC
             self.loc = 0
             self.bank = 0
-            self.ebankloc = {}
-            for bank in range(BANKS[MemoryType.ERASABLE][arch][2]):
-                self.ebankloc[bank] = 0
-            self.fbankloc = {}
-            for bank in range(BANKS[MemoryType.FIXED][arch][2]):
-                self.fbankloc[bank] = 0
+            self.bankloc = {}
+            for bank in range(len(MAP[arch])):
+                self.bankloc[bank] = 0
 
     def __init__(self, arch, listfile, binfile):
         self.context = Assembler.Context(arch, listfile, binfile)
@@ -685,7 +769,7 @@ class Assembler:
                     label = fields[0]
                     if len(fields) == 1:
                         # Label only.
-                        self.context.symtab[label] = SymbolTableEntry(label, None, loc)
+                        self.context.symtab.add(label, None, loc)
                         continue
                     fields = fields[1:]
                 else:
@@ -709,10 +793,7 @@ class Assembler:
                     if opcode in INSTRUCTIONS[self.context.arch]:
                         INSTRUCTIONS[self.context.arch][opcode][self.context.mode].process(self.context, operand)
                 except:
-                    symbols = self.context.symtab.keys()
-                    symbols.sort()
-                    for symbol in symbols:
-                        print self.context.symtab[symbol]
+                    self.context.symtab.printTable()
                     raise
 
     def error(self, text):
