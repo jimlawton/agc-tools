@@ -46,6 +46,7 @@ class BankDescriptor:
     def __init__(self, startaddr, memtype, banktype=None, banknum=None, size=0, name=None, superbank=None):
         self.startaddr = startaddr
         self.memtype = memtype
+        self.banktype = banktype
         self.banknum = banknum
         self.size = size
         self.name = None
@@ -56,6 +57,9 @@ class BankDescriptor:
                 self.name = "%03o" % banknum
         self.superbank = superbank
 
+    def __str__(self):
+        return "%06o %d %d %03o %05o" % (self.startaddr, self.memtype, self.banktype, self.banknum, self.size)
+        
 # Memory Map
 MAPS = {
     # Each entry contains (start_address, size, number)
@@ -123,30 +127,44 @@ class MemoryMap:
                 self.banks[MemoryType.ERASABLE][self.memmap[startaddr].banknum] = self.memmap[startaddr]
             elif self.memmap[startaddr].memtype == MemoryType.FIXED:
                 self.banks[MemoryType.FIXED][self.memmap[startaddr].banknum] = self.memmap[startaddr]
+
+    def __str__(self):
+        text = ""
+        for bank in self.memmap:
+            text += "%s" % bank
+            
+    def findBank(self, pa):
+        bank = None
+        found = False
+        prev = 0
+        for startaddr in self.memmap:
+            if pa < startaddr:
+                found = True
+                break
+            prev = startaddr
+        startaddr = prev
+        
+        if found:
+            bank = self.memmap[startaddr]
+        
+        return bank
         
     def convertBankToPA(self, banktype, bank, address=0):
         pa = self.banks[banktype][bank].startaddr + address
-        #print "(%2s,%04o) -> %06o" % (self.banks[banktype][bank].name, address, pa)
-        print "(%02o,%04o) -> %06o" % (bank, address, pa)
+        #print "(%02o,%04o) -> %06o" % (bank, address, pa)
+        testaddr = self.convertPAToBank(pa)
+        print "(%02o,%04o) -> %06o -> %s" % (bank, address, pa, testaddr)
         return pa
     
     def convertBankToString(self, bank, address=0):
         return "%02o,%04o" % (bank, address)
         
     def convertPAToBank(self, pa):
-        bank = -1
-        offset = 0
-        found = False
-        for startaddr in self.memmap:
-            if pa < startaddr:
-                found = True
-                break
-        if found:
-            bank = self.memmap[startaddr].banknum
-            offset = pa - self.memmap[startaddr].startaddr
-            print "%06o -> (%2s,%04o)" % (pa, self.memmap[startaddr].name, address)
-    
-        return (bank, offset)
+        print "%06o" % pa
+        bank = self.findBank(pa)
+        offset = pa - bank.startaddr
+        print "%06o -> (%2s,%04o)" % (pa, bank.name, offset)
+        return (bank.banknum, offset)
     
     def convertPAToString(self, pa):
         return "%06o" % (pa)
@@ -177,15 +195,15 @@ class SymbolTableEntry:
         self.value = value
 
     def __str__(self):
-        text = "(%8s, "  % (self.name)
-        if self.symbolic:
-            text += "\"%-30s\", "  % (self.symbolic)
-        else:
-            text += "%-32s, " % ("None")
+        text = "%-8s "  % (self.name)
         if self.value == -1:
-            text += "UNDEFINED)"
+            text += "%-20s" % "UNDEFINED"
         else:
-            text += "%s)" % self.context.memmap.convertPAToString(self.value)
+            text += "%-10s" % self.context.memmap.convertPAToString(self.value)
+            text += "(%02o,%04o) " % self.context.memmap.convertPAToBank(self.value)
+            print self.context.memmap.convertPAToBank(self.value)
+        if self.symbolic:
+            text += " \"%s\""  % (self.symbolic)
         return text
 
 class SymbolTable:
@@ -204,7 +222,10 @@ class SymbolTable:
         return self.symbols.keys()
 
     def get(self, name):
-        return self.symbols[name]
+        entry = None
+        if name in self.symbols:
+            entry = self.symbols[name]
+        return entry
 
     def printTable(self):
         symbols = self.symbols.keys()
@@ -885,7 +906,7 @@ class Assembler:
                     if opcode in INSTRUCTIONS[self.context.arch]:
                         INSTRUCTIONS[self.context.arch][opcode][self.context.mode].process(self.context, operand)
                 except:
-                    self.context.symtab.printTable()
+                    #self.context.symtab.printTable()
                     raise
 
     def error(self, text):
