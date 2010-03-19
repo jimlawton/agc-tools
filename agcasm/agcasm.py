@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2010 Jim lawton <jim dot lawton at gmail dot com>
+# Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
 # 
 # This file is part of yaAGC. 
 #
@@ -136,13 +136,12 @@ class MemoryMap:
     def findBank(self, pa):
         bank = None
         found = False
-        prev = 0
-        for startaddr in self.memmap:
-            if pa < startaddr:
+        addrs = self.memmap.keys()
+        addrs.sort()
+        for startaddr in addrs:
+            if pa < startaddr + self.memmap[startaddr].size:
                 found = True
                 break
-            prev = startaddr
-        startaddr = prev
         
         if found:
             bank = self.memmap[startaddr]
@@ -152,19 +151,21 @@ class MemoryMap:
     def convertBankToPA(self, banktype, bank, address=0):
         pa = self.banks[banktype][bank].startaddr + address
         #print "(%02o,%04o) -> %06o" % (bank, address, pa)
-        testaddr = self.convertPAToBank(pa)
-        print "(%02o,%04o) -> %06o -> %s" % (bank, address, pa, testaddr)
+        #testaddr = self.convertPAToBank(pa)
+        #print "(%02o,%04o) -> %06o -> %s" % (bank, address, pa, self.convertBankToString(testaddr[0], testaddr[1]))
         return pa
     
     def convertBankToString(self, bank, address=0):
         return "%02o,%04o" % (bank, address)
         
     def convertPAToBank(self, pa):
-        print "%06o" % pa
         bank = self.findBank(pa)
-        offset = pa - bank.startaddr
-        print "%06o -> (%2s,%04o)" % (pa, bank.name, offset)
-        return (bank.banknum, offset)
+        if bank:
+            offset = pa - bank.startaddr
+            #print "%06o -> (%02o,%04o)" % (pa, bank.banknum, offset)
+            return (bank.banknum, offset)
+        else:
+            return (None, 0)
     
     def convertPAToString(self, pa):
         return "%06o" % (pa)
@@ -672,16 +673,14 @@ class Directive(object):
         sys.exit()
     
     def process_SBANK_Equals(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        context.warn("unsupported directive: %s %s" % (self.mnemonic, operand))
     
     def process_SETLOC(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
         sys.exit()
     
     def process_SUBRO(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        context.info("ignoring BNKSUM directive")
     
     def process_VN(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
