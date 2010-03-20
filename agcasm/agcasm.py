@@ -133,7 +133,7 @@ class MemoryMap:
         for bank in self.memmap:
             text += "%s" % bank
             
-    def findBank(self, pa):
+    def _findBank(self, pa):
         bank = None
         found = False
         addrs = self.memmap.keys()
@@ -150,25 +150,42 @@ class MemoryMap:
         
     def convertBankToPA(self, banktype, bank, address=0):
         pa = self.banks[banktype][bank].startaddr + address
-        #print "(%02o,%04o) -> %06o" % (bank, address, pa)
-        #testaddr = self.convertPAToBank(pa)
-        #print "(%02o,%04o) -> %06o -> %s" % (bank, address, pa, self.convertBankToString(testaddr[0], testaddr[1]))
         return pa
     
     def convertBankToString(self, bank, address=0):
         return "%02o,%04o" % (bank, address)
         
     def convertPAToBank(self, pa):
-        bank = self.findBank(pa)
+        bank = self._findBank(pa)
         if bank:
             offset = pa - bank.startaddr
-            #print "%06o -> (%02o,%04o)" % (pa, bank.banknum, offset)
             return (bank.banknum, offset)
         else:
             return (None, 0)
     
     def convertPAToString(self, pa):
         return "%06o" % (pa)
+    
+    def getBankNumber(self, pa):
+        banknum = None
+        bank = self._findBank(pa)
+        if bank:
+            banknum = bank.banknum
+        return banknum
+    
+    def getBankType(self, pa):
+        memtype = None
+        bank = self._findBank(pa)
+        if bank:
+            memtype = bank.memtype
+        return memtype
+    
+    def getBankSize(self, pa):
+        size = None
+        bank = self._findBank(pa)
+        if bank:
+            size = bank.size
+        return size
     
 
 class OpcodeType:
@@ -248,6 +265,7 @@ class Number:
         self.valid = False
         self.text = text
         self.value = 0
+        self.type = None
         if self.OCTAL_RE.search(text):
             self.type = self.OCTAL
             self.valid = True
@@ -261,9 +279,6 @@ class Number:
             self.valid = True
             # TODO: Figure out how to handle floats.
             print >>sys.stderr, "Float formats not yet supported! (%s)" % text
-        else:
-            print >>sys.stderr, "Syntax error in number format (%s)" % text
-            raise
 
     def isValid(self):
         return self.valid
@@ -460,7 +475,10 @@ class Directive(object):
         
     def process(self, context, symbol, operand):
         self.__getattribute__("process_" + self.name)(context, symbol, operand)
-        
+
+    def ignore(self, context):
+        context.info("ignoring directive \"%s\"" % self.mnemonic)
+
     def process_Minus1_DNADR(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
         sys.exit()
@@ -517,10 +535,6 @@ class Directive(object):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
         sys.exit()
     
-    def process_2DEC_Star(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
-    
     def process_2DNADR(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
         sys.exit()
@@ -552,8 +566,9 @@ class Directive(object):
     def process_Equals_Sign(self, context, symbol, operand):
         if symbol:
             if operand:
-                if operand.isdigit():
-                    context.symtab.add(symbol, operand, int(operand, 8))
+                op = Number(operand)
+                if op.isValid():
+                    context.symtab.add(symbol, operand, op.value)
                 else:
                     context.symtab.add(symbol, operand)
             else:
@@ -573,27 +588,49 @@ class Directive(object):
     
     def process_BANK(self, context, symbol, operand):
         if operand:
-            if operand.isdigit():
-                bank = int(operand, 8)            
-                context.fbank = bank
-                context.loc = context.memmap.convertBankToPA(MemoryType.FIXED, bank, context.bankloc[bank])
+            op = Number(operand)
+            if op.isValid():
+                context.fbank = op.value
+                context.loc = context.memmap.convertBankToPA(MemoryType.FIXED, op.value, context.bankloc[op.value])
             else:
                 context.error("invalid syntax, \"%s\"" % operand)
         else:
-            context.loc = context.memmap.convertBanktoPA(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
+            context.loc = context.memmap.convertBankToPA(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
     
     def process_BBCON(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
-    
-    def process_BBCON_Star(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        if operand:
+            fbank = None
+            op = Number(operand)
+            if op.isValid():
+                fbank = op.value
+            else:
+                entry = context.symtab.lookup(operand)
+                if entry:
+                    (fbank, offset) = context.memmap.convertPAToBank(entry.value)
+                else:
+                    context.error("undefined symbol \"%s\"" % operand)
+            if fbank:
+                bbval = 0
+                # Bits 15-11 of the generated word contain the bank number.
+                bbval |= ((fbank & 037) << 10) 
+                # Bits 10-8 and 4 are zero. 
+                # Bits 7-5 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
+                if 030 <= fbank <= 037:
+                    bbval |= (3 << 4)
+                elif 040 <= fbank <= 043:
+                    bbval |= (4 << 4)
+                # Bits 3-1 equals the current EBANK= code.
+                bbval != (context.ebank & 07)
+                # TODO: emit bbval to code stream. 
+        else:
+            context.error("invalid syntax")
+        
     
     def process_BLOCK(self, context, symbol, operand):
         if operand:
-            if operand.isdigit():
-                bank = int(operand, 8)
+            op = Number(operand)
+            if op.isValid():
+                bank = op.value
                 if bank == 0:
                     context.ebank = bank
                     context.loc = context.memmap.convertBankToPA(MemoryType.ERASABLE, bank, context.bankloc[bank])
@@ -606,7 +643,7 @@ class Directive(object):
             context.error("invalid syntax")
     
     def process_BNKSUM(self, context, symbol, operand):
-        context.info("ignoring BNKSUM directive")
+        self.ignore(context)
     
     def process_CADR(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
@@ -629,17 +666,9 @@ class Directive(object):
                         context.error("invalid expression, \"%s\"" % operand)
     
     def process_COUNT(self, context, symbol, operand):
-        context.info("ignoring COUNT directive")
-    
-    def process_COUNT_Star(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        self.ignore(context)
     
     def process_DEC(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
-    
-    def process_DEC_Star(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
         sys.exit()
     
@@ -652,8 +681,19 @@ class Directive(object):
         sys.exit()
     
     def process_EBANK_Equals(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        # TODO: handle one-shot EBANK=.
+        if operand:
+            op = Number(operand)
+            if op.isValid():
+                context.ebank = op.value
+            else:
+                entry = context.symtab.lookup(operand)
+                if entry:
+                    bank = context.memmap.convertPAToBank(entry.value)
+                else:
+                    context.error("undefined symbol \"%s\"" % operand)
+        else:
+            context.error("invalid syntax, \"%s\"" % operand)
     
     def process_ECADR(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
@@ -738,7 +778,7 @@ class Directive(object):
             context.error("invalid syntax")
     
     def process_SUBRO(self, context, symbol, operand):
-        context.info("ignoring BNKSUM directive")
+        self.ignore(context)
     
     def process_VN(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
@@ -830,7 +870,7 @@ DIRECTIVES = {
         "2BCADR":   Directive("2BCADR"),
         "2CADR":    Directive("2CADR"),
         "2DEC":     Directive("2DEC"),
-        "2DEC*":    Directive("2DEC_Star",    "2DEC*"),
+        "2DEC*":    Directive("2DEC",         "2DEC*"),
         "2DNADR":   Directive("2DNADR"),
         "2FCADR":   Directive("2FCADR"), 
         "2OCT":     Directive("2OCT"),
@@ -844,15 +884,15 @@ DIRECTIVES = {
         "ADRES":    Directive("ADRES"),
         "BANK":     Directive("BANK"),
         "BBCON":    Directive("BBCON"),
-        "BBCON*":   Directive("BBCON_Star",   "BBCON*"),
+        "BBCON*":   Directive("BBCON",        "BBCON*"),
         "BLOCK":    Directive("BLOCK"),
         "BNKSUM":   Directive("BNKSUM"),
         "CADR":     Directive("CADR"),
         "CHECK=":   Directive("CHECK_Equals", "CHECK="),
         "COUNT":    Directive("COUNT"),
-        "COUNT*":   Directive("COUNT_Star",   "COUNT*"),
+        "COUNT*":   Directive("COUNT",        "COUNT*"),
         "DEC":      Directive("DEC"),
-        "DEC*":     Directive("DEC_Star",     "DEC*"),
+        "DEC*":     Directive("DEC",          "DEC*"),
         "DNCHAN":   Directive("DNCHAN"),
         "DNPTR":    Directive("DNPTR"),
         "EBANK=":   Directive("EBANK_Equals", "EBANK="),
@@ -875,6 +915,14 @@ DIRECTIVES = {
 }
 
 
+class Code:
+    """Class storing generated object code."""
+    
+    def __init__(self, context):
+        self.code = {}
+        for bank in context.memmap.banks[MemoryType.FIXED]:
+            self.code[bank] = []
+    
 class Assembler:
     """Class defining an AGC assembler."""
 
@@ -902,6 +950,7 @@ class Assembler:
     def __init__(self, arch, listfile, binfile, verbose=False):
         self.verbose = verbose
         self.context = Assembler.Context(arch, listfile, binfile, verbose)
+        self.context.verbose = verbose
         self.context.error = self.error
         self.context.warn = self.warn
         self.context.info = self.info
@@ -940,7 +989,7 @@ class Assembler:
                     label = fields[0]
                     if len(fields) == 1:
                         # Label only.
-                        self.context.symtab.add(label, None, loc)
+                        self.context.symtab.add(label, None, self.context.loc)
                         continue
                     fields = fields[1:]
                 else:
