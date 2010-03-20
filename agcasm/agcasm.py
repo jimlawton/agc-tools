@@ -222,7 +222,7 @@ class SymbolTable:
     def keys(self):
         return self.symbols.keys()
 
-    def get(self, name):
+    def lookup(self, name):
         entry = None
         if name in self.symbols:
             entry = self.symbols[name]
@@ -235,14 +235,37 @@ class SymbolTable:
             print self.symbols[symbol]
 
 
-def parseNumber(text):
-    # TODO: make sure it's a number
+class Number:
+    OCTAL   = 0
+    DECIMAL = 1
+    FLOAT   = 2
     
-    if text.endswith('D'):
-        number = int(text[:-1])
-    else:
-        number = int(text, 8)
-    return number
+    OCTAL_RE   = re.compile("^[+-]*[0-7]+$")
+    DECIMAL_RE = re.compile("^[+-]*[0-9]+D$")
+    FLOAT_RE   = re.compile("^[+-]*[0-9]*\.[0-9]+ *(E[+-]*[0-9]+)* *(B[+-]*[0-9]+)*[*]*$")
+    
+    def __init__(self, text):
+        self.valid = False
+        self.text = text
+        self.value = 0
+        if self.OCTAL_RE.search(text):
+            self.type = self.OCTAL
+            self.valid = True
+            self.value = int(text, 8)
+        elif self.DECIMAL_RE.search(text):
+            self.type = self.DECIMAL
+            self.valid = True
+            self.value = int(text[:-1])
+        elif self.FLOAT_RE.search(text):
+            self.type = self.FLOAT
+            self.valid = True
+            # TODO: Figure out how to handle floats.
+            print >>sys.stderr, "Float formats not yet supported! (%s)" % text
+        else:
+            print >>sys.stderr, "Syntax error in number format (%s)" % text
+
+    def isValid(self):
+        return self.valid
 
 
 # NOTE: Must be a new-style class.
@@ -526,13 +549,14 @@ class Directive(object):
         sys.exit()
     
     def process_Equals_Sign(self, context, symbol, operand):
-        if operand:
-            if operand.isdigit():
-                context.symtab.add(symbol, operand, int(operand, 8))
+        if symbol:
+            if operand:
+                if operand.isdigit():
+                    context.symtab.add(symbol, operand, int(operand, 8))
+                else:
+                    context.symtab.add(symbol, operand)
             else:
-                context.symtab.add(symbol, operand)
-        else:
-            context.symtab.add(symbol, operand, context.loc)
+                context.symtab.add(symbol, operand, context.loc)
     
     def process_Equals_ECADR(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
@@ -623,18 +647,33 @@ class Directive(object):
         sys.exit()
     
     def process_EQUALS(self, context, symbol, operand):
-        if operand:
-            if operand.isdigit():
-                context.symtab.add(symbol, operand, int(operand, 8))
+        if symbol:
+            if operand:
+                if operand.isdigit():
+                    context.symtab.add(symbol, operand, int(operand, 8))
+                else:
+                    context.symtab.add(symbol, operand)
             else:
-                context.symtab.add(symbol, operand)
-        else:
-            context.symtab.add(symbol, operand, context.loc)
+                context.symtab.add(symbol, operand, context.loc)
     
     def process_ERASE(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
-    
+        size = 0
+        if not operand:
+            size = 1
+            op = Number("1")
+        else:
+            if '-' in operand:
+                op = Number(operand.split('-')[0])
+                if op.isValid():
+                    size = op.value
+            else:
+                op = Number(operand)
+                if op.isValid():
+                    size = op.value + 1
+        if symbol and op.isValid():
+            context.symtab.add(symbol, operand, op.value)
+        context.loc += size
+        
     def process_FCADR(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
         sys.exit()
@@ -676,8 +715,14 @@ class Directive(object):
         context.warn("unsupported directive: %s %s" % (self.mnemonic, operand))
     
     def process_SETLOC(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        if operand:
+            if operand.isdigit():
+                context.loc = int(operand, 8)
+            else:
+                if context.symtab.lookup(operand):
+                    context.loc = context.symtab.lookup(operand)
+        else:
+            context.error("invalid syntax")
     
     def process_SUBRO(self, context, symbol, operand):
         context.info("ignoring BNKSUM directive")
@@ -904,6 +949,7 @@ class Assembler:
                         DIRECTIVES[self.context.arch][opcode].process(self.context, label, operand)
                     if opcode in INSTRUCTIONS[self.context.arch]:
                         INSTRUCTIONS[self.context.arch][opcode][self.context.mode].process(self.context, operand)
+                        self.context.mode = OpcodeType.BASIC
                 except:
                     #self.context.symtab.printTable()
                     raise
