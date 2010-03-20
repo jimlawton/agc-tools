@@ -600,8 +600,21 @@ class Directive(object):
         sys.exit()
     
     def process_ADRES(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        if operand:
+            op = Number(operand)
+            if op.isValid():
+                aval = op.value
+            else:
+                entry = context.symtab.lookup(operand)
+                if entry:
+                    (bank, offset) = context.memmap.convertPAToBank(entry.value)
+                else:
+                    context.error("undefined symbol \"%s\"" % operand)
+                if bank and (bank == context.fbank or bank == context.ebank):
+                    aval = offset
+            context.code.emit(context, [ aval ]) 
+        else:
+            context.error("invalid syntax")
     
     def process_BANK(self, context, symbol, operand):
         if operand:
@@ -796,8 +809,21 @@ class Directive(object):
         self.process_OCT(context, symbol, operand)
     
     def process_REMADR(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        if operand:
+            op = Number(operand)
+            if op.isValid():
+                aval = op.value
+            else:
+                entry = context.symtab.lookup(operand)
+                if entry:
+                    (bank, offset) = context.memmap.convertPAToBank(entry.value)
+                else:
+                    context.error("undefined symbol \"%s\"" % operand)
+                if bank and (bank != context.fbank and bank != context.ebank):
+                    aval = offset
+            context.code.emit(context, [ aval ]) 
+        else:
+            context.error("invalid syntax")
     
     def process_SBANK_Equals(self, context, symbol, operand):
         context.warn("unsupported directive: %s %s" % (self.mnemonic, operand))
