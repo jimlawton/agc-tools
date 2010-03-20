@@ -261,24 +261,41 @@ class Number:
     DECIMAL_RE = re.compile("^[+-]*[0-9]+D$")
     FLOAT_RE   = re.compile("^[+-]*[0-9]*\.[0-9]+ *(E[+-]*[0-9]+)* *(B[+-]*[0-9]+)*[*]*$")
     
-    def __init__(self, text):
+    def __init__(self, text, forcetype=None):
         self.valid = False
         self.text = text
         self.value = 0
         self.type = None
-        if self.OCTAL_RE.search(text):
-            self.type = self.OCTAL
-            self.valid = True
-            self.value = int(text, 8)
-        elif self.DECIMAL_RE.search(text):
-            self.type = self.DECIMAL
-            self.valid = True
-            self.value = int(text[:-1])
-        elif self.FLOAT_RE.search(text):
-            self.type = self.FLOAT
-            self.valid = True
-            # TODO: Figure out how to handle floats.
-            print >>sys.stderr, "Float formats not yet supported! (%s)" % text
+        if forcetype:
+            if forcetype == self.OCTAL:
+                try:
+                    self.value = int(text, 8)
+                    self.valid = True
+                except:
+                    pass
+            elif forcetype == self.DECIMAL:
+                try:
+                    self.value = int(text[:-1])
+                    self.valid = True
+                except:
+                    pass
+            elif forcetype == self.FLOAT:
+                # TODO: Figure out how to handle floats.
+                print >>sys.stderr, "Float formats not yet supported! (%s)" % text
+        else:
+            if self.OCTAL_RE.search(text):
+                self.type = self.OCTAL
+                self.valid = True
+                self.value = int(text, 8)
+            elif self.DECIMAL_RE.search(text):
+                self.type = self.DECIMAL
+                self.valid = True
+                self.value = int(text[:-1])
+            elif self.FLOAT_RE.search(text):
+                self.type = self.FLOAT
+                self.valid = True
+                # TODO: Figure out how to handle floats.
+                print >>sys.stderr, "Float formats not yet supported! (%s)" % text
 
     def isValid(self):
         return self.valid
@@ -621,7 +638,8 @@ class Directive(object):
                     bbval |= (4 << 4)
                 # Bits 3-1 equals the current EBANK= code.
                 bbval != (context.ebank & 07)
-                # TODO: emit bbval to code stream. 
+                # TODO: emit bbval to code stream.
+                context.code.emit(context, [ bbval ]) 
         else:
             context.error("invalid syntax")
         
@@ -753,9 +771,18 @@ class Directive(object):
         sys.exit()
     
     def process_OCT(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
-    
+        if operand:
+            op = Number(operand)
+            if op.isValid():
+                if symbol:
+                    context.symtab.add(symbol, operand, op.value)
+                context.loc += 1
+                context.code.emit(context, [op.value])
+            else:
+                context.error("syntax error: %s %s" % (self.mnemonic, operand))
+        else:
+            context.error("syntax error: %s %s" % (self.mnemonic, operand))
+            
     def process_OCTAL(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
         sys.exit()
@@ -921,8 +948,16 @@ class Code:
     def __init__(self, context):
         self.code = {}
         for bank in context.memmap.banks[MemoryType.FIXED]:
-            self.code[bank] = []
+            self.code[bank] = {}
     
+    def emit(self, context, data):
+        """Emit generated code. 'data' must be a list."""
+        for value in data:
+            address = context.bankloc[context.fbank]
+            self.code[context.fbank][address] = value
+            address += 1
+        context.bankloc[context.fbank] = address
+        
 class Assembler:
     """Class defining an AGC assembler."""
 
@@ -935,7 +970,6 @@ class Assembler:
             self.srcfile = None
             self.source = []
             self.symtab = SymbolTable(self)
-            self.code = {}
             self.linenum = 0
             self.global_linenum = 0
             self.mode = OpcodeType.BASIC
@@ -946,6 +980,7 @@ class Assembler:
             self.bankloc = {}
             for bank in range(len(self.memmap.memmap)):
                 self.bankloc[bank] = 0
+            self.code = Code(self)
 
     def __init__(self, arch, listfile, binfile, verbose=False):
         self.verbose = verbose
