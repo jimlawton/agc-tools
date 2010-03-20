@@ -687,8 +687,17 @@ class Directive(object):
         self.ignore(context)
     
     def process_DEC(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        if operand:
+            op = Number(operand, Number.DECIMAL)
+            if op.isValid():
+                if symbol:
+                    context.symtab.add(symbol, operand, op.value)
+                context.loc += 1
+                context.code.emit(context, [op.value])
+            else:
+                context.error("syntax error: %s %s" % (self.mnemonic, operand))
+        else:
+            context.error("syntax error: %s %s" % (self.mnemonic, operand))
     
     def process_DNCHAN(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
@@ -772,7 +781,7 @@ class Directive(object):
     
     def process_OCT(self, context, symbol, operand):
         if operand:
-            op = Number(operand)
+            op = Number(operand, Number.OCTAL)
             if op.isValid():
                 if symbol:
                     context.symtab.add(symbol, operand, op.value)
@@ -784,8 +793,7 @@ class Directive(object):
             context.error("syntax error: %s %s" % (self.mnemonic, operand))
             
     def process_OCTAL(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        self.process_OCT(context, symbol, operand)
     
     def process_REMADR(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
