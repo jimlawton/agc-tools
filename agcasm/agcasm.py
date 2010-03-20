@@ -263,6 +263,7 @@ class Number:
             print >>sys.stderr, "Float formats not yet supported! (%s)" % text
         else:
             print >>sys.stderr, "Syntax error in number format (%s)" % text
+            raise
 
     def isValid(self):
         return self.valid
@@ -577,7 +578,7 @@ class Directive(object):
                 context.fbank = bank
                 context.loc = context.memmap.convertBankToPA(MemoryType.FIXED, bank, context.bankloc[bank])
             else:
-                context.error("invalid syntax")
+                context.error("invalid syntax, \"%s\"" % operand)
         else:
             context.loc = context.memmap.convertBanktoPA(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
     
@@ -612,8 +613,20 @@ class Directive(object):
         sys.exit()
     
     def process_CHECK_Equals(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        if operand:
+            fields = operand.split()
+            defn = context.symtab.lookup(fields[0])
+            if not defn:
+                # Add to checklist and check at the end.
+                context.checklist.append(SymbolTableEntry(context, symbol, operand))
+            else:
+                pa = defn.value
+                if len(fields) > 1:
+                    op = Number(fields[1].strip())
+                    if op.isValid():
+                        pa += op.value
+                    else:
+                        context.error("invalid expression, \"%s\"" % operand)
     
     def process_COUNT(self, context, symbol, operand):
         context.info("ignoring COUNT directive")
@@ -663,7 +676,7 @@ class Directive(object):
             op = Number("1")
         else:
             if '-' in operand:
-                op = Number(operand.split('-')[0])
+                op = Number(operand.split('-')[0].strip())
                 if op.isValid():
                     size = op.value
             else:
@@ -879,6 +892,7 @@ class Assembler:
             self.global_linenum = 0
             self.mode = OpcodeType.BASIC
             self.memmap = MemoryMap(arch, verbose)
+            self.checklist = []
             self.loc = 0
             self.bank = 0
             self.bankloc = {}
@@ -940,9 +954,11 @@ class Assembler:
                     for field in fields[1:]:
                         if field.startswith('#'):
                             break
-                        operand += field
+                        operand += " " + field
                     if operand == "":
-                            operand = None
+                        operand = None
+                    else:
+                        operand = operand.strip()
                     if opcode == "EXTEND":
                         self.context.mode = OpcodeType.EXTENDED
                     if opcode in DIRECTIVES[self.context.arch]:
