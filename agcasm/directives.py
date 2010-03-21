@@ -90,8 +90,38 @@ class Directive(object):
         sys.exit()
     
     def process_2CADR(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        word1 = word2 = None
+        if operand:
+            bank = None
+            op = Number(operand)
+            if op.isValid():
+                word1 = op.value
+            else:
+                entry = context.symtab.lookup(operand)
+                if entry:
+                    (bank, offset) = context.memmap.pseudoToSegmented(entry.value)
+                else:
+                    context.error("undefined symbol \"%s\"" % operand)
+                if bank:
+                    word1 = offset
+            if context.memmap.isFixed(word1):
+                word2 = 0
+                # Bits 15-11 of the 2nd generated word contain the bank number.
+                word2 |= ((context.fbank & 037) << 10) 
+                # Bits 10-8 and 4 are zero. 
+                # Bits 7-5 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
+                if 030 <= context.fbank <= 037:
+                    word2 |= (3 << 4)
+                elif 040 <= context.fbank <= 043:
+                    word2 |= (4 << 4)
+                # Bits 3-1 equals the current EBANK= code.
+                word2 != (context.ebank & 07)
+            else:
+                word2 = context.memmap.getBankNumber(word1)
+            context.code.emit(context, [ word1, word2 ]) 
+        else:
+            context.error("invalid syntax")
+
     
     def process_2DEC(self, context, symbol, operand):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
@@ -166,11 +196,11 @@ class Directive(object):
             op = Number(operand)
             if op.isValid():
                 context.fbank = op.value
-                context.loc = context.memmap.convertBankToPA(MemoryType.FIXED, op.value, context.bankloc[op.value])
+                context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, op.value, context.bankloc[op.value])
             else:
                 context.error("invalid syntax, \"%s\"" % operand)
         else:
-            context.loc = context.memmap.convertBankToPA(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
+            context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
     
     def process_BBCON(self, context, symbol, operand):
         if operand:
@@ -181,7 +211,7 @@ class Directive(object):
             else:
                 entry = context.symtab.lookup(operand)
                 if entry:
-                    (fbank, offset) = context.memmap.convertPAToBank(entry.value)
+                    (fbank, offset) = context.memmap.pseudoToSegmented(entry.value)
                 else:
                     context.error("undefined symbol \"%s\"" % operand)
             if fbank:
@@ -212,7 +242,7 @@ class Directive(object):
                     context.loc = context.memmap.convertBankToPA(MemoryType.ERASABLE, bank, context.bankloc[bank])
                 else:
                     context.fbank = bank
-                    context.loc = context.memmap.convertBankToPA(MemoryType.FIXED, bank, context.bankloc[bank])
+                    context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, bank, context.bankloc[bank])
             else:
                 context.error("invalid syntax")
         else:
@@ -274,7 +304,7 @@ class Directive(object):
             else:
                 entry = context.symtab.lookup(operand)
                 if entry:
-                    bank = context.memmap.convertPAToBank(entry.value)
+                    bank = context.memmap.pseudoToSegmented(entry.value)
                 else:
                     context.error("undefined symbol \"%s\"" % operand)
         else:
@@ -317,8 +347,21 @@ class Directive(object):
         sys.exit()
     
     def process_GENADR(self, context, symbol, operand):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operand))
-        sys.exit()
+        if operand:
+            op = Number(operand)
+            if op.isValid():
+                aval = op.value
+            else:
+                entry = context.symtab.lookup(operand)
+                if entry:
+                    (bank, offset) = context.memmap.convertPAToBank(entry.value)
+                else:
+                    context.error("undefined symbol \"%s\"" % operand)
+                if bank:
+                    aval = offset
+            context.code.emit(context, [ aval ]) 
+        else:
+            context.error("invalid syntax")
     
     def process_MEMORY(self, context, symbol, operand):
         if '-' in operand:
