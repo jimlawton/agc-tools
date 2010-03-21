@@ -34,9 +34,9 @@ class SymbolTableEntry:
         if self.value == -1:
             text += "%-20s" % "UNDEFINED"
         else:
-            text += "%-10s" % self.context.memmap.convertPAToString(self.value)
-            text += "(%02o,%04o) " % self.context.memmap.convertPAToBank(self.value)
-            print self.context.memmap.convertPAToBank(self.value)
+            text += "%-10s" % self.context.memmap.pseudoToString(self.value)
+            text += "(%02o,%04o) " % self.context.memmap.pseudoToSegmented(self.value)
+            print self.context.memmap.pseudoToSegmented(self.value)
         if self.symbolic:
             text += " \"%s\""  % (self.symbolic)
         return text
