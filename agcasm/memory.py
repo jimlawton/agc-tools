@@ -137,14 +137,14 @@ class MemoryMap:
         
         return bank
         
-    def convertBankToPA(self, banktype, bank, address=0):
+    def segmentedToPseudo(self, banktype, bank, address=0):
         pa = self.banks[banktype][bank].startaddr + address
         return pa
     
-    def convertBankToString(self, bank, address=0):
+    def segmentedToString(self, bank, address=0):
         return "%02o,%04o" % (bank, address)
         
-    def convertPAToBank(self, pa):
+    def pseudoToSegmented(self, pa):
         bank = self._findBank(pa)
         if bank:
             offset = pa - bank.startaddr
@@ -152,7 +152,7 @@ class MemoryMap:
         else:
             return (None, 0)
     
-    def convertPAToString(self, pa):
+    def pseudoToString(self, pa):
         return "%06o" % (pa)
     
     def getBankNumber(self, pa):
@@ -175,3 +175,18 @@ class MemoryMap:
         if bank:
             size = bank.size
         return size
+
+    def isFixed(self, pa):
+        memtype = None
+        bank = self._findBank(pa)
+        if bank:
+            memtype = bank.memtype
+        return (memtype == MemoryType.FIXED)
+    
+    def isErasable(self, pa):
+        memtype = None
+        bank = self._findBank(pa)
+        if bank:
+            memtype = bank.memtype
+        return (memtype == MemoryType.ERASABLE)
+    
