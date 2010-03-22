@@ -23,13 +23,47 @@ from number import *
 class Expression:
     """Class that represents an AGC expression."""
     
-    def __init__(self, expr):
+    def __init__(self, context, expr):
         self.valid = False
-        self.complete = False
         self.expr = expr
+        self.value = None
+        
+        if expr:
+            operands = expr.split()
+            if len(operands) == 1 or len(operands) == 3:
+                op1 = self._parseOperand(context, operands[0])
+                if op1:
+                    self.value = op1
+                    if len(operands) > 1:
+                        if operands[1] == '+' or operands[1] == '-':
+                            op2 = self._parseOperand(context, operands[2])
+                            if op2:
+                                if operands[1] == '+':
+                                    self.value += op2
+                                else:
+                                    self.value -= op2
+                        else:
+                            context.error("invalid syntax")
+            else:
+                context.error("invalid syntax")
+        else:
+            context.error("invalid syntax")
 
     def isValid(self):
         return self.valid
 
     def isComplete(self):
         return self.complete
+
+    def _parseOperand(self, context, operand):
+        retval = None
+        op = Number(operand)
+        if op.isValid():
+            retval = op.value
+        else:
+            entry = context.symtab.lookup(operand)
+            if entry:
+                retval = entry.value
+            else:
+                context.error("undefined symbol \"%s\"" % operand)
+        return retval
