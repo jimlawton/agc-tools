@@ -23,6 +23,7 @@ from architecture import *
 from number import *
 from memory import *
 from symbol_table import *
+from expression import *
 
 # NOTE: Must be a new-style class.
 class Directive(object):
@@ -158,11 +159,11 @@ class Directive(object):
     def parse_Equals_Sign(self, context, symbol, operands):
         if symbol:
             if operands:
-                op = Number(operands[0])
-                if op.isValid():
-                    context.symtab.add(symbol, operands[0], op.value)
+                expr = Expression(context, operands)
+                if expr.valid:
+                    context.symtab.add(symbol, operands, expr.value)
                 else:
-                    context.symtab.add(symbol, operands[0])
+                    context.symtab.add(symbol, operands)
             else:
                 context.symtab.add(symbol, operands[0], context.loc)
     
