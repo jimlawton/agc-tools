@@ -23,13 +23,12 @@ from number import *
 class Expression:
     """Class that represents an AGC expression."""
     
-    def __init__(self, context, expr):
+    def __init__(self, context, operands):
         self.valid = False
-        self.expr = expr
+        self.operands = operands
         self.value = None
         
-        if expr:
-            operands = expr.split()
+        if operands:
             if len(operands) == 1 or len(operands) == 3:
                 op1 = self._parseOperand(context, operands[0])
                 if op1:
