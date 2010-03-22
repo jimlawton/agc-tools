@@ -27,6 +27,7 @@ from symbol_table import *
 from instructions import *
 from directives import *
 from code import *
+from parser_record import *
 
 class Assembler:
     """Class defining an AGC assembler."""
@@ -50,7 +51,7 @@ class Assembler:
             self.bankloc = {}
             for bank in range(len(self.memmap.memmap)):
                 self.bankloc[bank] = 0
-            self.code = Code(self)
+            self.records = []
 
     def __init__(self, arch, listfile, binfile, verbose=False):
         self.verbose = verbose
@@ -102,23 +103,24 @@ class Assembler:
                         pseudolabel = fields[0]
                         fields = fields[1:]
                 # TODO: how to handle interpretive code?
+                opcode = fields[0]
+                operands = ""
+                for field in fields[1:]:
+                    if field.startswith('#'):
+                        break
+                    operands += " " + field
+                if operands == "":
+                    operands = None
+                else:
+                    operands = operands.strip().split()
+                if opcode == "EXTEND":
+                    self.context.mode = OpcodeType.EXTENDED
+                self.context.records.append(ParserRecord(self.context, label, pseudolabel, opcode, operands, comment))
                 try:
-                    opcode = fields[0]
-                    operand = ""
-                    for field in fields[1:]:
-                        if field.startswith('#'):
-                            break
-                        operand += " " + field
-                    if operand == "":
-                        operand = None
-                    else:
-                        operand = operand.strip()
-                    if opcode == "EXTEND":
-                        self.context.mode = OpcodeType.EXTENDED
                     if opcode in DIRECTIVES[self.context.arch]:
-                        DIRECTIVES[self.context.arch][opcode].process(self.context, label, operand)
+                        DIRECTIVES[self.context.arch][opcode].process(self.context, label, operands)
                     if opcode in INSTRUCTIONS[self.context.arch]:
-                        INSTRUCTIONS[self.context.arch][opcode][self.context.mode].process(self.context, operand)
+                        INSTRUCTIONS[self.context.arch][opcode][self.context.mode].process(self.context, operands)
                         self.context.mode = OpcodeType.BASIC
                 except:
                     #self.context.symtab.printTable()
