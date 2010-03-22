@@ -35,61 +35,61 @@ class Directive(object):
             self.mnemonic = name
         self.name = name
         
-    def process(self, context, symbol, operands):
-        self.__getattribute__("process_" + self.name)(context, symbol, operands)
+    def parse(self, context, symbol, operands):
+        self.__getattribute__("parse_" + self.name)(context, symbol, operands)
 
     def ignore(self, context):
         context.info("ignoring directive \"%s\"" % self.mnemonic)
 
-    def process_Minus1_DNADR(self, context, symbol, operands):
+    def parse_Minus1_DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_Minus2_CADR(self, context, symbol, operands):
+    def parse_Minus2_CADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_Minus2_DNADR(self, context, symbol, operands):
+    def parse_Minus2_DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_Minus3_DNADR(self, context, symbol, operands):
+    def parse_Minus3_DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_Minus4_DNADR(self, context, symbol, operands):
+    def parse_Minus4_DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_Minus5_DNADR(self, context, symbol, operands):
+    def parse_Minus5_DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_Minus6_DNADR(self, context, symbol, operands):
+    def parse_Minus6_DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_Minus_DNCHAN(self, context, symbol, operands):
+    def parse_Minus_DNCHAN(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_Minus_DNPTR(self, context, symbol, operands):
+    def parse_Minus_DNPTR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_Minus_GENADR(self, context, symbol, operands):
+    def parse_Minus_GENADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_1DNADR(self, context, symbol, operands):
+    def parse_1DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_2BCADR(self, context, symbol, operands):
+    def parse_2BCADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_2CADR(self, context, symbol, operands):
+    def parse_2CADR(self, context, symbol, operands):
         word1 = word2 = None
         if operands:
             bank = None
@@ -124,39 +124,39 @@ class Directive(object):
             context.error("invalid syntax")
 
     
-    def process_2DEC(self, context, symbol, operands):
+    def parse_2DEC(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_2DNADR(self, context, symbol, operands):
+    def parse_2DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_2FCADR(self, context, symbol, operands):
+    def parse_2FCADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_2OCT(self, context, symbol, operands):
+    def parse_2OCT(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_3DNADR(self, context, symbol, operands):
+    def parse_3DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_4DNADR(self, context, symbol, operands):
+    def parse_4DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_5DNADR(self, context, symbol, operands):
+    def parse_5DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_6DNADR(self, context, symbol, operands):
+    def parse_6DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_Equals_Sign(self, context, symbol, operands):
+    def parse_Equals_Sign(self, context, symbol, operands):
         if symbol:
             if operands:
                 op = Number(operands[0])
@@ -167,15 +167,15 @@ class Directive(object):
             else:
                 context.symtab.add(symbol, operands[0], context.loc)
     
-    def process_Equals_ECADR(self, context, symbol, operands):
+    def parse_Equals_ECADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_Equals_MINUS(self, context, symbol, operands):
+    def parse_Equals_MINUS(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_ADRES(self, context, symbol, operands):
+    def parse_ADRES(self, context, symbol, operands):
         if operands:
             op = Number(operands[0])
             if op.isValid():
@@ -191,7 +191,7 @@ class Directive(object):
         else:
             context.error("invalid syntax")
     
-    def process_BANK(self, context, symbol, operands):
+    def parse_BANK(self, context, symbol, operands):
         if operands:
             op = Number(operands[0])
             if op.isValid():
@@ -202,7 +202,7 @@ class Directive(object):
         else:
             context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
     
-    def process_BBCON(self, context, symbol, operands):
+    def parse_BBCON(self, context, symbol, operands):
         if operands:
             fbank = None
             op = Number(operands[0])
@@ -231,7 +231,7 @@ class Directive(object):
             context.error("invalid syntax")
         
     
-    def process_BLOCK(self, context, symbol, operands):
+    def parse_BLOCK(self, context, symbol, operands):
         if operands:
             op = Number(operands[0])
             if op.isValid():
@@ -247,14 +247,14 @@ class Directive(object):
         else:
             context.error("invalid syntax")
     
-    def process_BNKSUM(self, context, symbol, operands):
+    def parse_BNKSUM(self, context, symbol, operands):
         self.ignore(context)
     
-    def process_CADR(self, context, symbol, operands):
+    def parse_CADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_CHECK_Equals(self, context, symbol, operands):
+    def parse_CHECK_Equals(self, context, symbol, operands):
         if operands:
             fields = operands[0].split()
             defn = context.symtab.lookup(fields[0])
@@ -270,10 +270,10 @@ class Directive(object):
                     else:
                         context.error("invalid expression, \"%s\"" % operand)
     
-    def process_COUNT(self, context, symbol, operands):
+    def parse_COUNT(self, context, symbol, operands):
         self.ignore(context)
     
-    def process_DEC(self, context, symbol, operands):
+    def parse_DEC(self, context, symbol, operands):
         if operands:
             op = Number(operands[0], Number.DECIMAL)
             if op.isValid():
@@ -285,15 +285,15 @@ class Directive(object):
         else:
             context.error("syntax error: %s %s" % (self.mnemonic, operands[0]))
     
-    def process_DNCHAN(self, context, symbol, operands):
+    def parse_DNCHAN(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_DNPTR(self, context, symbol, operands):
+    def parse_DNPTR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_EBANK_Equals(self, context, symbol, operands):
+    def parse_EBANK_Equals(self, context, symbol, operands):
         # TODO: handle one-shot EBANK=.
         if operands:
             op = Number(operands[0])
@@ -308,11 +308,11 @@ class Directive(object):
         else:
             context.error("invalid syntax, \"%s\"" % operands[0])
     
-    def process_ECADR(self, context, symbol, operands):
+    def parse_ECADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_EQUALS(self, context, symbol, operands):
+    def parse_EQUALS(self, context, symbol, operands):
         if symbol:
             if operands:
                 if operands[0].isdigit():
@@ -322,7 +322,7 @@ class Directive(object):
             else:
                 context.symtab.add(symbol, None, context.loc)
     
-    def process_ERASE(self, context, symbol, operands):
+    def parse_ERASE(self, context, symbol, operands):
         size = 0
         if not operands:
             size = 1
@@ -342,11 +342,11 @@ class Directive(object):
             context.symtab.add(symbol, operand, op.value)
         context.loc += size
         
-    def process_FCADR(self, context, symbol, operands):
+    def parse_FCADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_GENADR(self, context, symbol, operands):
+    def parse_GENADR(self, context, symbol, operands):
         if operands:
             op = Number(operands[0])
             if op.isValid():
@@ -362,7 +362,7 @@ class Directive(object):
         else:
             context.error("invalid syntax")
     
-    def process_MEMORY(self, context, symbol, operands):
+    def parse_MEMORY(self, context, symbol, operands):
         if '-' in operands:
             op1 = int(operands[0], 8)
             if symbol:
@@ -370,15 +370,15 @@ class Directive(object):
         else:
             context.error("syntax error: %s %s" % (self.mnemonic, operand))
     
-    def process_MM(self, context, symbol, operands):
+    def parse_MM(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_NV(self, context, symbol, operands):
+    def parse_NV(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def process_OCT(self, context, symbol, operands):
+    def parse_OCT(self, context, symbol, operands):
         if operands:
             op = Number(operands[0], Number.OCTAL)
             if op.isValid():
@@ -390,10 +390,10 @@ class Directive(object):
         else:
             context.error("syntax error: %s %s" % (self.mnemonic, operands[0]))
             
-    def process_OCTAL(self, context, symbol, operands):
-        self.process_OCT(context, symbol, operands)
+    def parse_OCTAL(self, context, symbol, operands):
+        self.parse_OCT(context, symbol, operands)
     
-    def process_REMADR(self, context, symbol, operands):
+    def parse_REMADR(self, context, symbol, operands):
         if operands:
             op = Number(operands[0])
             if op.isValid():
@@ -409,10 +409,10 @@ class Directive(object):
         else:
             context.error("invalid syntax")
     
-    def process_SBANK_Equals(self, context, symbol, operands):
+    def parse_SBANK_Equals(self, context, symbol, operands):
         context.warn("unsupported directive: %s %s" % (self.mnemonic, operands))
     
-    def process_SETLOC(self, context, symbol, operands):
+    def parse_SETLOC(self, context, symbol, operands):
         if operands:
             if operands[0].isdigit():
                 context.loc = int(operands[0], 8)
@@ -422,10 +422,10 @@ class Directive(object):
         else:
             context.error("invalid syntax")
     
-    def process_SUBRO(self, context, symbol, operands):
+    def parse_SUBRO(self, context, symbol, operands):
         self.ignore(context)
     
-    def process_VN(self, context, symbol, operands):
+    def parse_VN(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
 

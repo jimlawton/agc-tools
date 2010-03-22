@@ -118,9 +118,9 @@ class Assembler:
                 self.context.records.append(ParserRecord(self.context, label, pseudolabel, opcode, operands, comment))
                 try:
                     if opcode in DIRECTIVES[self.context.arch]:
-                        DIRECTIVES[self.context.arch][opcode].process(self.context, label, operands)
+                        DIRECTIVES[self.context.arch][opcode].parse(self.context, label, operands)
                     if opcode in INSTRUCTIONS[self.context.arch]:
-                        INSTRUCTIONS[self.context.arch][opcode][self.context.mode].process(self.context, operands)
+                        INSTRUCTIONS[self.context.arch][opcode][self.context.mode].parse(self.context, operands)
                         self.context.mode = OpcodeType.BASIC
                 except:
                     #self.context.symtab.printTable()

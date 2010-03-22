@@ -43,175 +43,175 @@ class Instruction(object):
         self.opcode = opcode
         self.operandType = operandType
 
-    def process(self, context, operand):
+    def parse(self, context, operand):
         if context.mode == OpcodeType.EXTENDED and opcode not in INSTRUCTIONS[context.arch][OpcodeType.EXTENDED]:
             context.error("missing EXTEND before extended instruction")
             sys.exit()
-        self.__getattribute__("process_" + self.mnemonic)(operand)
+        self.__getattribute__("parse_" + self.mnemonic)(operand)
         
-    def process_AD(self, context, operand):
+    def parse_AD(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_ADS(self, context, operand):
+    def parse_ADS(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_AUG(self, context, operand):
+    def parse_AUG(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_BZF(self, context, operand):
+    def parse_BZF(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_BZMF(self, context, operand):
+    def parse_BZMF(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_CA(self, context, operand):
+    def parse_CA(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_CAE(self, context, operand):
+    def parse_CAE(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_CAF(self, context, operand):
+    def parse_CAF(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_CCS(self, context, operand):
+    def parse_CCS(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_COM(self, context, operand):
+    def parse_COM(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_CS(self, context, operand):
+    def parse_CS(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DAS(self, context, operand):
+    def parse_DAS(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DCA(self, context, operand):
+    def parse_DCA(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DCOM(self, context, operand):
+    def parse_DCOM(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DDOUBL(self, context, operand):
+    def parse_DDOUBL(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DIM(self, context, operand):
+    def parse_DIM(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DOUBLE(self, context, operand):
+    def parse_DOUBLE(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DTCB(self, context, operand):
+    def parse_DTCB(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DTCF(self, context, operand):
+    def parse_DTCF(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DV(self, context, operand):
+    def parse_DV(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_DXCH(self, context, operand):
+    def parse_DXCH(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_EDRUPT(self, context, operand):
+    def parse_EDRUPT(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_EXTEND(self, context, operand):
+    def parse_EXTEND(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_INCR(self, context, operand):
+    def parse_INCR(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_INDEX(self, context, operand):
+    def parse_INDEX(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_INHINT(self, context, operand):
+    def parse_INHINT(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_LXCH(self, context, operand):
+    def parse_LXCH(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_MASK(self, context, operand):
+    def parse_MASK(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_MP(self, context, operand):
+    def parse_MP(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_MSU(self, context, operand):
+    def parse_MSU(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_NDX(self, context, operand):
+    def parse_NDX(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_NOOP(self, context, operand):
+    def parse_NOOP(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_OVSK(self, context, operand):
+    def parse_OVSK(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_QXCH(self, context, operand):
+    def parse_QXCH(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_RAND(self, context, operand):
+    def parse_RAND(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_READ(self, context, operand):
+    def parse_READ(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_RELINT(self, context, operand):
+    def parse_RELINT(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_RESUME(self, context, operand):
+    def parse_RESUME(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_RETURN(self, context, operand):
+    def parse_RETURN(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_ROR(self, context, operand):
+    def parse_ROR(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_RXOR(self, context, operand):
+    def parse_RXOR(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_SQUARE(self, context, operand):
+    def parse_SQUARE(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_SU(self, context, operand):
+    def parse_SU(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_TC(self, context, operand):
+    def parse_TC(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_TCAA(self, context, operand):
+    def parse_TCAA(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_TCF(self, context, operand):
+    def parse_TCF(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_TS(self, context, operand):
+    def parse_TS(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_WAND(self, context, operand):
+    def parse_WAND(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_WOR(self, context, operand):
+    def parse_WOR(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_WRITE(self, context, operand):
+    def parse_WRITE(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_XCH(self, context, operand):
+    def parse_XCH(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_XLQ(self, context, operand):
+    def parse_XLQ(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_XXALQ(self, context, operand):
+    def parse_XXALQ(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_ZL(self, context, operand):
+    def parse_ZL(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
     
-    def process_ZQ(self, context, operand):
+    def parse_ZQ(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
 
     
