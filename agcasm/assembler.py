@@ -46,7 +46,8 @@ class Assembler:
             self.memmap = MemoryMap(arch, verbose)
             self.checklist = []
             self.loc = 0
-            self.bank = 0
+            self.ebank = 0
+            self.fbank = 0
             self.bankloc = {}
             for bank in range(len(self.memmap.memmap)):
                 self.bankloc[bank] = 0
@@ -126,8 +127,10 @@ class Assembler:
                     raise
 
     def error(self, text):
-        print >>sys.stderr, "%s, line %d, error: %s" % (self.context.srcfile, self.context.linenum, text)
-
+        print >>sys.stderr, "%s, line %d, error: %s" % (self.context.srcfile, self.context.linenum, text) 
+        print >>sys.stderr, self.context.source[-1]
+        sys.exit()
+        
     def warn(self, text):
         print >>sys.stderr, "%s, line %d, warning: %s" % (self.context.srcfile, self.context.linenum, text)
 
