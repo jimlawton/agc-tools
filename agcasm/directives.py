@@ -177,15 +177,9 @@ class Directive(object):
     
     def parse_ADRES(self, context, symbol, operands):
         if operands:
-            op = Number(operands[0])
-            if op.isValid():
-                aval = op.value
-            else:
-                entry = context.symtab.lookup(operands[0])
-                if entry:
-                    (bank, offset) = context.memmap.convertPAToBank(entry.value)
-                else:
-                    context.error("undefined symbol \"%s\"" % operands[0])
+            expr = Expression(context, operands)
+            if expr.valid:
+                (bank, offset) = context.memmap.convertPAToBank(expr.value)
                 if bank and (bank == context.fbank or bank == context.ebank):
                     aval = offset
         else:
@@ -193,27 +187,19 @@ class Directive(object):
     
     def parse_BANK(self, context, symbol, operands):
         if operands:
-            op = Number(operands[0])
-            if op.isValid():
-                context.fbank = op.value
-                context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, op.value, context.bankloc[op.value])
-            else:
-                context.error("invalid syntax, \"%s\"" % operand)
+            expr = Expression(context, operands)
+            if expr.valid:
+                context.fbank = expr.value
+                context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, expr.value, context.bankloc[expr.value])
         else:
             context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
     
     def parse_BBCON(self, context, symbol, operands):
         if operands:
             fbank = None
-            op = Number(operands[0])
-            if op.isValid():
-                fbank = op.value
-            else:
-                entry = context.symtab.lookup(operands[0])
-                if entry:
-                    (fbank, offset) = context.memmap.pseudoToSegmented(entry.value)
-                else:
-                    context.error("undefined symbol \"%s\"" % operands[0])
+            expr = Expression(context, operands)
+            if expr.valid:
+                (fbank, offset) = context.memmap.pseudoToSegmented(entry.value)
             if fbank:
                 bbval = 0
                 # Bits 15-11 of the generated word contain the bank number.
@@ -233,9 +219,9 @@ class Directive(object):
     
     def parse_BLOCK(self, context, symbol, operands):
         if operands:
-            op = Number(operands[0])
-            if op.isValid():
-                bank = op.value
+            expr = Expression(context, operands)
+            if expr.valid:
+                bank = expr.value
                 if bank == 0:
                     context.ebank = bank
                     context.loc = context.memmap.convertBankToPA(MemoryType.ERASABLE, bank, context.bankloc[bank])
