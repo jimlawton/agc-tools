@@ -41,18 +41,15 @@ class Expression:
                                     self.value += op2
                                 else:
                                     self.value -= op2
+                                self.valid = True
                         else:
                             context.error("invalid syntax")
+                    else:
+                        self.valid = True
             else:
                 context.error("invalid syntax")
         else:
             context.error("invalid syntax")
-
-    def isValid(self):
-        return self.valid
-
-    def isComplete(self):
-        return self.complete
 
     def _parseOperand(self, context, operand):
         retval = None
