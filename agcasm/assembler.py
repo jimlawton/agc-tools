@@ -123,7 +123,7 @@ class Assembler:
                         INSTRUCTIONS[self.context.arch][opcode][self.context.mode].parse(self.context, operands)
                         self.context.mode = OpcodeType.BASIC
                 except:
-                    #self.context.symtab.printTable()
+                    self.context.symtab.printTable()
                     raise
 
     def error(self, text):
