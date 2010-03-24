@@ -119,7 +119,10 @@ class MemoryMap:
     def __str__(self):
         text = ""
         for bank in self.memmap:
-            text += "%s" % bank
+            if bank.memtype == MemoryType.NONEXISTENT:
+                continue
+            text += "%s"  % str(bank)
+        return text
             
     def _findBank(self, pa):
         bank = None
@@ -133,7 +136,7 @@ class MemoryMap:
         
         if found:
             bank = self.memmap[startaddr]
-        
+       
         return bank
         
     def segmentedToPseudo(self, banktype, bank, address=0):
