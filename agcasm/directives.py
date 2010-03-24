@@ -349,12 +349,13 @@ class Directive(object):
             context.error("invalid syntax")
     
     def parse_MEMORY(self, context, symbol, operands):
-        if '-' in operands:
-            op1 = int(operands[0], 8)
-            if symbol:
-                context.symtab.add(symbol, operands[0], op1)
-        else:
-            context.error("syntax error: %s %s" % (self.mnemonic, operand))
+        #if '-' in operands:
+        #    op1 = int(operands[0], 8)
+        #    if symbol:
+        #        context.symtab.add(symbol, operands[0], op1)
+        #else:
+        #    context.error("syntax error: %s %s" % (self.mnemonic, operand))
+        self.ignore(context)
     
     def parse_MM(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
