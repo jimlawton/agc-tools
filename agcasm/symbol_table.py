@@ -34,8 +34,11 @@ class SymbolTableEntry:
             text += "%-20s" % "UNDEFINED"
         else:
             text += "%-10s" % self.context.memmap.pseudoToString(self.value)
-            text += "(%02o,%04o) " % self.context.memmap.pseudoToSegmented(self.value)
-            print self.context.memmap.pseudoToSegmented(self.value)
+            (bank, offset) = self.context.memmap.pseudoToSegmented(self.value)
+            if bank != None:
+                text += "(%02o,%04o) " % (bank, offset)
+            else:
+                text += 10 * ' ' 
         if self.symbolic:
             text += " \"%s\""  % (self.symbolic)
         return text
