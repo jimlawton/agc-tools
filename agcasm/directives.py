@@ -101,7 +101,8 @@ class Directive(object):
                 if entry:
                     (bank, offset) = context.memmap.pseudoToSegmented(entry.value)
                 else:
-                    context.error("undefined symbol \"%s\"" % operands[0])
+                    if context.passnum > 1:
+                        context.error("undefined symbol \"%s\"" % operands[0])
                 if bank:
                     word1 = offset
             if len(operands) > 1:
@@ -290,7 +291,8 @@ class Directive(object):
                 if entry:
                     bank = context.memmap.pseudoToSegmented(entry.value)
                 else:
-                    context.error("undefined symbol \"%s\"" % operands[0])
+                    if context.passnum > 1:
+                        context.error("undefined symbol \"%s\"" % operands[0])
         else:
             context.error("invalid syntax, \"%s\"" % operands[0])
     
@@ -342,7 +344,8 @@ class Directive(object):
                 if entry:
                     (bank, offset) = context.memmap.convertPAToBank(entry.value)
                 else:
-                    context.error("undefined symbol \"%s\"" % operands[0])
+                    if context.passnum > 1:
+                        context.error("undefined symbol \"%s\"" % operands[0])
                 if bank:
                     aval = offset
         else:
@@ -390,7 +393,8 @@ class Directive(object):
                 if entry:
                     (bank, offset) = context.memmap.convertPAToBank(entry.value)
                 else:
-                    context.error("undefined symbol \"%s\"" % operands[0])
+                    if context.passnum > 1:
+                        context.error("undefined symbol \"%s\"" % operands[0])
                 if bank and (bank != context.fbank and bank != context.ebank):
                     aval = offset
         else:

@@ -46,6 +46,7 @@ class Assembler:
             self.memmap = MemoryMap(arch, verbose)
             self.checklist = []
             self.loc = 0
+            self.passnum = 1
             self.ebank = 0
             self.fbank = 0
             self.bankloc = {}
@@ -108,6 +109,8 @@ class Assembler:
                 for field in fields[1:]:
                     if field.startswith('#'):
                         break
+                    if len(field) > 1 and (field.startswith('+') or field.startswith('-')):
+                        field = field[0] + ' ' + field[1:]
                     operands += " " + field
                 if operands == "":
                     operands = None
@@ -123,7 +126,7 @@ class Assembler:
                         INSTRUCTIONS[self.context.arch][opcode][self.context.mode].parse(self.context, operands)
                         self.context.mode = OpcodeType.BASIC
                 except:
-                    self.context.symtab.printTable()
+                    #self.context.symtab.printTable()
                     raise
 
     def error(self, text):

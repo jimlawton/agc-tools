@@ -61,5 +61,6 @@ class Expression:
             if entry:
                 retval = entry.value
             else:
-                context.error("undefined symbol \"%s\"" % operand)
+                if context.passnum > 1:
+                    context.error("undefined symbol \"%s\"" % operand)
         return retval

@@ -69,4 +69,3 @@ class SymbolTable:
         symbols.sort()
         for symbol in symbols:
             print self.symbols[symbol]
-

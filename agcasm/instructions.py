@@ -46,7 +46,8 @@ class Instruction(object):
         if context.mode == OpcodeType.EXTENDED and opcode not in INSTRUCTIONS[context.arch][OpcodeType.EXTENDED]:
             context.error("missing EXTEND before extended instruction")
             sys.exit()
-        self.__getattribute__("parse_" + self.mnemonic)(operand)
+        context.loc += 1
+        #self.__getattribute__("parse_" + self.mnemonic)(operand)
         
     def parse_AD(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
