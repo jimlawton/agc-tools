@@ -37,17 +37,21 @@ class OperandType:
 # NOTE: Must be a new-style class.
 class Instruction(object):
     
-    def __init__(self, mnemonic, opcode, operandType):
+    def __init__(self, mnemonic, opcode, operandType, numwords=1):
         self.mnemonic = mnemonic
         self.opcode = opcode
         self.operandType = operandType
+        self.numwords = numwords
 
     def parse(self, context, operand):
         if context.mode == OpcodeType.EXTENDED and opcode not in INSTRUCTIONS[context.arch][OpcodeType.EXTENDED]:
             context.error("missing EXTEND before extended instruction")
             sys.exit()
-        context.loc += 1
-        #self.__getattribute__("parse_" + self.mnemonic)(operand)
+        if self.operandType == OperandType.NONE:
+            context.code = self.opcode
+        else:
+            self.__getattribute__("parse_" + self.mnemonic)(operand)
+        context.loc += self.numwords
         
     def parse_AD(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
