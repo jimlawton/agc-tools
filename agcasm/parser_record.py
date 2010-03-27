@@ -31,9 +31,9 @@ class ParserRecord:
         self.comment = comment              # Comments.
         self.address = context.loc          # Address of the first word in the code section.
         self.numwords = 0                   # Number of code words generated.
-        self.code = []                      # List of generated code words.
         self.ebank = None                   # Current E-Bank.
         self.complete = False               # Assembly complete? i.e. all symbols resolved.
+        self.code = context.code            # List of generated code words.
         
     def generate(self, code):
         self.code = code
