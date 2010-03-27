@@ -32,11 +32,14 @@ class Number:
     def __init__(self, text, forcetype=None, size=1):
         self.valid = False
         self.text = text
-        self.value = None
-        self.values = []
         self.type = None
         self.size = size
-        
+
+        if self.size == 1:
+            self.value = None
+        else:
+            self.value = ()
+
         # Trim trailing asterisk, if any.
         if text.endswith('*'):
             text = text[:-1]
@@ -104,7 +107,10 @@ class Number:
                     mantissa = field
         else:
             if not '.' in mantissa:
-                bscale = self.scaleFactor("B-14")
+                if self.size == 1:
+                    bscale = self.scaleFactor("B-14")
+                else:
+                    bscale = self.scaleFactor("B-28")
         if mantissa.endswith('D'):
             mantissa = mantissa[:-1]
         if mantissa.startswith('-'):
@@ -120,17 +126,37 @@ class Number:
             print >>sys.stderr, "Invalid number, greater than 1.0 (%s)" % (text)
             sys.exit()
         value = 0
-        for i in range(14):
+        if self.size == 1:
+            rangeval = 14
+        else:
+            rangeval = 28
+        for i in range(rangeval):
             value = value << 1
             if realval >= 0.5:
                 value += 1
                 realval -= 0.5
             realval *= 2
-        if realval >= 0.5 and value < 077777:
+        if self.size == 1:
+            limitval = 0x3fff
+        else:
+            limitval = 0xfffffff
+        if realval >= 0.5 and value < limitval:
             value += 1
+        if self.size == 2:
+            i = value & 0x3fff
+            value = (value >> 14) & 0x3fff
         if negate:
-            value = ~value & 077777
-        self.value = value
+            if self.size == 2:
+                value = ~value
+                i = ~i
+                i &= 0x7fff
+                value &= 0x7fff
+            else:
+                value = ~value & 0x7fff
+        if self.size == 1:
+            self.value = value
+        else:
+            self.value = (value, i)
         self.valid = True
 
     def _getFloat(self, text):
@@ -277,6 +303,28 @@ def test_sp_dec():
 
     return (passed, failed)
             
+def test_dp_dec():
+    testdata = {
+    }
+
+    passed = 0
+    failed = 0
+    
+    for value in testdata:
+        testval = DoubleDecimal(value)
+        if testval.isValid():
+            if testval.value[0] != testdata[value][0] or testval.value[1] != testdata[value][1]:
+                print "FAIL: \"%s\", (%06o,%06o) != (%06o,%06o)" % (value, testval.value[0], testval.value[1], testdata[value][0], testdata[value][1])
+                failed += 1
+            else:
+                print "PASS: \"%s\", (%06o,%06o) == (%06o,%06o)" % (value, testval.value[0], testval.value[1], testdata[value][0], testdata[value][1])
+                passed += 1
+        else:
+            print "FAIL: \"%s\" failed to parse" % (value)
+            failed += 1
+
+    return (passed, failed)
+
 if __name__=="__main__":
     import sys
 
