@@ -43,7 +43,7 @@ class Directive(object):
     def ignore(self, context):
         context.info("ignoring directive \"%s\"" % self.mnemonic)
 
-    def parse_Minus1_DNADR(self, context, symbol, operands):
+    def parse_Minus1DNADR(self, context, symbol, operands):
         pa = None
         if operands:
             expr = Expression(context, operands)
@@ -54,39 +54,39 @@ class Directive(object):
                 else:
                     context.error("1DNADR operand must be in erasable memory")
     
-    def parse_Minus2_CADR(self, context, symbol, operands):
+    def parse_Minus2CADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def parse_Minus2_DNADR(self, context, symbol, operands):
+    def parse_Minus2DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def parse_Minus3_DNADR(self, context, symbol, operands):
+    def parse_Minus3DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def parse_Minus4_DNADR(self, context, symbol, operands):
+    def parse_Minus4DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def parse_Minus5_DNADR(self, context, symbol, operands):
+    def parse_Minus5DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def parse_Minus6_DNADR(self, context, symbol, operands):
+    def parse_Minus6DNADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def parse_Minus_DNCHAN(self, context, symbol, operands):
+    def parse_MinusDNCHAN(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def parse_Minus_DNPTR(self, context, symbol, operands):
+    def parse_MinusDNPTR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def parse_Minus_GENADR(self, context, symbol, operands):
+    def parse_MinusGENADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
@@ -207,7 +207,7 @@ class Directive(object):
                 else:
                     context.error("1DNADR operand must be in erasable memory")
     
-    def parse_Equals_Sign(self, context, symbol, operands):
+    def parse_EqualsSign(self, context, symbol, operands):
         if symbol:
             if operands:
                 expr = Expression(context, operands)
@@ -218,11 +218,11 @@ class Directive(object):
             else:
                 context.symtab.add(symbol, operands[0], context.loc)
     
-    def parse_Equals_ECADR(self, context, symbol, operands):
+    def parse_EqualsECADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def parse_Equals_MINUS(self, context, symbol, operands):
+    def parse_EqualsMINUS(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
@@ -297,7 +297,7 @@ class Directive(object):
         else:
             context.error("invalid syntax")
     
-    def parse_CHECK_Equals(self, context, symbol, operands):
+    def parse_CHECKEquals(self, context, symbol, operands):
         if operands:
             fields = operands[0].split()
             defn = context.symtab.lookup(fields[0])
@@ -336,7 +336,7 @@ class Directive(object):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def parse_EBANK_Equals(self, context, symbol, operands):
+    def parse_EBANKEquals(self, context, symbol, operands):
         # TODO: handle one-shot EBANK=.
         if operands:
             op = Number(operands[0])
@@ -467,7 +467,7 @@ class Directive(object):
         else:
             context.error("invalid syntax")
     
-    def parse_SBANK_Equals(self, context, symbol, operands):
+    def parse_SBANKEquals(self, context, symbol, operands):
         context.warn("unsupported directive: %s %s" % (self.mnemonic, operands))
     
     def parse_SETLOC(self, context, symbol, operands):
@@ -491,16 +491,16 @@ class Directive(object):
 
 DIRECTIVES = {
     Architecture.AGC4_B2 : {
-        "-1DNADR":  Directive("Minus1_DNADR",   "-1DNADR",  1),
-        "-2CADR":   Directive("Minus2_CADR",    "-2CADR",   1),
-        "-2DNADR":  Directive("Minus2_DNADR",   "-2DNADR",  1),
-        "-3DNADR":  Directive("Minus3_DNADR",   "-3DNADR",  1),
-        "-4DNADR":  Directive("Minus4_DNADR",   "-4DNADR",  1),
-        "-5DNADR":  Directive("Minus5_DNADR",   "-5DNADR",  1),
-        "-6DNADR":  Directive("Minus6_DNADR",   "-6DNADR",  1),
-        "-DNCHAN":  Directive("Minus_DNCHAN",   "-DNCHAN",  1),
-        "-DNPTR":   Directive("Minus_DNPTR",    "-DNPTR",   1),
-        "-GENADR":  Directive("Minus_GENADR",   "-GENADR",  1),
+        "-1DNADR":  Directive("Minus1DNADR",    "-1DNADR",  1),
+        "-2CADR":   Directive("Minus2CADR",     "-2CADR",   1),
+        "-2DNADR":  Directive("Minus2DNADR",    "-2DNADR",  1),
+        "-3DNADR":  Directive("Minus3DNADR",    "-3DNADR",  1),
+        "-4DNADR":  Directive("Minus4DNADR",    "-4DNADR",  1),
+        "-5DNADR":  Directive("Minus5DNADR",    "-5DNADR",  1),
+        "-6DNADR":  Directive("Minus6DNADR",    "-6DNADR",  1),
+        "-DNCHAN":  Directive("MinusDNCHAN",    "-DNCHAN",  1),
+        "-DNPTR":   Directive("MinusDNPTR",     "-DNPTR",   1),
+        "-GENADR":  Directive("MinusGENADR",    "-GENADR",  1),
         "1DNADR":   Directive("1DNADR",         None,       1),
         "2BCADR":   Directive("2BCADR",         None,       2),
         "2CADR":    Directive("2CADR",          None,       2),
@@ -513,9 +513,9 @@ DIRECTIVES = {
         "4DNADR":   Directive("4DNADR",         None,       1),
         "5DNADR":   Directive("5DNADR",         None,       1),
         "6DNADR":   Directive("6DNADR",         None,       1),
-        "=":        Directive("Equals_Sign",    "="),
-        "=ECADR":   Directive("Equals_ECADR",   "=ECADR"),
-        "=MINUS":   Directive("Equals_MINUS"    "=MINUS"),
+        "=":        Directive("EqualsSign",     "="),
+        "=ECADR":   Directive("EqualsECADR",    "=ECADR"),
+        "=MINUS":   Directive("EqualsMINUS"     "=MINUS"),
         "ADRES":    Directive("ADRES",          None,       1),
         "BANK":     Directive("BANK"),
         "BBCON":    Directive("BBCON",          None,       1),
@@ -523,14 +523,14 @@ DIRECTIVES = {
         "BLOCK":    Directive("BLOCK"),
         "BNKSUM":   Directive("BNKSUM"),
         "CADR":     Directive("CADR",           None,       1),
-        "CHECK=":   Directive("CHECK_Equals",   "CHECK="),
+        "CHECK=":   Directive("CHECKEquals",    "CHECK="),
         "COUNT":    Directive("COUNT"),
         "COUNT*":   Directive("COUNT",          "COUNT*"),
         "DEC":      Directive("DEC",            None,       1),
         "DEC*":     Directive("DEC",            "DEC*",     1),
         "DNCHAN":   Directive("DNCHAN",         None,       1),
         "DNPTR":    Directive("DNPTR",          None,       1),
-        "EBANK=":   Directive("EBANK_Equals",   "EBANK="),
+        "EBANK=":   Directive("EBANKEquals",    "EBANK="),
         "ECADR":    Directive("ECADR",          None,       1),
         "EQUALS":   Directive("EQUALS"),
         "ERASE":    Directive("ERASE"),
@@ -542,7 +542,7 @@ DIRECTIVES = {
         "OCT":      Directive("OCT",            None,       1),
         "OCTAL":    Directive("OCTAL",          None,       1),
         "REMADR":   Directive("REMADR",         None,       1),
-        "SBANK=":   Directive("SBANK_Equals",   "SBANK="),
+        "SBANK=":   Directive("SBANKEquals",    "SBANK="),
         "SETLOC":   Directive("SETLOC"),
         "SUBRO":    Directive("SUBRO"),
         "VN":       Directive("VN",             None,       1)
