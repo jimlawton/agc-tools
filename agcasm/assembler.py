@@ -50,6 +50,7 @@ class Assembler:
             self.ebank = 0
             self.fbank = 0
             self.bankloc = {}
+            self.code = []
             for bank in range(len(self.memmap.memmap)):
                 self.bankloc[bank] = 0
             self.records = []
@@ -118,7 +119,6 @@ class Assembler:
                     operands = operands.strip().split()
                 if opcode == "EXTEND":
                     self.context.mode = OpcodeType.EXTENDED
-                self.context.records.append(ParserRecord(self.context, label, pseudolabel, opcode, operands, comment))
                 try:
                     if opcode in DIRECTIVES[self.context.arch]:
                         DIRECTIVES[self.context.arch][opcode].parse(self.context, label, operands)
@@ -128,6 +128,7 @@ class Assembler:
                 except:
                     #self.context.symtab.printTable()
                     raise
+                self.context.records.append(ParserRecord(self.context, label, pseudolabel, opcode, operands, comment))
 
     def error(self, text):
         print >>sys.stderr, "%s, line %d, error: %s" % (self.context.srcfile, self.context.linenum, text) 
