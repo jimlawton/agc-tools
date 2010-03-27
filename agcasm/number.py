@@ -27,7 +27,7 @@ class Number:
     
     OCTAL_RE   = re.compile("^[+-]*[0-7]+$")
     DECIMAL_RE = re.compile("^[+-]*[0-9]+D$")
-    FLOAT_RE   = re.compile("^[+-]*[0-9]*\.[0-9]+ *(E[+-]*[0-9]+)* *(B[+-]*[0-9]+)*[*]*$")
+    FLOAT_RE   = re.compile("^[+-]*[0-9]*\.[0-9]+[ ]*(E[+-]*[0-9]+)* *(B[+-]*[0-9]+)*[*]*$")
     
     def __init__(self, text, forcetype=None):
         self.valid = False
