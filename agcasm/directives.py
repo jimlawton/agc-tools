@@ -101,38 +101,25 @@ class Directive(object):
     def parse_2CADR(self, context, symbol, operands):
         word1 = word2 = None
         if operands:
-            bank = None
-            op = Number(operands[0])
-            if op.isValid():
-                word1 = op.value
-            else:
-                entry = context.symtab.lookup(operands[0])
-                if entry:
-                    (bank, offset) = context.memmap.pseudoToSegmented(entry.value)
+            expr = Expression(context, operands)
+            if expr.complete:
+                word1 = expr.value
+                (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
+                if context.memmap.isFixed(word1):
+                    word2 = 0
+                    # Bits 15-11 of the 2nd generated word contain the bank number.
+                    word2 |= ((context.fbank & 037) << 10) 
+                    # Bits 10-8 and 4 are zero. 
+                    # Bits 7-5 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
+                    if 030 <= context.fbank <= 037:
+                        word2 |= (3 << 4)
+                    elif 040 <= context.fbank <= 043:
+                        word2 |= (4 << 4)
+                    # Bits 3-1 equals the current EBANK= code.
+                    word2 != (context.ebank & 07)
                 else:
-                    if context.passnum > 1:
-                        context.error("undefined symbol \"%s\"" % operands[0])
-                if bank:
-                    word1 = offset
-            if len(operands) > 1:
-                context.error("operand expressions not supported yet!")
-            if context.memmap.isFixed(word1):
-                word2 = 0
-                # Bits 15-11 of the 2nd generated word contain the bank number.
-                word2 |= ((context.fbank & 037) << 10) 
-                # Bits 10-8 and 4 are zero. 
-                # Bits 7-5 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
-                if 030 <= context.fbank <= 037:
-                    word2 |= (3 << 4)
-                elif 040 <= context.fbank <= 043:
-                    word2 |= (4 << 4)
-                # Bits 3-1 equals the current EBANK= code.
-                word2 != (context.ebank & 07)
-            else:
-                word2 = context.memmap.getBankNumber(word1)
-        else:
-            context.error("invalid syntax")
-    
+                    word2 = context.memmap.getBankNumber(word1)
+
     def parse_2DEC(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
