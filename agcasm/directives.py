@@ -44,8 +44,15 @@ class Directive(object):
         context.info("ignoring directive \"%s\"" % self.mnemonic)
 
     def parse_Minus1_DNADR(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        pa = None
+        if operands:
+            expr = Expression(context, operands)
+            if expr.complete:
+                pa = expr.value
+                if context.memmap.isErasable(pa):
+                    context.code = pa
+                else:
+                    context.error("1DNADR operand must be in erasable memory")
     
     def parse_Minus2_CADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
@@ -84,8 +91,15 @@ class Directive(object):
         sys.exit()
     
     def parse_1DNADR(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        pa = None
+        if operands:
+            expr = Expression(context, operands)
+            if expr.complete:
+                pa = expr.value
+                if context.memmap.isErasable(pa):
+                    context.code = pa
+                else:
+                    context.error("1DNADR operand must be in erasable memory")
     
     def parse_2BCADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
@@ -131,8 +145,15 @@ class Directive(object):
         sys.exit()
     
     def parse_2DNADR(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        pa = None
+        if operands:
+            expr = Expression(context, operands)
+            if expr.complete:
+                pa = expr.value
+                if context.memmap.isErasable(pa):
+                    context.code = pa + 04000
+                else:
+                    context.error("1DNADR operand must be in erasable memory")
     
     def parse_2FCADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
@@ -143,20 +164,48 @@ class Directive(object):
         sys.exit()
     
     def parse_3DNADR(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        pa = None
+        if operands:
+            expr = Expression(context, operands)
+            if expr.complete:
+                pa = expr.value
+                if context.memmap.isErasable(pa):
+                    context.code = pa + 010000
+                else:
+                    context.error("1DNADR operand must be in erasable memory")
     
     def parse_4DNADR(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        pa = None
+        if operands:
+            expr = Expression(context, operands)
+            if expr.complete:
+                pa = expr.value
+                if context.memmap.isErasable(pa):
+                    context.code = pa + 014000
+                else:
+                    context.error("1DNADR operand must be in erasable memory")
     
     def parse_5DNADR(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        pa = None
+        if operands:
+            expr = Expression(context, operands)
+            if expr.complete:
+                pa = expr.value
+                if context.memmap.isErasable(pa):
+                    context.code = pa + 020000
+                else:
+                    context.error("1DNADR operand must be in erasable memory")
     
     def parse_6DNADR(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        pa = None
+        if operands:
+            expr = Expression(context, operands)
+            if expr.complete:
+                pa = expr.value
+                if context.memmap.isErasable(pa):
+                    context.code = pa + 024000
+                else:
+                    context.error("1DNADR operand must be in erasable memory")
     
     def parse_Equals_Sign(self, context, symbol, operands):
         if symbol:
@@ -304,8 +353,18 @@ class Directive(object):
             context.error("invalid syntax, \"%s\"" % operands[0])
     
     def parse_ECADR(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        pa = None
+        if operands:
+            expr = Expression(context, operands)
+            if expr.complete:
+                pa = expr.value
+                if context.memmap.isErasable(pa):
+                    context.code = pa
+                else:
+                    context.error("ECADR operand must be in erasable memory")
+        else:
+            context.error("invalid syntax")
+    
     
     def parse_EQUALS(self, context, symbol, operands):
         if symbol:
@@ -342,6 +401,7 @@ class Directive(object):
         sys.exit()
     
     def parse_GENADR(self, context, symbol, operands):
+        bank = None
         if operands:
             op = Number(operands[0])
             if op.isValid():
