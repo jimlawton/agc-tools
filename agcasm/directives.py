@@ -311,7 +311,7 @@ class Directive(object):
     
     def parse_DEC(self, context, symbol, operands):
         if operands:
-            op = Number(operands[0], Number.DECIMAL)
+            op = Decimal(operands[0])
             if op.isValid():
                 context.code = op.value
                 if symbol:
@@ -436,7 +436,7 @@ class Directive(object):
     
     def parse_OCT(self, context, symbol, operands):
         if operands:
-            op = Number(operands[0], Number.OCTAL)
+            op = Octal(operands[0])
             if op.isValid():
                 context.code = op.value
                 if symbol:
@@ -485,7 +485,7 @@ class Directive(object):
     
     def parse_VN(self, context, symbol, operands):
         if operands:
-            op = Number(operands[0], Number.DECIMAL)
+            op = Decimal(operands[0])
             if op.isValid():
                 lower = int(operands[0][-2:])
                 upper = int(operands[0][:-2])
