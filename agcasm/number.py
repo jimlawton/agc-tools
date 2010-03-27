@@ -26,7 +26,7 @@ class Number:
     FLOAT   = 2
     
     OCTAL_RE   = re.compile("^[+-]*[0-7]+$")
-    DECIMAL_RE = re.compile("^[+-]*[0-9]+D$")
+    DECIMAL_RE = re.compile("^[+-]*[0-9]+[D]$")
     FLOAT_RE   = re.compile("^[+-]*[0-9]*\.[0-9]+[ ]*(E[+-]*[0-9]+)* *(B[+-]*[0-9]+)*[*]*$")
     
     def __init__(self, text, forcetype=None):
@@ -37,34 +37,59 @@ class Number:
         if forcetype:
             if forcetype == self.OCTAL:
                 try:
-                    self.value = int(text, 8)
-                    self.valid = True
+                    self._getOctal(text)
                 except:
                     pass
             elif forcetype == self.DECIMAL:
                 try:
-                    self.value = int(text[:-1])
-                    self.valid = True
+                    self._getDecimal(text)
                 except:
                     pass
             elif forcetype == self.FLOAT:
-                # TODO: Figure out how to handle floats.
-                print >>sys.stderr, "Float formats not yet supported! (%s)" % text
+                try:
+                    self._getFloat(text)
+                except:
+                    pass
         else:
             if self.OCTAL_RE.search(text):
-                self.type = self.OCTAL
-                self.valid = True
-                self.value = int(text, 8)
+                self._getOctal(text)
             elif self.DECIMAL_RE.search(text):
-                self.type = self.DECIMAL
-                self.valid = True
-                self.value = int(text[:-1])
+                self._getDecimal(text)
             elif self.FLOAT_RE.search(text):
-                self.type = self.FLOAT
-                self.valid = True
-                # TODO: Figure out how to handle floats.
-                print >>sys.stderr, "Float formats not yet supported! (%s)" % text
-
+                self._getFloat(text)
+                
+    def _getOctal(self, text):
+        negate = False
+        self.type = self.OCTAL
+        if text.startswith('-'):
+            negate = True
+        if text.startswith('-') or text.startswith('+'):
+            text = text[1:]
+        self.value = int(text, 8)
+        if negate:
+            self.value = -self.value
+        self.valid = True
+    
+    def _getDecimal(self, text):
+        negate = False
+        self.type = self.DECIMAL
+        if text.endswith('D'):
+            text = text[:-1]
+        if text.startswith('-'):
+            negate = True
+        if text.startswith('-') or text.startswith('+'):
+            text = text[1:]
+        self.value = int(text)
+        if negate:
+            self.value = -self.value
+        self.valid = True
+    
+    def _getFloat(self, text):
+        self.type = self.FLOAT
+        # TODO: Figure out how to handle floats.
+        print >>sys.stderr, "Float formats not yet supported! (%s)" % text
+        self.valid = False
+    
     def isValid(self):
         return self.valid
 
@@ -73,13 +98,13 @@ class Number:
 
 class Octal(Number):
     def __init__(self, text):
-        return Number(self, text, forceType=Number.OCTAL)
+        Number.__init__(self, text, self.OCTAL)
 
 class Decimal(Number):
     def __init__(self, text):
-        return Number(self, text, forceType=Number.DECIMAL)
+        Number.__init__(self, text, self.DECIMAL)
 
 class Float(Number):
     def __init__(self, text):
-        return Number(self, text, forceType=Number.FLOAT)
+        Number.__init__(self, text, self.FLOAT)
     
