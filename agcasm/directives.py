@@ -437,6 +437,7 @@ class Directive(object):
         self.parse_OCT(context, symbol, operands)
     
     def parse_REMADR(self, context, symbol, operands):
+        bank = None
         if operands:
             op = Number(operands[0])
             if op.isValid():
