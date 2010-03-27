@@ -93,6 +93,7 @@ class Assembler:
             else:
                 if '#' in line:
                     comment = line[line.index('#'):]
+                    fields = line[:line.index('#')]
                 if not line.startswith(' ') and not line.startswith('\t'):
                     label = fields[0]
                     if len(fields) == 1:
@@ -106,13 +107,7 @@ class Assembler:
                         fields = fields[1:]
                 # TODO: how to handle interpretive code?
                 opcode = fields[0]
-                operands = ""
-                for field in fields[1:]:
-                    if field.startswith('#'):
-                        break
-                    if len(field) > 1 and (field.startswith('+') or field.startswith('-')):
-                        field = field[0] + ' ' + field[1:]
-                    operands += " " + field
+                operands = " " .join(fields[1:])
                 if operands == "":
                     operands = None
                 else:
