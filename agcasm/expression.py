@@ -28,28 +28,35 @@ class Expression:
         self.complete = False
         self.operands = operands
         self.value = None
+
+        op1 = 0
+        op2 = 0
         
-        if operands:
-            if len(operands) == 1 or len(operands) == 3:
+        if operands and 1 <= len(operands) <= 3:
+            if len(operands) >= 1:
                 op1 = self._parseOperand(context, operands[0])
                 if op1:
-                    self.value = op1
-                    if len(operands) > 1:
-                        if operands[1] == '+' or operands[1] == '-':
-                            op2 = self._parseOperand(context, operands[2])
-                            if op2:
-                                if operands[1] == '+':
-                                    self.value += op2
-                                else:
-                                    self.value -= op2
-                                self.valid = True
-                                self.complete = True
-                        else:
-                            context.error("invalid syntax")
-                    else:
+                    if len(operands) == 1:
+                        self.value = op1
                         self.valid = True
-            else:
-                context.error("invalid syntax")
+            if len(operands) >= 2:
+                if len(operands) == 2:
+                    if operands[1].startswith('+') or operands[1].startswith('-'):
+                        # Split a +N or -N operand.
+                        operands = [ operands[0], operands[1][0], operands[1][1:] ]
+                    else:
+                        context.error("invalid syntax")
+                if operands[1] != '+' and operands[1] != '-':
+                    context.error("invalid syntax")
+            if len(operands) == 3:
+                op2 = self._parseOperand(context, operands[2])
+                if op1 and op2:
+                    if operands[1] == '+':
+                        self.value = op1 + op2
+                    else:
+                        self.value = op1 - op2
+                    self.valid = True
+                    self.complete = True
         else:
             context.error("invalid syntax")
 
