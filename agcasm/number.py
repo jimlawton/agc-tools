@@ -67,3 +67,19 @@ class Number:
 
     def isValid(self):
         return self.valid
+
+    def complement(self):
+        return ~self.value
+
+class Octal(Number):
+    def __init__(self, text):
+        return Number(self, text, forceType=Number.OCTAL)
+
+class Decimal(Number):
+    def __init__(self, text):
+        return Number(self, text, forceType=Number.DECIMAL)
+
+class Float(Number):
+    def __init__(self, text):
+        return Number(self, text, forceType=Number.FLOAT)
+    
