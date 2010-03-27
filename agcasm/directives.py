@@ -125,7 +125,6 @@ class Directive(object):
                 word2 = context.memmap.getBankNumber(word1)
         else:
             context.error("invalid syntax")
-
     
     def parse_2DEC(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
@@ -240,8 +239,14 @@ class Directive(object):
         self.ignore(context)
     
     def parse_CADR(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        word = None
+        if operands:
+            expr = Expression(context, operands)
+            if expr.complete:
+                word = expr.value
+                context.code = word - 010000
+        else:
+            context.error("invalid syntax")
     
     def parse_CHECK_Equals(self, context, symbol, operands):
         if operands:
