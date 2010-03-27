@@ -29,11 +29,18 @@ class Number:
     DECIMAL_RE = re.compile("^[+-]*[0-9]+[D]$")
     FLOAT_RE   = re.compile("^[+-]*[0-9]*\.[0-9]+[ ]*(E[+-]*[0-9]+)* *(B[+-]*[0-9]+)*[*]*$")
     
-    def __init__(self, text, forcetype=None):
+    def __init__(self, text, forcetype=None, size=1):
         self.valid = False
         self.text = text
-        self.value = 0
+        self.value = None
+        self.values = []
         self.type = None
+        self.size = size
+        
+        # Trim trailing asterisk, if any.
+        if text.endswith('*'):
+            text = text[:-1]
+            
         if forcetype:
             if forcetype == self.OCTAL:
                 try:
@@ -69,7 +76,7 @@ class Number:
         if negate:
             self.value = -self.value
         self.valid = True
-    
+
     def _getDecimal(self, text):
         negate = False
         self.type = self.DECIMAL
@@ -96,6 +103,10 @@ class Number:
     def complement(self):
         return ~self.value
 
+    def __str__(self):
+        text = " ".join([ "%05o" % x for x in self.values ])
+        return text
+
 class Octal(Number):
     def __init__(self, text):
         Number.__init__(self, text, self.OCTAL)
@@ -107,4 +118,82 @@ class Decimal(Number):
 class Float(Number):
     def __init__(self, text):
         Number.__init__(self, text, self.FLOAT)
+
+class SingleNumber(Number):
+    def __init__(self, text):
+        Number.__init__(self, text, forcetype=None)
+
+class SingleOctal(SingleNumber):
+    def __init__(self, text):
+        SingleNumber.__init__(self, text, forcetype=self.OCTAL)
+
+class SingleDecimal(SingleNumber):
+    def __init__(self, text):
+        SingleNumber.__init__(self, text, forcetype=self.DECIMAL)
+
+class SingleFloat(SingleNumber):
+    def __init__(self, text):
+        SingleNumber.__init__(self, text, forcetype=self.FLOAT)
+
+class DoubleNumber(Number):
+    def __init__(self, text):
+        Number.__init__(self, text, forcetype=None, size=2)
+
+class DoubleOctal(DoubleNumber):
+    def __init__(self, text):
+        DoubleNumber.__init__(self, text, forcetype=self.OCTAL)
+
+class DoubleDecimal(DoubleNumber):
+    def __init__(self, text):
+        DoubleNumber.__init__(self, text, forcetype=self.DECIMAL)
+
+class DoubleFloat(DoubleNumber):
+    def __init__(self, text):
+        DoubleNumber.__init__(self, text, forcetype=self.FLOAT)
+
+def test_sp_oct():
+    testdata = {
+        "10000":            010000,
+    }
+
+    for value in testdata:
+        testval = Octal(value)
+        if testval.isValid():
+            if testval.value != testdata[value]:
+                print "FAIL: \"%s\", %06o != %06o" % (value, testval.value, testdata[value])
+            else:
+                print "PASS: \"%s\", %06o == %06o" % (value, testval.value, testdata[value])
+        else:
+            print "FAIL: \"%s\" failed to parse" % (value)
+
+def test_sp_dec():
+    testdata = {
+        "16372  B-14":      037764,
+        "-.38888":          063434,
+        "-83 B-14":         077654,
+        "-79 B-14":         077660,
+        "41 B-14":          000051,
+        "76 B-14":          000114,
+        "52 B-14":          000064,
+        "-30 B-14":         077741,
+    }
+
+    for value in testdata:
+        testval = Decimal(value)
+        if testval.isValid():
+            if testval.value != testdata[value]:
+                print "FAIL: \"%s\", %06o != %06o" % (value, testval.value, testdata[value])
+            else:
+                print "PASS: \"%s\", %06o == %06o" % (value, testval.value, testdata[value])
+        else:
+            print "FAIL: \"%s\" failed to parse" % (value)
+            
+if __name__=="__main__":
+    import sys
+
+    print "AGC Number classes tester..."
+
+    test_sp_oct()
+    test_sp_dec()
     
+    sys.exit()
