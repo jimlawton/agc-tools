@@ -25,6 +25,7 @@ class Expression:
     
     def __init__(self, context, operands):
         self.valid = False
+        self.complete = False
         self.operands = operands
         self.value = None
         
@@ -42,6 +43,7 @@ class Expression:
                                 else:
                                     self.value -= op2
                                 self.valid = True
+                                self.complete = True
                         else:
                             context.error("invalid syntax")
                     else:
@@ -60,7 +62,5 @@ class Expression:
             entry = context.symtab.lookup(operand)
             if entry:
                 retval = entry.value
-            else:
-                if context.passnum > 1:
-                    context.error("undefined symbol \"%s\"" % operand)
+
         return retval
