@@ -221,7 +221,9 @@ class Instruction(object):
     
 INSTRUCTIONS = { 
     Architecture.AGC4_B2 : {
+        # In AGC4 architecture, all instructions are single-word.
         OpcodeType.BASIC: {
+            # Name                Mnemonic  Opcode   Operand
             "AD":     Instruction("AD",     060000,  OperandType.ERASABLE_12), 
             "CA":     Instruction("CA",     030000,  OperandType.GENERAL_12),
             "CAE":    Instruction("CAE",    030000,  OperandType.ERASABLE_12),
@@ -260,6 +262,7 @@ INSTRUCTIONS = {
             "ZL":     Instruction("ZL",     022007,  OperandType.NONE)
         }, 
         OpcodeType.EXTENDED: {
+            # Name                Mnemonic  Opcode   Operand
             "ADS":    Instruction("ADS",    026000,  OperandType.ERASABLE_10),
             "AUG":    Instruction("AUG",    024000,  OperandType.ERASABLE_10), 
             "BZF":    Instruction("BZF",    010000,  OperandType.FIXED_12),  
