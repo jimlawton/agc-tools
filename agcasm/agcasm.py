@@ -61,6 +61,7 @@ def main():
     for arg in args:
         assembler.assemble(arg)
 
+    assembler.context.symtab.printTable()
     
 if __name__=="__main__":
     sys.exit(main())
