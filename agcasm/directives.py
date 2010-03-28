@@ -121,8 +121,16 @@ class Directive(object):
                     word2 = context.memmap.getBankNumber(word1)
 
     def parse_2DEC(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        if operands:
+            op = DoubleDecimal(" ".join(operands))
+            if op.isValid():
+                context.code = op.value
+                if symbol:
+                    context.symtab.add(symbol, operands, context.loc)
+            else:
+                context.error("syntax error: %s %s" % (self.mnemonic, operands))
+        else:
+            context.error("syntax error: %s %s" % (self.mnemonic, operands))
     
     def parse_2DNADR(self, context, symbol, operands):
         pa = None
@@ -140,8 +148,16 @@ class Directive(object):
         sys.exit()
     
     def parse_2OCT(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        if operands:
+            op = DoubleOctal(" ".join(operands))
+            if op.isValid():
+                context.code = op.value
+                if symbol:
+                    context.symtab.add(symbol, operands, context.loc)
+            else:
+                context.error("syntax error: %s %s" % (self.mnemonic, operands))
+        else:
+            context.error("syntax error: %s %s" % (self.mnemonic, operands))
     
     def parse_3DNADR(self, context, symbol, operands):
         pa = None
@@ -298,7 +314,7 @@ class Directive(object):
     
     def parse_DEC(self, context, symbol, operands):
         if operands:
-            op = Decimal(operands[0])
+            op = Decimal(" ".join(operands))
             if op.isValid():
                 context.code = op.value
                 if symbol:
@@ -481,9 +497,9 @@ class Directive(object):
                 if symbol:
                     context.symtab.add(symbol, operands[0], context.loc)
             else:
-                context.error("syntax error: %s %s" % (self.mnemonic, operands[0]))
+                context.error("syntax error: %s %s" % (self.mnemonic, operands))
         else:
-            context.error("syntax error: %s %s" % (self.mnemonic, operands[0]))
+            context.error("syntax error: %s %s" % (self.mnemonic, operands))
 
 
 DIRECTIVES = {
