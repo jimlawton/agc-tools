@@ -204,8 +204,8 @@ class SingleFloat(SingleNumber):
         SingleNumber.__init__(self, text, forcetype=self.FLOAT)
 
 class DoubleNumber(Number):
-    def __init__(self, text):
-        Number.__init__(self, text, forcetype=None, size=2)
+    def __init__(self, text, forcetype=None):
+        Number.__init__(self, text, forcetype, size=2)
 
 class DoubleOctal(DoubleNumber):
     def __init__(self, text):
