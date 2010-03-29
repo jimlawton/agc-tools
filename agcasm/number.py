@@ -21,6 +21,7 @@
 import re
 
 class Number:
+    
     OCTAL   = 0
     DECIMAL = 1
     FLOAT   = 2
@@ -44,22 +45,13 @@ class Number:
         if text.endswith('*'):
             text = text[:-1]
             
-        if forcetype:
-            if forcetype == self.OCTAL:
-                try:
-                    self._getOctal(text)
-                except:
-                    pass
-            elif forcetype == self.DECIMAL:
-                try:
-                    self._getDecimal(text)
-                except:
-                    pass
-            elif forcetype == self.FLOAT:
-                try:
-                    self._getFloat(text)
-                except:
-                    pass
+        if forcetype != None:
+            if forcetype == Number.OCTAL:
+                self._getOctal(text)
+            elif forcetype == Number.DECIMAL:
+                self._getDecimal(text)
+            elif forcetype == Number.FLOAT:
+                self._getFloat(text)
         else:
             if self.OCTAL_RE.search(text):
                 self._getOctal(text)
@@ -78,19 +70,29 @@ class Number:
 
     def _getOctal(self, text):
         negate = False
-        self.type = self.OCTAL
+        self.type = Number.OCTAL
         if text.startswith('-'):
             negate = True
         if text.startswith('-') or text.startswith('+'):
             text = text[1:]
-        self.value = int(text, 8)
-        if negate:
-            self.value = ~self.value & 077777
+        value = int(text, 8)
+        if self.size == 1:
+            self.value = value
+            if negate:
+                self.value = ~self.value & 077777
+        else:
+            textval = "%010o" % value
+            tval1 = textval[:5]
+            tval2 = textval[5:]
+            self.value = (int(tval1, 8), int(tval2, 8))
+            if negate:
+                self.value[0] = ~self.value[0] & 077777
+                self.value[1] = ~self.value[1] & 077777
         self.valid = True
 
     def _getDecimal(self, text):
         negate = False
-        self.type = self.DECIMAL
+        self.type = Number.DECIMAL
         fields = text.split()
         bscale = 0
         escale = 0
@@ -160,7 +162,7 @@ class Number:
         self.valid = True
 
     def _getFloat(self, text):
-        self.type = self.FLOAT
+        self.type = Number.FLOAT
         # TODO: Figure out how to handle floats.
         print >>sys.stderr, "Float formats not yet supported! (%s)" % text
         self.valid = False
@@ -177,15 +179,15 @@ class Number:
 
 class Octal(Number):
     def __init__(self, text):
-        Number.__init__(self, text, self.OCTAL)
+        Number.__init__(self, text, Number.OCTAL)
 
 class Decimal(Number):
     def __init__(self, text):
-        Number.__init__(self, text, self.DECIMAL)
+        Number.__init__(self, text, Number.DECIMAL)
 
 class Float(Number):
     def __init__(self, text):
-        Number.__init__(self, text, self.FLOAT)
+        Number.__init__(self, text, Number.FLOAT)
 
 class SingleNumber(Number):
     def __init__(self, text):
@@ -193,15 +195,15 @@ class SingleNumber(Number):
 
 class SingleOctal(SingleNumber):
     def __init__(self, text):
-        SingleNumber.__init__(self, text, forcetype=self.OCTAL)
+        SingleNumber.__init__(self, text, forcetype=Number.OCTAL)
 
 class SingleDecimal(SingleNumber):
     def __init__(self, text):
-        SingleNumber.__init__(self, text, forcetype=self.DECIMAL)
+        SingleNumber.__init__(self, text, forcetype=Number.DECIMAL)
 
 class SingleFloat(SingleNumber):
     def __init__(self, text):
-        SingleNumber.__init__(self, text, forcetype=self.FLOAT)
+        SingleNumber.__init__(self, text, forcetype=Number.FLOAT)
 
 class DoubleNumber(Number):
     def __init__(self, text, forcetype=None):
@@ -209,15 +211,77 @@ class DoubleNumber(Number):
 
 class DoubleOctal(DoubleNumber):
     def __init__(self, text):
-        DoubleNumber.__init__(self, text, forcetype=self.OCTAL)
+        DoubleNumber.__init__(self, text, forcetype=Number.OCTAL)
 
 class DoubleDecimal(DoubleNumber):
     def __init__(self, text):
-        DoubleNumber.__init__(self, text, forcetype=self.DECIMAL)
+        DoubleNumber.__init__(self, text, forcetype=Number.DECIMAL)
 
 class DoubleFloat(DoubleNumber):
     def __init__(self, text):
-        DoubleNumber.__init__(self, text, forcetype=self.FLOAT)
+        DoubleNumber.__init__(self, text, forcetype=Number.FLOAT)
+
+def test(numtype, size, data):
+    passed = 0
+    failed = 0
+    text = ""
+    if size == 1:
+        text += "SP "
+        if numtype == Number.OCTAL:
+            text += "Octal"
+        elif numtype == Number.DECIMAL:
+            text += "Decimal"
+        elif numtype == Number.FLOAT:
+            text += "Float"
+    else:
+        text += "DP "
+        if numtype == Number.OCTAL:
+            text += "Octal"
+        elif numtype == Number.DECIMAL:
+            text += "Decimal"
+        elif numtype == Number.FLOAT:
+            text += "Float"
+
+    print "Testing %s..." % text
+    
+    for value in data:
+        if size == 1:
+            if numtype == Number.OCTAL:
+                testval = Octal(value)
+            elif numtype == Number.DECIMAL:
+                testval = Decimal(value)
+            elif numtype == Number.FLOAT:
+                testval = Float(value)
+        else:
+            if numtype == Number.OCTAL:
+                testval = DoubleOctal(value)
+            elif numtype == Number.DECIMAL:
+                testval = DoubleDecimal(value)
+            elif numtype == Number.FLOAT:
+                testval = DoubleFloat(value)
+  
+        if testval.isValid():
+            if size == 1:
+                if testval.value != data[value]:
+                    print "FAIL: \"%s\", %06o != %06o" % (value, testval.value, data[value])
+                    failed += 1
+                else:
+                    print "PASS: \"%s\", %06o == %06o" % (value, testval.value, data[value])
+                    passed += 1
+            else:
+                if testval.value[0] != data[value][0] or testval.value[1] != data[value][1]:
+                    print "FAIL: \"%s\", (%06o,%06o) != (%06o,%06o)" % (value, testval.value[0], testval.value[1], data[value][0], data[value][1])
+                    failed += 1
+                else:
+                    print "PASS: \"%s\", (%06o,%06o) == (%06o,%06o)" % (value, testval.value[0], testval.value[1], data[value][0], data[value][1])
+                    passed += 1
+        else:
+            print "FAIL: \"%s\" failed to parse" % (value)
+            failed += 1
+
+    print "%s: %d passed, %d failed of %d total" % (text, passed, failed, passed+failed)
+    print
+    return (passed, failed)
 
 def test_sp_oct():
     testdata = {
@@ -228,26 +292,9 @@ def test_sp_oct():
         "-1":               077776,
         "10000":            010000,
         "22000":            022000,
-        "77777":            077777,
+        "77777":            077777
     }
-
-    passed = 0
-    failed = 0
-    
-    for value in testdata:
-        testval = Octal(value)
-        if testval.isValid():
-            if testval.value != testdata[value]:
-                print "FAIL: \"%s\", %06o != %06o" % (value, testval.value, testdata[value])
-                failed += 1
-            else:
-                print "PASS: \"%s\", %06o == %06o" % (value, testval.value, testdata[value])
-                passed += 1
-        else:
-            print "FAIL: \"%s\" failed to parse" % (value)
-            failed += 1
-
-    return (passed, failed)
+    return test(Number.OCTAL, 1, testdata)
 
 def test_sp_dec():
     testdata = {
@@ -283,47 +330,44 @@ def test_sp_dec():
         "2 B-14":           000002,
         "9000":             021450,
         "7199":             016037,
-     }
-
-    passed = 0
-    failed = 0
-    
-    for value in testdata:
-        testval = Decimal(value)
-        if testval.isValid():
-            if testval.value != testdata[value]:
-                print "FAIL: \"%s\", %06o != %06o" % (value, testval.value, testdata[value])
-                failed += 1
-            else:
-                print "PASS: \"%s\", %06o == %06o" % (value, testval.value, testdata[value])
-                passed += 1
-        else:
-            print "FAIL: \"%s\" failed to parse" % (value)
-            failed += 1
-
-    return (passed, failed)
+        "-07199":           061740,
+        "-0000":            077777
+    }
+    return test(Number.DECIMAL, 1, testdata)
             
+def test_dp_oct():
+    testdata = {
+        "0106505603":       (001065, 005603),
+        "7776600011":       (077766, 000011),
+        "1663106755":       (016631, 006755),
+        "0777700000":       (007777, 000000),
+        "3777737777":       (037777, 037777),
+        "3777737700":       (037777, 037700),
+        "0000000100":       (000000, 000100)
+    }
+    return test(Number.OCTAL, 2, testdata)
+
 def test_dp_dec():
     testdata = {
+        ".021336 B-7":          (000002, 027311),
+        "2538.09 E3 B-27":      (000465, 032324),
+        "7178165 B-29":         (000333, 001733),
+        "30480 B-19":           (001670, 020000),
+        "30.48 B-7":            (007475, 016051),
+        "17.2010499 B-7":       (004231, 027400),
+        ".032808399":           (001031, 021032),
+        "0 B-28":               (000000, 000000),
+        ".031335467":           (001001, 014636),
+        "8616410 B-28":         (001015, 034732),
+        "+.8431756920 B-1":     (015373, 011346),
+        "-.5376381241 B-1":     (067313, 065307),
+        "+.5376381241 B-1":     (010464, 012470),
+        ".5":                   (020000, 000000),
+        "1 E-5 B14":            (005174, 013261),
+        "1.666666666 E-4 B12":  (025660, 031742),
+        ".16384":               (005174, 013261)
     }
-
-    passed = 0
-    failed = 0
-    
-    for value in testdata:
-        testval = DoubleDecimal(value)
-        if testval.isValid():
-            if testval.value[0] != testdata[value][0] or testval.value[1] != testdata[value][1]:
-                print "FAIL: \"%s\", (%06o,%06o) != (%06o,%06o)" % (value, testval.value[0], testval.value[1], testdata[value][0], testdata[value][1])
-                failed += 1
-            else:
-                print "PASS: \"%s\", (%06o,%06o) == (%06o,%06o)" % (value, testval.value[0], testval.value[1], testdata[value][0], testdata[value][1])
-                passed += 1
-        else:
-            print "FAIL: \"%s\" failed to parse" % (value)
-            failed += 1
-
-    return (passed, failed)
+    return test(Number.DECIMAL, 2, testdata)
 
 if __name__=="__main__":
     import sys
@@ -332,21 +376,20 @@ if __name__=="__main__":
 
     passed = failed = 0
     
-    print
-    print "Testing SP Octal..."
-    (pass1, fail1) = test_sp_oct()
-    passed = pass1
-    failed = fail1
-    print "SP Octal: %d passed, %d failed of %d total" % (pass1, fail1, pass1+fail1)
+    (passed, failed) = test_sp_oct()
 
-    print
-    print "Testing SP Decimal..."
     (pass2, fail2) = test_sp_dec()
     passed += pass2
     failed += fail2
-    print "SP Decimal: %d passed, %d failed of %d total" % (pass2, fail2, pass2+fail2)
+
+    (pass3, fail3) = test_dp_oct()
+    passed += pass3
+    failed += fail3
+
+    (pass4, fail4) = test_dp_dec()
+    passed += pass4
+    failed += fail4
     
-    print
     print "Overall: %d passed, %d failed of %d total" % (passed, failed, passed+failed)
      
     sys.exit()
