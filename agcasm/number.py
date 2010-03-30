@@ -24,7 +24,6 @@ class Number:
     
     OCTAL   = 0
     DECIMAL = 1
-    FLOAT   = 2
     
     OCTAL_RE   = re.compile("^[+-]*[0-7]+$")
     DECIMAL_RE = re.compile("^[+-]*[0-9]+[D]$")
@@ -50,15 +49,11 @@ class Number:
                 self._getOctal(text)
             elif forcetype == Number.DECIMAL:
                 self._getDecimal(text)
-            elif forcetype == Number.FLOAT:
-                self._getFloat(text)
         else:
             if self.OCTAL_RE.search(text):
                 self._getOctal(text)
-            elif self.DECIMAL_RE.search(text):
+            elif self.DECIMAL_RE.search(text) or self.FLOAT_RE.search(text):
                 self._getDecimal(text)
-            elif self.FLOAT_RE.search(text):
-                self._getFloat(text)
 
     def scaleFactor(self, text):
         retval = 1.0
@@ -161,12 +156,6 @@ class Number:
             self.value = (value, i)
         self.valid = True
 
-    def _getFloat(self, text):
-        self.type = Number.FLOAT
-        # TODO: Figure out how to handle floats.
-        print >>sys.stderr, "Float formats not yet supported! (%s)" % text
-        self.valid = False
-    
     def isValid(self):
         return self.valid
 
@@ -185,10 +174,6 @@ class Decimal(Number):
     def __init__(self, text):
         Number.__init__(self, text, Number.DECIMAL)
 
-class Float(Number):
-    def __init__(self, text):
-        Number.__init__(self, text, Number.FLOAT)
-
 class SingleNumber(Number):
     def __init__(self, text):
         Number.__init__(self, text, forcetype=None)
@@ -201,10 +186,6 @@ class SingleDecimal(SingleNumber):
     def __init__(self, text):
         SingleNumber.__init__(self, text, forcetype=Number.DECIMAL)
 
-class SingleFloat(SingleNumber):
-    def __init__(self, text):
-        SingleNumber.__init__(self, text, forcetype=Number.FLOAT)
-
 class DoubleNumber(Number):
     def __init__(self, text, forcetype=None):
         Number.__init__(self, text, forcetype, size=2)
@@ -216,10 +197,6 @@ class DoubleOctal(DoubleNumber):
 class DoubleDecimal(DoubleNumber):
     def __init__(self, text):
         DoubleNumber.__init__(self, text, forcetype=Number.DECIMAL)
-
-class DoubleFloat(DoubleNumber):
-    def __init__(self, text):
-        DoubleNumber.__init__(self, text, forcetype=Number.FLOAT)
 
 def test(numtype, size, data):
     passed = 0
