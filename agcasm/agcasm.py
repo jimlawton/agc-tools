@@ -23,13 +23,6 @@ import sys
 import glob
 import re
 from optparse import OptionParser
-from architecture import *
-from number import *
-from memory import *
-from instructions import *
-from directives import *
-from symbol_table import *
-from code import *
 from assembler import *
 
 
