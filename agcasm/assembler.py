@@ -25,6 +25,7 @@ from memory import *
 from symbol_table import *
 from instructions import *
 from directives import *
+from interpretives import *
 from code import *
 from parser_record import *
 
@@ -115,6 +116,8 @@ class Assembler:
                 if opcode == "EXTEND":
                     self.context.mode = OpcodeType.EXTENDED
                 try:
+                    if opcode in INTERPRETIVES[self.context.arch]:
+                        INTERPRETIVES[self.context.arch][opcode].parse(self.context, label, operands)
                     if opcode in DIRECTIVES[self.context.arch]:
                         DIRECTIVES[self.context.arch][opcode].parse(self.context, label, operands)
                     if opcode in INSTRUCTIONS[self.context.arch]:
