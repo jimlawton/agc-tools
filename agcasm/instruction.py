@@ -19,23 +19,10 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from architecture import *
-
-class OpcodeType:
-    BASIC    = 0
-    EXTENDED = 1
-    BOTH     = 2
-
-class OperandType:
-    NONE        = 0    # No operand.
-    ERASABLE_10 = 1    # 10-bit erasable address.
-    ERASABLE_12 = 2    # 12-bit erasable address.
-    FIXED_9     = 3    # 9-bit fixed address. Only used by EDRUPT?
-    FIXED_12    = 4    # 12-bit fixed address.
-    GENERAL_12  = 5    # 12-bit general address (fixed or erasable).
-    CHANNEL     = 6    # 9-bit I/O channel address.
+from opcodes import *
 
 # NOTE: Must be a new-style class.
-class Instruction(object):
+class Instruction(Opcode):
     
     def __init__(self, mnemonic, opcode, operandType, numwords=1):
         self.mnemonic = mnemonic
@@ -217,76 +204,4 @@ class Instruction(object):
     
     def parse_ZQ(self, context, operand):
         sys.exit("Unsupported opcode: %s" % self.mnemonic)
-
-    
-INSTRUCTIONS = { 
-    Architecture.AGC4_B2 : {
-        # In AGC4 architecture, all instructions are single-word.
-        OpcodeType.BASIC: {
-            # Name                Mnemonic  Opcode   Operand
-            "AD":     Instruction("AD",     060000,  OperandType.ERASABLE_12), 
-            "CA":     Instruction("CA",     030000,  OperandType.GENERAL_12),
-            "CAE":    Instruction("CAE",    030000,  OperandType.ERASABLE_12),
-            "CAF":    Instruction("CAF",    030000,  OperandType.FIXED_12),
-            "CCS":    Instruction("CCS",    010000,  OperandType.ERASABLE_10),
-            "COM":    Instruction("COM",    040000,  OperandType.NONE),
-            "CS":     Instruction("CS",     040000,  OperandType.GENERAL_12),
-            "DAS":    Instruction("DAS",    020001,  OperandType.ERASABLE_10),
-            "DDOUBL": Instruction("DDOUBL", 020001,  OperandType.NONE),
-            "DOUBLE": Instruction("DOUBLE", 060000,  OperandType.NONE),
-            "DTCB":   Instruction("DTCB",   052006,  OperandType.NONE),
-            "DTCF":   Instruction("DTCF",   052005,  OperandType.NONE),
-            "DV":     Instruction("DV",     010000,  OperandType.GENERAL_12),
-            "DXCH":   Instruction("DXCH",   050001,  OperandType.ERASABLE_10),
-            "EXTEND": Instruction("EXTEND", 000006,  OperandType.NONE),
-            "INCR":   Instruction("INCR",   024000,  OperandType.NONE),
-            "INDEX":  Instruction("INDEX",  050000,  OperandType.ERASABLE_10),
-            "INHINT": Instruction("INHINT", 000004,  OperandType.NONE),
-            "LXCH":   Instruction("LXCH",   022000,  OperandType.ERASABLE_10),
-            "MASK":   Instruction("MASK",   070000,  OperandType.GENERAL_12),
-            "MSK":    Instruction("MASK",   070000,  OperandType.GENERAL_12),
-            "NDX":    Instruction("INDEX",  050000,  OperandType.ERASABLE_10),
-            "NOOP":   Instruction("NOOP",   010000,  OperandType.NONE),           # TODO: For fixed memory only. Handle erasable case.
-            "OVSK":   Instruction("OVSK",   054000,  OperandType.NONE),
-            "RELINT": Instruction("RELINT", 000003,  OperandType.NONE),
-            "RESUME": Instruction("RESUME", 050017,  OperandType.NONE),
-            "RETURN": Instruction("RETURN", 000002,  OperandType.NONE),
-            "TC":     Instruction("TC",     000000,  OperandType.GENERAL_12),
-            "TCAA":   Instruction("TCAA",   054005,  OperandType.NONE),
-            "TCF":    Instruction("TCF",    010000,  OperandType.FIXED_12),
-            "TCR":    Instruction("TC",     000000,  OperandType.GENERAL_12),
-            "TS":     Instruction("TS",     054000,  OperandType.ERASABLE_10),
-            "XCH":    Instruction("XCH",    056000,  OperandType.ERASABLE_10),
-            "XLQ":    Instruction("XLQ",    000001,  OperandType.NONE),
-            "XXALQ":  Instruction("XXALQ",  000000,  OperandType.NONE),
-            "ZL":     Instruction("ZL",     022007,  OperandType.NONE)
-        }, 
-        OpcodeType.EXTENDED: {
-            # Name                Mnemonic  Opcode   Operand
-            "ADS":    Instruction("ADS",    026000,  OperandType.ERASABLE_10),
-            "AUG":    Instruction("AUG",    024000,  OperandType.ERASABLE_10), 
-            "BZF":    Instruction("BZF",    010000,  OperandType.FIXED_12),  
-            "BZMF":   Instruction("BZMF",   060000,  OperandType.FIXED_12),
-            "DCA":    Instruction("DCA",    030001,  OperandType.GENERAL_12),
-            "DCOM":   Instruction("DCOM",   040001,  OperandType.NONE),
-            "DIM":    Instruction("DIM",    026000,  OperandType.ERASABLE_10),
-            "EDRUPT": Instruction("EDRUPT", 007000,  OperandType.FIXED_9),
-            "INDEX":  Instruction("INDEX",  050000,  OperandType.GENERAL_12),
-            "MP":     Instruction("MP",     070000,  OperandType.GENERAL_12),
-            "MSU":    Instruction("MSU",    020000,  OperandType.ERASABLE_10),
-            "NDX":    Instruction("INDEX",  050000,  OperandType.GENERAL_12),
-            "QXCH":   Instruction("QXCH",   022000,  OperandType.ERASABLE_10),
-            "RAND":   Instruction("RAND",   002000,  OperandType.CHANNEL),
-            "READ":   Instruction("READ",   000000,  OperandType.CHANNEL),
-            "ROR":    Instruction("ROR",    004000,  OperandType.CHANNEL),
-            "RXOR":   Instruction("RXOR",   006000,  OperandType.CHANNEL),
-            "SQUARE": Instruction("SQUARE", 070000,  OperandType.NONE),
-            "SU":     Instruction("SU",     060000,  OperandType.ERASABLE_10),
-            "WAND":   Instruction("WAND",   003000,  OperandType.CHANNEL),
-            "WOR":    Instruction("WOR",    005000,  OperandType.CHANNEL),
-            "WRITE":  Instruction("WRITE",  001000,  OperandType.CHANNEL),
-            "ZQ":     Instruction("ZQ",     022007,  OperandType.NONE)
-        }
-    }
-}
 

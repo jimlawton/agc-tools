@@ -24,20 +24,21 @@ from number import *
 from memory import *
 from symbol_table import *
 from expression import *
+from opcode import *
 
 # NOTE: Must be a new-style class.
-class Directive(object):
+class Directive(Opcode):
     
-    def __init__(self, name, mnemonic=None, numwords=0):
+    def __init__(self, methodName, mnemonic=None, numwords=0):
         if mnemonic:
             self.mnemonic = mnemonic
         else:
-            self.mnemonic = name
-        self.name = name
+            self.mnemonic = methodName
+        self.methodName = methodName
         self.numwords = numwords
         
     def parse(self, context, symbol, operands):
-        retval = self.__getattribute__("parse_" + self.name)(context, symbol, operands)
+        retval = self.__getattribute__("parse_" + self.methodName)(context, symbol, operands)
         context.loc += self.numwords
         return retval
 
@@ -567,65 +568,4 @@ class Directive(object):
                 context.error("syntax error: %s %s" % (self.mnemonic, operands))
             retval = True
         return retval
-
-DIRECTIVES = {
-    Architecture.AGC4_B2 : {
-        # Name                Parse Method      Mnemonic    Words
-        "-1DNADR":  Directive("Minus1DNADR",    "-1DNADR",  1),
-        "-2CADR":   Directive("Minus2CADR",     "-2CADR",   1),
-        "-2DNADR":  Directive("Minus2DNADR",    "-2DNADR",  1),
-        "-3DNADR":  Directive("Minus3DNADR",    "-3DNADR",  1),
-        "-4DNADR":  Directive("Minus4DNADR",    "-4DNADR",  1),
-        "-5DNADR":  Directive("Minus5DNADR",    "-5DNADR",  1),
-        "-6DNADR":  Directive("Minus6DNADR",    "-6DNADR",  1),
-        "-DNCHAN":  Directive("MinusDNCHAN",    "-DNCHAN",  1),
-        "-DNPTR":   Directive("MinusDNPTR",     "-DNPTR",   1),
-        "-GENADR":  Directive("MinusGENADR",    "-GENADR",  1),
-        "1DNADR":   Directive("1DNADR",         None,       1),
-        "2BCADR":   Directive("2BCADR",         None,       2),
-        "2CADR":    Directive("2CADR",          None,       2),
-        "2DEC":     Directive("2DEC",           None,       2),
-        "2DEC*":    Directive("2DEC",           "2DEC*",    2),
-        "2DNADR":   Directive("2DNADR",         None,       2),
-        "2FCADR":   Directive("2FCADR",         None,       2), 
-        "2OCT":     Directive("2OCT",           None,       2),
-        "3DNADR":   Directive("3DNADR",         None,       1),
-        "4DNADR":   Directive("4DNADR",         None,       1),
-        "5DNADR":   Directive("5DNADR",         None,       1),
-        "6DNADR":   Directive("6DNADR",         None,       1),
-        "=":        Directive("EqualsSign",     "=",        0),
-        "=ECADR":   Directive("EqualsECADR",    "=ECADR",   0),
-        "=MINUS":   Directive("EqualsMINUS",    "=MINUS",   0),
-        "ADRES":    Directive("ADRES",          None,       1),
-        "BANK":     Directive("BANK",           None,       0),
-        "BBCON":    Directive("BBCON",          None,       1),
-        "BBCON*":   Directive("BBCON",          "BBCON*",   1),
-        "BLOCK":    Directive("BLOCK",          None,       0),
-        "BNKSUM":   Directive("BNKSUM",         None,       0),
-        "CADR":     Directive("CADR",           None,       1),
-        "CHECK=":   Directive("CHECKEquals",    "CHECK=",   0),
-        "COUNT":    Directive("COUNT",          None,       0),
-        "COUNT*":   Directive("COUNT",          "COUNT*",   0),
-        "DEC":      Directive("DEC",            None,       1),
-        "DEC*":     Directive("DEC",            "DEC*",     1),
-        "DNCHAN":   Directive("DNCHAN",         None,       1),
-        "DNPTR":    Directive("DNPTR",          None,       1),
-        "EBANK=":   Directive("EBANKEquals",    "EBANK=",   0),
-        "ECADR":    Directive("ECADR",          None,       1),
-        "EQUALS":   Directive("EQUALS",         None,       0),
-        "ERASE":    Directive("ERASE",          None,       0),
-        "FCADR":    Directive("FCADR",          None,       1),
-        "GENADR":   Directive("GENADR",         None,       1),
-        "MEMORY":   Directive("MEMORY",         None,       0),
-        "MM":       Directive("MM",             None,       1),
-        "NV":       Directive("NV",             None,       1),
-        "OCT":      Directive("OCT",            None,       1),
-        "OCTAL":    Directive("OCTAL",          None,       1),
-        "REMADR":   Directive("REMADR",         None,       1),
-        "SBANK=":   Directive("SBANKEquals",    "SBANK=",   0),
-        "SETLOC":   Directive("SETLOC",         None,       0),
-        "SUBRO":    Directive("SUBRO",          None,       0),
-        "VN":       Directive("VN",             None,       1)
-    }
-}
 
