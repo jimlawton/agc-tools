@@ -40,7 +40,6 @@ class Assembler:
             self.listfile = listfile
             self.binfile = binfile
             self.srcfile = None
-            self.source = []
             self.symtab = SymbolTable(self)
             self.linenum = 0
             self.global_linenum = 0
@@ -65,33 +64,44 @@ class Assembler:
         self.context.warn = self.warn
         self.context.info = self.info
         
+    def _makeNewRecord(self, line, label, pseudolabel, opcode, operands, comment):
+        srcfile = self.context.srcfile
+        linenum = self.context.linenum
+        srcline = line
+        address = self.context.loc
+        code = self.context.code
+        return ParserRecord(srcfile, linenum, srcline, label, pseudolabel, opcode, operands, comment, address, code)
+
     def assemble(self, srcfile):
         print "Assembling", srcfile
         self.context.srcfile = srcfile
         self.context.linenum = 0
         lines = open(srcfile).readlines()
         for line in lines:
-            self.context.source.append(line.expandtabs(8))
+            srcline = line.expandtabs(8)
             self.context.linenum += 1
             self.context.global_linenum += 1
+            label = None
+            pseudolabel = None
+            opcode = None
+            operands = None
+            comment = None
             if line.startswith('$'):
                 modname = line[1:].split()[0]
                 if not os.path.isfile(modname):
                     print >>sys.stderr, "File \"%s\" does not exist" % modname
                     sys.exit(1)
+                self.context.records.append(self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment))
                 self.assemble(modname)
                 continue
             if len(line.strip()) == 0:
+                self.context.records.append(self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment))
                 continue
             # Real parsing starts here.
             fields = line.split()
-            label = None
-            pseudolabel = None
-            opcode = None
-            operand = None
-            comment = None
             if line.startswith('#'):
                 comment = line
+                self.context.records.append(self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment))
             else:
                 if '#' in line:
                     comment = line[line.index('#'):]
@@ -129,7 +139,7 @@ class Assembler:
                 except:
                     self.context.symtab.printTable()
                     raise
-                self.context.records.append(ParserRecord(self.context, label, pseudolabel, opcode, operands, comment))
+                self.context.records.append(self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment))
 
     def error(self, text):
         print >>sys.stderr, "%s, line %d, error: %s" % (self.context.srcfile, self.context.linenum, text) 

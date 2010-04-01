@@ -21,19 +21,20 @@
 class ParserRecord:
     """Class storing parser data."""
     
-    def __init__(self, context, label, pseudolabel, opcode, operands, comment):
-        self.srcfile = context.srcfile      # Source filename.
-        self.linenum = context.linenum      # Source line number.
+    def __init__(self, srcfile, linenum, srcline, label, pseudolabel, opcode, operands, comment, address, code):
+        self.srcfile = srcfile              # Source filename.
+        self.linenum = linenum              # Source line number.
+        self.srcline= srcline               # Source line.
         self.label = label                  # Label field [optional].
         self.pseudolabel = pseudolabel      # Pseudo-label field [optional].
         self.opcode = opcode                # Opcode or directive field.
         self.operands = operands            # Operands.
         self.comment = comment              # Comments.
-        self.address = context.loc          # Address of the first word in the code section.
+        self.address = address              # Address of the first word in the code section.
+        self.code = code                    # List of generated code words.
         self.numwords = 0                   # Number of code words generated.
         self.ebank = None                   # Current E-Bank.
         self.complete = False               # Assembly complete? i.e. all symbols resolved.
-        self.code = context.code            # List of generated code words.
         
     def generate(self, code):
         self.code = code
