@@ -23,11 +23,12 @@ from architecture import *
 from number import *
 from memory import *
 from symbol_table import *
-from instructions import *
-from directives import *
-from interpretives import *
+from instruction import *
+from directive import *
+from interpretive import *
 from code import *
 from parser_record import *
+from opcodes import *
 
 class Assembler:
     """Class defining an AGC assembler."""
@@ -113,16 +114,18 @@ class Assembler:
                     operands = None
                 else:
                     operands = operands.strip().split()
-                if opcode == "EXTEND":
-                    self.context.mode = OpcodeType.EXTENDED
+                if self.context.mode == OpcodeType.EXTENDED and opcode not in OPCODES[self.context.arch][OpcodeType.EXTENDED]:
+                    self.context.error("missing EXTEND before extended instruction")
+                    sys.exit()
                 try:
-                    if opcode in INTERPRETIVES[self.context.arch]:
-                        INTERPRETIVES[self.context.arch][opcode].parse(self.context, label, operands)
-                    if opcode in DIRECTIVES[self.context.arch]:
-                        DIRECTIVES[self.context.arch][opcode].parse(self.context, label, operands)
-                    if opcode in INSTRUCTIONS[self.context.arch]:
-                        INSTRUCTIONS[self.context.arch][opcode][self.context.mode].parse(self.context, operands)
-                        self.context.mode = OpcodeType.BASIC
+                    if opcode in OPCODES[self.context.arch][OpcodeType.INTERPRETIVE]:
+                        OPCODES[self.context.arch][OpcodeType.INTERPRETIVE][opcode].parse(self.context, label, operands)
+                    if opcode in OPCODES[self.context.arch][OpcodeType.DIRECTIVE]:
+                        OPCODES[self.context.arch][OpcodeType.DIRECTIVE][opcode].parse(self.context, label, operands)
+                    if opcode in OPCODES[self.context.arch][self.context.mode]:
+                        OPCODES[self.context.arch][self.context.mode][opcode].parse(self.context, operands)
+                        if opcode != "EXTEND" and self.context.mode == OpcodeType.EXTENDED:
+                            self.context.mode = OpcodeType.BASIC
                 except:
                     self.context.symtab.printTable()
                     raise

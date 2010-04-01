@@ -38,14 +38,18 @@ class OperandType:
 # NOTE: Must be a new-style class.
 class Opcode(object):
     
-    def __init__(self, methodName, opcode, operandType, numwords=1):
+    def __init__(self, methodName=None, mnemonic=None, opcode=0, operandType=None, numwords=1):
+        if mnemonic == None:
+            self.mnemonic = methodName
+        else:
+            self.mnemonic = mnemonic
         self.methodName = methodName
         self.opcode = opcode
         self.operandType = operandType
         self.numwords = numwords
 
     def parse(self, context, operand):
-        if context.mode == OpcodeType.EXTENDED and opcode not in INSTRUCTIONS[context.arch][OpcodeType.EXTENDED]:
+        if context.mode == OpcodeType.EXTENDED and opcode not in OPCODES[context.arch][OpcodeType.EXTENDED]:
             context.error("missing EXTEND before extended instruction")
             sys.exit()
         if self.operandType == OperandType.NONE:

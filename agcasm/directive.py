@@ -30,12 +30,7 @@ from opcode import *
 class Directive(Opcode):
     
     def __init__(self, methodName, mnemonic=None, numwords=0):
-        if mnemonic:
-            self.mnemonic = mnemonic
-        else:
-            self.mnemonic = methodName
-        self.methodName = methodName
-        self.numwords = numwords
+        Opcode.__init__(self, methodName, mnemonic, None, None, numwords)
         
     def parse(self, context, symbol, operands):
         retval = self.__getattribute__("parse_" + self.methodName)(context, symbol, operands)
