@@ -55,6 +55,7 @@ class Assembler:
             for bank in range(len(self.memmap.memmap)):
                 self.bankloc[bank] = 0
             self.records = []
+            self.srcline = None
 
     def __init__(self, arch, listfile, binfile, verbose=False):
         self.verbose = verbose
@@ -84,6 +85,7 @@ class Assembler:
             if line.endswith('\n'):
                 line = line[:-1]
             srcline = line.expandtabs(8)
+            self.context.srcline = srcline
             self.context.linenum += 1
             self.context.global_linenum += 1
             self.context.code = None
@@ -103,20 +105,21 @@ class Assembler:
             if len(line.strip()) == 0:
                 self.context.records.append(self._makeNewRecord(srcline, None, None, None, None, None))
                 continue
-            if line.startswith('#'):
+            if line.strip().startswith('#'):
                 comment = line
                 self.context.records.append(self._makeNewRecord(srcline, None, None, None, None, comment))
             else:
                 # Real parsing starts here.
-                fields = line.split()
                 if '#' in line:
                     comment = line[line.index('#'):]
-                    fields = line[:line.index('#')]
+                    line = line[:line.index('#')]
+                fields = line.split()
                 if not line.startswith(' ') and not line.startswith('\t'):
                     label = fields[0]
                     if len(fields) == 1:
                         # Label only.
                         self.context.symtab.add(label, None, self.context.loc)
+                        self.context.records.append(self._makeNewRecord(srcline, label, None, None, None, comment))
                         continue
                     fields = fields[1:]
                 else:
@@ -124,7 +127,12 @@ class Assembler:
                         pseudolabel = fields[0]
                         fields = fields[1:]
                 # TODO: how to handle interpretive code?
-                opcode = fields[0]
+                try:
+                    opcode = fields[0]
+                except:
+                    print line
+                    print fields
+                    raise
                 operands = " " .join(fields[1:])
                 if operands == "":
                     operands = None
@@ -143,14 +151,13 @@ class Assembler:
                         if opcode != "EXTEND" and self.context.mode == OpcodeType.EXTENDED:
                             self.context.mode = OpcodeType.BASIC
                 except:
-                    self.context.symtab.printTable()
+                    self.error("Exception processing line:")
                     raise
                 self.context.records.append(self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment))
 
     def error(self, text):
         print >>sys.stderr, "%s, line %d, error: %s" % (self.context.srcfile, self.context.linenum, text) 
-        print >>sys.stderr, self.context.source[-1]
-        sys.exit()
+        print >>sys.stderr, self.context.srcline
         
     def warn(self, text):
         print >>sys.stderr, "%s, line %d, warning: %s" % (self.context.srcfile, self.context.linenum, text)
