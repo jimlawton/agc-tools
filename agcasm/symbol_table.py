@@ -23,12 +23,15 @@ from architecture import *
 
 class SymbolTableEntry:
     
-    def __init__(self, context, name, symbolic=None, value=-1):
+    def __init__(self, context, name, symbolic=None, value=None):
         self.context = context
         self.name = name
         self.symbolic = symbolic
         self.value = value
         self.references = []
+
+    def isComplete(self):
+        return (self.value != None)
 
     def __str__(self):
         text = "%-8s "  % (self.name)
@@ -50,12 +53,19 @@ class SymbolTable:
         self.symbols = {}
         self.context = context
         
-    def add(self, name=None, symbolic=None, value=-1):
+    def add(self, name=None, symbolic=None, value=None, update=True):
         if name in self.symbols:
             print >>sys.stderr, "Error, symbol \"%s\" already defined!" % (name)
             sys.exit()
         else:
             self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value)
+        if update:
+            for symbol in self.symbols:
+                entry = self.symbols[symbol]
+                if not entry.isComplete():
+                    for reference in entry.references:
+                        if symbolic in reference.operands:
+                            reference.reparse()
 
     def addReference(self, ref):
         self.references.append(ref)
