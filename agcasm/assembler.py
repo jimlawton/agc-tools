@@ -79,8 +79,11 @@ class Assembler:
         lines = open(srcfile).readlines()
         for line in lines:
             srcline = line.expandtabs(8)
+            if srcline.endswith('\n'):
+                srcline = srcline[:-1]
             self.context.linenum += 1
             self.context.global_linenum += 1
+            self.context.code = None
             label = None
             pseudolabel = None
             opcode = None
