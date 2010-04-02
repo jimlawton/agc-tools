@@ -54,6 +54,14 @@ def main():
     for arg in args:
         assembler.assemble(arg)
 
+    print
+    print "Listing"
+    print "-------"
+    for record in assembler.context.records:
+        print record
+    print
+    print "Symbol Table"
+    print "------------"
     assembler.context.symtab.printTable()
     
 if __name__=="__main__":
