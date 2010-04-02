@@ -53,7 +53,7 @@ class Opcode(object):
             context.error("missing EXTEND before extended instruction")
             sys.exit()
         if self.operandType == OperandType.NONE:
-            context.code = self.opcode
+            context.code = [ self.opcode ]
         else:
             self.__getattribute__("parse_" + self.methodName)(operand)
         context.loc += self.numwords
