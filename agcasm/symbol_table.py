@@ -18,6 +18,7 @@
 # along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import sys
 from architecture import *
 
 class SymbolTableEntry:
@@ -27,6 +28,7 @@ class SymbolTableEntry:
         self.name = name
         self.symbolic = symbolic
         self.value = value
+        self.references = []
 
     def __str__(self):
         text = "%-8s "  % (self.name)
@@ -54,6 +56,12 @@ class SymbolTable:
             sys.exit()
         else:
             self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value)
+
+    def addReference(self, ref):
+        self.references.append(ref)
+
+    def getReference(self, ref):
+        return self.references
 
     def keys(self):
         return self.symbols.keys()
