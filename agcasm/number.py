@@ -79,7 +79,7 @@ class Number:
             textval = "%010o" % value
             tval1 = textval[:5]
             tval2 = textval[5:]
-            self.value = (int(tval1, 8), int(tval2, 8))
+            self.value = [ int(tval1, 8), int(tval2, 8) ]
             if negate:
                 self.value[0] = ~self.value[0] & 077777
                 self.value[1] = ~self.value[1] & 077777
@@ -153,7 +153,7 @@ class Number:
         if self.size == 1:
             self.value = value
         else:
-            self.value = (value, i)
+            self.value = [ value, i ]
         self.valid = True
 
     def isValid(self):
