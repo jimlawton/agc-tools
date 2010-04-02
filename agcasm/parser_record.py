@@ -35,7 +35,7 @@ class ParserRecord:
         self.numwords = 0                   # Number of code words generated.
         self.ebank = None                   # Current E-Bank.
         self.complete = False               # Assembly complete? i.e. all symbols resolved.
-        
+            
     def generate(self, code):
         self.code = code
 
@@ -46,22 +46,23 @@ class ParserRecord:
         return self.complete
 
     def __str__(self):
-        try:
-            text = ""
-            text += "%06d " % self.linenum
+        text = ""
+        text += "%06d " % self.linenum
+        if self.address != None:
             text += "%06o " % self.address
-            if self.code != None:
-                if len(self.code) == 0:
-                    text += "UNDEFINED  "
-                elif len(self.code) == 1:
-                    text += "%05o %s " % (self.code[0], 5*' ')
-                else:
-                    text += "%05o %05o " % (self.code[0], self.code[1])
+        else:
+            text += 7 * ' ' 
+        if self.code != None:
+            if len(self.code) == 0:
+                text += "UNDEFINED   "
+            elif len(self.code) == 1:
+                text += "%05o %s " % (self.code[0], 5 * ' ')
             else:
-                text += "UNDEFINED  "
-            text += "%s" % self.srcline
-        except:
-            print len(self.code), self.code
-            print self.srcline
-            raise
+                text += "%05o %05o " % (self.code[0], self.code[1])
+        else:
+            if self.address != None:
+                text += "UNDEFINED   "
+            else:
+                text += 12 * ' '
+        text += "%s" % self.srcline
         return text
