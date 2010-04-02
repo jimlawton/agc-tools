@@ -70,6 +70,9 @@ class Assembler:
         srcline = line
         address = self.context.loc
         code = self.context.code
+        if label == None and pseudolabel == None and opcode == None and operands == None:
+            address = None
+            code = None
         return ParserRecord(srcfile, linenum, srcline, label, pseudolabel, opcode, operands, comment, address, code)
 
     def assemble(self, srcfile):
@@ -78,9 +81,9 @@ class Assembler:
         self.context.linenum = 0
         lines = open(srcfile).readlines()
         for line in lines:
+            if line.endswith('\n'):
+                line = line[:-1]
             srcline = line.expandtabs(8)
-            if srcline.endswith('\n'):
-                srcline = srcline[:-1]
             self.context.linenum += 1
             self.context.global_linenum += 1
             self.context.code = None
@@ -94,18 +97,18 @@ class Assembler:
                 if not os.path.isfile(modname):
                     print >>sys.stderr, "File \"%s\" does not exist" % modname
                     sys.exit(1)
-                self.context.records.append(self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment))
+                self.context.records.append(self._makeNewRecord(srcline, None, None, None, None, comment))
                 self.assemble(modname)
                 continue
             if len(line.strip()) == 0:
-                self.context.records.append(self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment))
+                self.context.records.append(self._makeNewRecord(srcline, None, None, None, None, None))
                 continue
-            # Real parsing starts here.
-            fields = line.split()
             if line.startswith('#'):
                 comment = line
-                self.context.records.append(self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment))
+                self.context.records.append(self._makeNewRecord(srcline, None, None, None, None, comment))
             else:
+                # Real parsing starts here.
+                fields = line.split()
                 if '#' in line:
                     comment = line[line.index('#'):]
                     fields = line[:line.index('#')]
