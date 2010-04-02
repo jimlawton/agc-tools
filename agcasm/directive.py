@@ -45,7 +45,7 @@ class Directive(Opcode):
         words = []
         if context.code != None:
             for i in range(len(context.code)):
-                words[i] = ~context.code[i]
+                words.append(~context.code[i])
             context.code = words
         return retval
     
@@ -54,7 +54,7 @@ class Directive(Opcode):
         words = []
         if context.code != None:
             for i in range(len(context.code)):
-                words[i] = ~context.code[i]
+                words.append(~context.code[i])
             context.code = words
         return retval
     
@@ -63,7 +63,7 @@ class Directive(Opcode):
         words = []
         if context.code != None:
             for i in range(len(context.code)):
-                words[i] = ~context.code[i]
+                words.append(~context.code[i])
             context.code = words
         return retval
 
@@ -72,7 +72,7 @@ class Directive(Opcode):
         words = []
         if context.code != None:
             for i in range(len(context.code)):
-                words[i] = ~context.code[i]
+                words.append(~context.code[i])
             context.code = words
         return retval
 
@@ -81,7 +81,7 @@ class Directive(Opcode):
         words = []
         if context.code != None:
             for i in range(len(context.code)):
-                words[i] = ~context.code[i]
+                words.append(~context.code[i])
             context.code = words
         return retval
     
@@ -90,7 +90,7 @@ class Directive(Opcode):
         words = []
         if context.code != None:
             for i in range(len(context.code)):
-                words[i] = ~context.code[i]
+                words.append(~context.code[i])
             context.code = words
         return retval
     
@@ -99,7 +99,7 @@ class Directive(Opcode):
         words = []
         if context.code != None:
             for i in range(len(context.code)):
-                words[i] = ~context.code[i]
+                words.append(~context.code[i])
             context.code = words
         return retval
     
@@ -108,7 +108,7 @@ class Directive(Opcode):
         words = []
         if context.code != None:
             for i in range(len(context.code)):
-                words[i] = ~context.code[i]
+                words.append(~context.code[i])
             context.code = words
         return retval
     
@@ -117,7 +117,7 @@ class Directive(Opcode):
         words = []
         if context.code != None:
             for i in range(len(context.code)):
-                words[i] = ~context.code[i]
+                words.append(~context.code[i])
             context.code = words
         return retval
     
@@ -126,7 +126,7 @@ class Directive(Opcode):
         words = []
         if context.code != None:
             for i in range(len(context.code)):
-                words[i] = ~context.code[i]
+                words.append(~context.code[i])
             context.code = words
         return retval
     
@@ -141,7 +141,7 @@ class Directive(Opcode):
                     context.code = [ pa ]
                     retval = True
                 else:
-                    context.error("1DNADR operand must be in erasable memory")
+                    context.error("operand must be in erasable memory")
         return retval
     
     def parse_2BCADR(self, context, symbol, operands):
@@ -197,7 +197,7 @@ class Directive(Opcode):
                 if context.memmap.isErasable(pa):
                     context.code = [ pa + 04000 ] 
                 else:
-                    context.error("2DNADR operand must be in erasable memory")
+                    context.error("operand must be in erasable memory")
             retval = True
         return retval
     
@@ -228,7 +228,7 @@ class Directive(Opcode):
                 if context.memmap.isErasable(pa):
                     context.code = [ pa + 010000 ]
                 else:
-                    context.error("3DNADR operand must be in erasable memory")
+                    context.error("operand must be in erasable memory")
             retval = True
         return retval
     
@@ -242,7 +242,7 @@ class Directive(Opcode):
                 if context.memmap.isErasable(pa):
                     context.code = [ pa + 014000 ]
                 else:
-                    context.error("4DNADR operand must be in erasable memory")
+                    context.error("operand must be in erasable memory")
             retval = True
         return retval
     
@@ -256,7 +256,7 @@ class Directive(Opcode):
                 if context.memmap.isErasable(pa):
                     context.code = [ pa + 020000 ]
                 else:
-                    context.error("5DNADR operand must be in erasable memory")
+                    context.error("operand must be in erasable memory")
             retval = True
         return retval
     
@@ -270,7 +270,7 @@ class Directive(Opcode):
                 if context.memmap.isErasable(pa):
                     context.code = [ pa + 024000 ]
                 else:
-                    context.error("6DNADR operand must be in erasable memory")
+                    context.error("operand must be in erasable memory")
             retval = True
         return retval
 
@@ -295,9 +295,10 @@ class Directive(Opcode):
     def parse_EqualsMINUS(self, context, symbol, operands):
         retval = self.parse_EqualsSign(context, symbol, operands)
         words = []
-        for i in range(len(context.code)):
-            words[i] = ~context.code[i]
-        context.code = words
+        if context.code != None:
+            for i in range(len(context.code)):
+                words.append(~context.code[i])
+            context.code = words
         return retval
     
     def parse_ADRES(self, context, symbol, operands):
@@ -418,12 +419,31 @@ class Directive(Opcode):
         return retval
     
     def parse_DNCHAN(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        retval = False
+        if operands:
+            op = Octal(" ".join(operands))
+            if op.isValid():
+                context.code = [ op.value + 034000 ]
+                if symbol:
+                    context.symtab.add(symbol, operands, context.loc)
+            else:
+                context.error("syntax error: %s %s" % (self.mnemonic, operands))
+            retval = True
+        return retval
     
     def parse_DNPTR(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        retval = False
+        pa = None
+        if operands:
+            expr = Expression(context, operands)
+            if expr.complete:
+                channel = expr.value
+                if context.memmap.isChannel(channel):
+                    context.code = [ pa + 030000 ]
+                else:
+                    context.error("operand must be a channel number")
+            retval = True
+        return retval
     
     def parse_EBANKEquals(self, context, symbol, operands):
         retval = False
@@ -452,7 +472,7 @@ class Directive(Opcode):
                 if context.memmap.isErasable(pa):
                     context.code = [ pa ]
                 else:
-                    context.error("ECADR operand must be in erasable memory")
+                    context.error("operand must be in erasable memory")
             retval = True
         return retval
 
