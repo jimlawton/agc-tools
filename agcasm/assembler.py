@@ -141,20 +141,23 @@ class Assembler:
                 if self.context.mode == OpcodeType.EXTENDED and opcode not in OPCODES[self.context.arch][OpcodeType.EXTENDED]:
                     self.context.error("missing EXTEND before extended instruction")
                     sys.exit()
-                try:
-                    if opcode in OPCODES[self.context.arch][OpcodeType.INTERPRETIVE]:
-                        OPCODES[self.context.arch][OpcodeType.INTERPRETIVE][opcode].parse(self.context, label, operands)
-                    if opcode in OPCODES[self.context.arch][OpcodeType.DIRECTIVE]:
-                        OPCODES[self.context.arch][OpcodeType.DIRECTIVE][opcode].parse(self.context, label, operands)
-                    if opcode in OPCODES[self.context.arch][self.context.mode]:
-                        OPCODES[self.context.arch][self.context.mode][opcode].parse(self.context, operands)
-                        if opcode != "EXTEND" and self.context.mode == OpcodeType.EXTENDED:
-                            self.context.mode = OpcodeType.BASIC
-                except:
-                    self.error("Exception processing line:")
-                    raise
+                self.parse(label, opcode, operands)
                 self.context.records.append(self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment))
 
+    def parse(self, label, opcode, operands):
+        try:
+            if opcode in OPCODES[self.context.arch][OpcodeType.INTERPRETIVE]:
+                OPCODES[self.context.arch][OpcodeType.INTERPRETIVE][opcode].parse(self.context, label, operands)
+            if opcode in OPCODES[self.context.arch][OpcodeType.DIRECTIVE]:
+                OPCODES[self.context.arch][OpcodeType.DIRECTIVE][opcode].parse(self.context, label, operands)
+            if opcode in OPCODES[self.context.arch][self.context.mode]:
+                OPCODES[self.context.arch][self.context.mode][opcode].parse(self.context, operands)
+                if opcode != "EXTEND" and self.context.mode == OpcodeType.EXTENDED:
+                    self.context.mode = OpcodeType.BASIC
+        except:
+            self.error("Exception processing line:")
+            raise
+        
     def error(self, text):
         print >>sys.stderr, "%s, line %d, error: %s" % (self.context.srcfile, self.context.linenum, text) 
         print >>sys.stderr, self.context.srcline
