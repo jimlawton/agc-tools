@@ -148,14 +148,18 @@ class MemoryMap:
         
     def pseudoToSegmented(self, pa):
         retval = (None, 0)
-        bank = self._findBank(pa)
-        if bank:
-            offset = pa - bank.startaddr
-            retval = (bank.banknum, offset)
+        if pa != None:
+            bank = self._findBank(pa)
+            if bank:
+                offset = pa - bank.startaddr
+                retval = (bank.banknum, offset)
         return retval
     
     def pseudoToString(self, pa):
-        return "%06o" % (pa)
+        if pa != None:
+            return "%06o" % (pa)
+        else:
+            return "undef "
     
     def getBankNumber(self, pa):
         banknum = None
