@@ -47,6 +47,7 @@ def main():
     print
 
     listfile = open(args[0].split('.')[0] + ".lst", 'w')
+    symtabfile = open(args[0].split('.')[0] + ".symtab", 'w')
     binfile = open(args[0] + ".bin", 'wb')
 
     assembler = Assembler(Architecture.AGC4_B2, listfile, binfile, options.verbose)
@@ -54,15 +55,20 @@ def main():
     for arg in args:
         assembler.assemble(arg)
 
-    print
-    print "Listing"
-    print "-------"
+    print "Writing listing..."
+    print >>listfile 
+    print >>listfile, "Listing"
+    print >>listfile, "-------"
     for record in assembler.context.records:
-        print record
-    print
-    print "Symbol Table"
-    print "------------"
-    assembler.context.symtab.printTable()
+        print >>listfile, record
+
+    print "Writing symbol table..."
+    print >>symtabfile 
+    print >>symtabfile, "Symbol Table"
+    print >>symtabfile, "------------"
+    assembler.context.symtab.printTable(symtabfile)
     
+    print "Done."
+
 if __name__=="__main__":
     sys.exit(main())
