@@ -21,6 +21,7 @@
 import sys
 from architecture import *
 from opcode import *
+from expression import *
 
 # NOTE: Must be a new-style class.
 class Instruction(Opcode):
@@ -28,176 +29,184 @@ class Instruction(Opcode):
     def __init__(self, methodName, opcode, operandType, numwords=1):
         Opcode.__init__(self, methodName, methodName, opcode, operandType, numwords)
 
-    def parse(self, context, operand):
+    def parse(self, context, operands):
         if self.operandType == OperandType.NONE:
             context.code = [ self.opcode ]
         else:
-            self.__getattribute__("parse_" + self.mnemonic)(context, operand)
+            self.__getattribute__("parse_" + self.mnemonic)(context, operands)
             pass
         context.loc += self.numwords
         
-    def parse_AD(self, context, operand):
+    def parse_AD(self, context, operands):
+        pa = None
+        if operands:
+            expr = Expression(context, operands)
+            if expr.complete:
+                pa = expr.value
+                if context.memmap.isErasable(pa):
+                    context.code = [ self.opcode + pa ]
+                else:
+                    context.error("operand must be in erasable memory")
+    
+    def parse_ADS(self, context, operands):
         pass
     
-    def parse_ADS(self, context, operand):
+    def parse_AUG(self, context, operands):
         pass
     
-    def parse_AUG(self, context, operand):
+    def parse_BZF(self, context, operands):
         pass
     
-    def parse_BZF(self, context, operand):
+    def parse_BZMF(self, context, operands):
         pass
     
-    def parse_BZMF(self, context, operand):
+    def parse_CA(self, context, operands):
         pass
     
-    def parse_CA(self, context, operand):
+    def parse_CAE(self, context, operands):
         pass
     
-    def parse_CAE(self, context, operand):
+    def parse_CAF(self, context, operands):
         pass
     
-    def parse_CAF(self, context, operand):
+    def parse_CCS(self, context, operands):
         pass
     
-    def parse_CCS(self, context, operand):
+    def parse_COM(self, context, operands):
         pass
     
-    def parse_COM(self, context, operand):
+    def parse_CS(self, context, operands):
         pass
     
-    def parse_CS(self, context, operand):
+    def parse_DAS(self, context, operands):
         pass
     
-    def parse_DAS(self, context, operand):
+    def parse_DCA(self, context, operands):
         pass
     
-    def parse_DCA(self, context, operand):
+    def parse_DCOM(self, context, operands):
         pass
     
-    def parse_DCOM(self, context, operand):
+    def parse_DDOUBL(self, context, operands):
         pass
     
-    def parse_DDOUBL(self, context, operand):
+    def parse_DIM(self, context, operands):
         pass
     
-    def parse_DIM(self, context, operand):
+    def parse_DOUBLE(self, context, operands):
         pass
     
-    def parse_DOUBLE(self, context, operand):
+    def parse_DTCB(self, context, operands):
         pass
     
-    def parse_DTCB(self, context, operand):
+    def parse_DTCF(self, context, operands):
         pass
     
-    def parse_DTCF(self, context, operand):
+    def parse_DV(self, context, operands):
         pass
     
-    def parse_DV(self, context, operand):
+    def parse_DXCH(self, context, operands):
         pass
     
-    def parse_DXCH(self, context, operand):
+    def parse_EDRUPT(self, context, operands):
         pass
     
-    def parse_EDRUPT(self, context, operand):
-        pass
-    
-    def parse_EXTEND(self, context, operand):
+    def parse_EXTEND(self, context, operands):
         context.mode = OpcodeType.EXTENDED
     
-    def parse_INCR(self, context, operand):
+    def parse_INCR(self, context, operands):
         pass
     
-    def parse_INDEX(self, context, operand):
+    def parse_INDEX(self, context, operands):
         pass
     
-    def parse_INHINT(self, context, operand):
+    def parse_INHINT(self, context, operands):
         pass
     
-    def parse_LXCH(self, context, operand):
+    def parse_LXCH(self, context, operands):
         pass
     
-    def parse_MASK(self, context, operand):
+    def parse_MASK(self, context, operands):
         pass
     
-    def parse_MP(self, context, operand):
+    def parse_MP(self, context, operands):
         pass
     
-    def parse_MSU(self, context, operand):
+    def parse_MSU(self, context, operands):
         pass
     
-    def parse_NDX(self, context, operand):
+    def parse_NDX(self, context, operands):
         pass
     
-    def parse_NOOP(self, context, operand):
+    def parse_NOOP(self, context, operands):
         pass
     
-    def parse_OVSK(self, context, operand):
+    def parse_OVSK(self, context, operands):
         pass
     
-    def parse_QXCH(self, context, operand):
+    def parse_QXCH(self, context, operands):
         pass
     
-    def parse_RAND(self, context, operand):
+    def parse_RAND(self, context, operands):
         pass
     
-    def parse_READ(self, context, operand):
+    def parse_READ(self, context, operands):
         pass
     
-    def parse_RELINT(self, context, operand):
+    def parse_RELINT(self, context, operands):
         pass
     
-    def parse_RESUME(self, context, operand):
+    def parse_RESUME(self, context, operands):
         pass
     
-    def parse_RETURN(self, context, operand):
+    def parse_RETURN(self, context, operands):
         pass
     
-    def parse_ROR(self, context, operand):
+    def parse_ROR(self, context, operands):
         pass
     
-    def parse_RXOR(self, context, operand):
+    def parse_RXOR(self, context, operands):
         pass
     
-    def parse_SQUARE(self, context, operand):
+    def parse_SQUARE(self, context, operands):
         pass
     
-    def parse_SU(self, context, operand):
+    def parse_SU(self, context, operands):
         pass
     
-    def parse_TC(self, context, operand):
+    def parse_TC(self, context, operands):
         pass
     
-    def parse_TCAA(self, context, operand):
+    def parse_TCAA(self, context, operands):
         pass
     
-    def parse_TCF(self, context, operand):
+    def parse_TCF(self, context, operands):
         pass
     
-    def parse_TS(self, context, operand):
+    def parse_TS(self, context, operands):
         pass
     
-    def parse_WAND(self, context, operand):
+    def parse_WAND(self, context, operands):
         pass
     
-    def parse_WOR(self, context, operand):
+    def parse_WOR(self, context, operands):
         pass
     
-    def parse_WRITE(self, context, operand):
+    def parse_WRITE(self, context, operands):
         pass
     
-    def parse_XCH(self, context, operand):
+    def parse_XCH(self, context, operands):
         pass
     
-    def parse_XLQ(self, context, operand):
+    def parse_XLQ(self, context, operands):
         pass
     
-    def parse_XXALQ(self, context, operand):
+    def parse_XXALQ(self, context, operands):
         pass
     
-    def parse_ZL(self, context, operand):
+    def parse_ZL(self, context, operands):
         pass
     
-    def parse_ZQ(self, context, operand):
+    def parse_ZQ(self, context, operands):
         pass
 
