@@ -30,7 +30,7 @@ class Instruction(Opcode):
 
     def parse(self, context, operand):
         if self.operandType == OperandType.NONE:
-            context.code = self.opcode
+            context.code = [ self.opcode ]
         else:
             self.__getattribute__("parse_" + self.mnemonic)(context, operand)
             pass
