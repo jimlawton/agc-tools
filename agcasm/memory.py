@@ -192,3 +192,8 @@ class MemoryMap:
             memtype = bank.memtype
         return (memtype == MemoryType.ERASABLE)
     
+    def isChannel(self, pa):
+        retval = False
+        if 0 <= pa <= 0777:
+            retval = True
+        return retval
