@@ -64,8 +64,12 @@ class SymbolTable:
             entry = self.symbols[name]
         return entry
 
-    def printTable(self):
+    def printTable(self, outfile=None):
+        if outfile == None:
+            out = sys.stdout
+        else:
+            out = outfile
         symbols = self.symbols.keys()
         symbols.sort()
         for symbol in symbols:
-            print self.symbols[symbol]
+            print >>out, self.symbols[symbol]
