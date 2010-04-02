@@ -44,3 +44,24 @@ class ParserRecord:
 
     def isComplete(self):
         return self.complete
+
+    def __str__(self):
+        try:
+            text = ""
+            text += "%06d " % self.linenum
+            text += "%06o " % self.address
+            if self.code != None:
+                if len(self.code) == 0:
+                    text += "UNDEFINED  "
+                elif len(self.code) == 1:
+                    text += "%05o %s " % (self.code[0], 5*' ')
+                else:
+                    text += "%05o %05o " % (self.code[0], self.code[1])
+            else:
+                text += "UNDEFINED  "
+            text += "%s" % self.srcline
+        except:
+            print len(self.code), self.code
+            print self.srcline
+            raise
+        return text
