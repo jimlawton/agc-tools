@@ -21,8 +21,7 @@
 import os
 import sys
 from memory import MemoryMap
-from opcode import OpcodeType
-from opcodes import OPCODES
+from opcode import OPCODES, OpcodeType
 from parser_record import ParserRecord
 from symbol_table import SymbolTable
 

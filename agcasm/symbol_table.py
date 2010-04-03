@@ -54,17 +54,16 @@ class SymbolTable:
         
     def add(self, name=None, symbolic=None, value=None, update=True):
         if name in self.symbols:
-            print >>sys.stderr, "Error, symbol \"%s\" already defined!" % (name)
-            sys.exit()
+            self.context.error("symbol \"%s\" already defined!" % (name))
         else:
             self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value)
-        if update:
-            for symbol in self.symbols:
-                entry = self.symbols[symbol]
-                if not entry.isComplete():
-                    for reference in entry.references:
-                        if symbolic in reference.operands:
-                            reference.reparse()
+            if update:
+                for symbol in self.symbols:
+                    entry = self.symbols[symbol]
+                    if not entry.isComplete():
+                        for reference in entry.references:
+                            if symbolic in reference.operands:
+                                reference.reparse()
 
     def addReference(self, ref):
         self.references.append(ref)

@@ -22,7 +22,7 @@ import sys
 from number import Decimal, DoubleDecimal, Octal, DoubleOctal
 from memory import MemoryType
 from symbol_table import SymbolTableEntry
-from expression import *
+from expression import Expression, Number
 from opcode import Opcode
 
 # NOTE: Must be a new-style class.
