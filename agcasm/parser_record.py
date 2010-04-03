@@ -37,7 +37,7 @@ class ParserRecord:
         self.complete = False               # Assembly complete? i.e. all symbols resolved.
 
     def reparse(self):
-        assembler.parse(self.label, self.opcode, self.operands)
+        pass
 
     def generate(self, code):
         self.code = code

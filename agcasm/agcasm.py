@@ -20,14 +20,11 @@
 
 import os
 import sys
-import glob
-import re
 from optparse import OptionParser
-from assembler import *
-
+from architecture import Architecture
+from assembler import Assembler
 
 def main():
-
     parser = OptionParser("usage: %prog [options] src_file [src_file...]")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="Verbose output.")
     (options, args) = parser.parse_args()

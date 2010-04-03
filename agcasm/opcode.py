@@ -18,7 +18,8 @@
 # along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from architecture import *
+import sys
+from opcodes import OPCODES
 
 class OpcodeType:
     BASIC        = 0
@@ -49,7 +50,7 @@ class Opcode(object):
         self.numwords = numwords
 
     def parse(self, context, operand):
-        if context.mode == OpcodeType.EXTENDED and opcode not in OPCODES[context.arch][OpcodeType.EXTENDED]:
+        if context.mode == OpcodeType.EXTENDED and self.opcode not in OPCODES[context.arch][OpcodeType.EXTENDED]:
             context.error("missing EXTEND before extended instruction")
             sys.exit()
         if self.operandType == OperandType.NONE:

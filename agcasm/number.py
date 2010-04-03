@@ -240,15 +240,11 @@ def test(numtype, size, data):
                 testval = Octal(value)
             elif numtype == Number.DECIMAL:
                 testval = Decimal(value)
-            elif numtype == Number.FLOAT:
-                testval = Float(value)
         else:
             if numtype == Number.OCTAL:
                 testval = DoubleOctal(value)
             elif numtype == Number.DECIMAL:
                 testval = DoubleDecimal(value)
-            elif numtype == Number.FLOAT:
-                testval = DoubleFloat(value)
   
         if testval.isValid():
             if size == 1:

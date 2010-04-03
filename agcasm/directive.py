@@ -19,12 +19,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import sys
-from architecture import *
-from number import *
-from memory import *
-from symbol_table import *
+from number import Decimal, DoubleDecimal, Octal, DoubleOctal
+from memory import MemoryType
+from symbol_table import SymbolTableEntry
 from expression import *
-from opcode import *
+from opcode import Opcode
 
 # NOTE: Must be a new-style class.
 class Directive(Opcode):
@@ -155,7 +154,6 @@ class Directive(Opcode):
             expr = Expression(context, operands)
             if expr.complete:
                 word1 = expr.value
-                (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
                 if context.memmap.isFixed(word1):
                     word2 = 0
                     # Bits 15-11 of the 2nd generated word contain the bank number.
@@ -167,7 +165,7 @@ class Directive(Opcode):
                     elif 040 <= context.fbank <= 043:
                         word2 |= (4 << 4)
                     # Bits 3-1 equals the current EBANK= code.
-                    word2 != (context.ebank & 07)
+                    word2 |= (context.ebank & 07)
                 else:
                     word2 = context.memmap.getBankNumber(word1)
                 context.code = [word1, word2]
@@ -309,12 +307,11 @@ class Directive(Opcode):
                 (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
                 if bank and (bank == context.fbank or bank == context.ebank):
                     aval = offset
-                    # TODO: What now?
+                    context.code = [ aval ]
             retval = True
         return retval
 
     def parse_BANK(self, context, symbol, operands):
-        retval = False
         if operands:
             expr = Expression(context, operands)
             if expr.valid:
@@ -322,8 +319,7 @@ class Directive(Opcode):
                 context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, expr.value, context.bankloc[expr.value])
         else:
             context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
-        retval = True
-        return retval
+        return True
 
     def parse_BBCON(self, context, symbol, operands):
         retval = False
@@ -331,7 +327,7 @@ class Directive(Opcode):
             fbank = None
             expr = Expression(context, operands)
             if expr.valid:
-                (fbank, offset) = context.memmap.pseudoToSegmented(entry.value)
+                fbank = context.memmap.getBankNumber(expr.value)
             if fbank != None:
                 bbval = 0
                 # Bits 15-11 of the generated word contain the bank number.
@@ -343,7 +339,7 @@ class Directive(Opcode):
                 elif 040 <= fbank <= 043:
                     bbval |= (4 << 4)
                 # Bits 3-1 equals the current EBANK= code.
-                bbval != (context.ebank & 07)
+                bbval |= (context.ebank & 07)
                 # TODO: emit bbval to code stream.
                 context.code = [ bbval ]
             retval = True
@@ -397,7 +393,7 @@ class Directive(Opcode):
                     if op.isValid():
                         pa += op.value
                     else:
-                        context.error("invalid expression, \"%s\"" % operand)
+                        context.error("invalid expression, \"%s\"" % operands)
             retval = False
         return retval
     
@@ -454,8 +450,10 @@ class Directive(Opcode):
                 context.ebank = op.value
             else:
                 entry = context.symtab.lookup(operands[0])
-                if entry:
-                    bank = context.memmap.pseudoToSegmented(entry.value)
+                if entry != None:
+                    bank = context.memmap.getBankNumber(entry.value)
+                    if bank != None:
+                        context.ebank = bank
                 else:
                     if context.passnum > 1:
                         context.error("undefined symbol \"%s\"" % operands[0])
@@ -490,7 +488,6 @@ class Directive(Opcode):
         return retval
 
     def parse_ERASE(self, context, symbol, operands):
-        retval = False
         size = 0
         if operands == None:
             size = 1
@@ -510,8 +507,7 @@ class Directive(Opcode):
         if symbol and op.isValid():
             context.symtab.add(symbol, operand, op.value)
         context.loc += size
-        retval = True
-        return retval
+        return True
         
     def parse_FCADR(self, context, symbol, operands):
         retval = False

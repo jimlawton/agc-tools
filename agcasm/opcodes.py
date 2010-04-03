@@ -18,11 +18,11 @@
 # along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from architecture import *
-from opcode import *
-from instruction import *
-from directive import *
-from interpretive import *
+from architecture import Architecture
+from opcode import OpcodeType, OperandType
+from instruction import Instruction
+from directive import Directive
+from interpretive import Interpretive
 
 OPCODES = { 
     Architecture.AGC4_B2 : {

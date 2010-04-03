@@ -19,16 +19,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import os
-from architecture import *
-from number import *
-from memory import *
-from symbol_table import *
-from instruction import *
-from directive import *
-from interpretive import *
-from code import *
-from parser_record import *
-from opcodes import *
+import sys
+from memory import MemoryMap
+from opcode import OpcodeType
+from opcodes import OPCODES
+from parser_record import ParserRecord
+from symbol_table import SymbolTable
 
 class Assembler:
     """Class defining an AGC assembler."""
