@@ -35,7 +35,7 @@ class Expression:
         if operands and 1 <= len(operands) <= 3:
             if len(operands) >= 1:
                 op1 = self._parseOperand(context, operands[0])
-                if op1:
+                if op1 != None:
                     if len(operands) == 1:
                         self.value = op1
                         self.valid = True
@@ -50,7 +50,7 @@ class Expression:
                     context.error("invalid syntax")
             if len(operands) == 3:
                 op2 = self._parseOperand(context, operands[2])
-                if op1 and op2:
+                if op1 != None and op2 != None:
                     if operands[1] == '+':
                         self.value = op1 + op2
                     else:
