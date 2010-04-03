@@ -30,6 +30,14 @@ class BankType:
     SWITCHED    = 1
     NONEXISTENT = 2
 
+class AddressType:
+    ERASABLE_10  = 0    # 10-bit erasable address.
+    ERASABLE_12  = 1    # 12-bit erasable address.
+    FIXED_9      = 2    # 9-bit fixed address. Only used by EDRUPT?
+    FIXED_12     = 3    # 12-bit fixed address.
+    GENERAL_12   = 4    # 12-bit general address (fixed or erasable).
+    CHANNEL      = 5    # 9-bit I/O channel address.
+
 class BankDescriptor:
     def __init__(self, startaddr, memtype, banktype=None, banknum=None, size=0, name=None, superbank=None):
         self.startaddr = startaddr
