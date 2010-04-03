@@ -229,5 +229,6 @@ for name in keys:
 		newop = opcodes[name]
 		method = origdata[name][0]
 		print newop.toString(name, method)
-
+	else:
+		print "%s: %s" % (name, origdata[name])
 		
