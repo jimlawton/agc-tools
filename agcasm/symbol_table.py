@@ -68,7 +68,7 @@ class SymbolTable:
     def addReference(self, ref):
         self.references.append(ref)
 
-    def getReference(self, ref):
+    def getReferences(self):
         return self.references
 
     def keys(self):

@@ -21,7 +21,8 @@
 import os
 import sys
 from memory import MemoryMap
-from opcode import OPCODES, OpcodeType
+from opcode import OpcodeType
+from opcodes import OPCODES
 from parser_record import ParserRecord
 from symbol_table import SymbolTable
 
@@ -35,6 +36,8 @@ class Assembler:
             self.listfile = listfile
             self.binfile = binfile
             self.srcfile = None
+            self.verbose = verbose
+            self.opcodes = OPCODES[self.arch]
             self.symtab = SymbolTable(self)
             self.linenum = 0
             self.global_linenum = 0
@@ -133,7 +136,7 @@ class Assembler:
                     operands = None
                 else:
                     operands = operands.strip().split()
-                if self.context.mode == OpcodeType.EXTENDED and opcode not in OPCODES[self.context.arch][OpcodeType.EXTENDED]:
+                if self.context.mode == OpcodeType.EXTENDED and opcode not in self.context.opcodes[OpcodeType.EXTENDED]:
                     self.context.error("missing EXTEND before extended instruction")
                     sys.exit()
                 self.parse(label, opcode, operands)
@@ -141,12 +144,12 @@ class Assembler:
 
     def parse(self, label, opcode, operands):
         try:
-            if opcode in OPCODES[self.context.arch][OpcodeType.INTERPRETIVE]:
-                OPCODES[self.context.arch][OpcodeType.INTERPRETIVE][opcode].parse(self.context, label, operands)
-            if opcode in OPCODES[self.context.arch][OpcodeType.DIRECTIVE]:
-                OPCODES[self.context.arch][OpcodeType.DIRECTIVE][opcode].parse(self.context, label, operands)
-            if opcode in OPCODES[self.context.arch][self.context.mode]:
-                OPCODES[self.context.arch][self.context.mode][opcode].parse(self.context, operands)
+            if opcode in self.context.opcodes[OpcodeType.INTERPRETIVE]:
+                self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, label, operands)
+            if opcode in self.context.opcodes[OpcodeType.DIRECTIVE]:
+                self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, label, operands)
+            if opcode in self.context.opcodes[self.context.mode]:
+                self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
                 if opcode != "EXTEND" and self.context.mode == OpcodeType.EXTENDED:
                     self.context.mode = OpcodeType.BASIC
         except:
