@@ -20,12 +20,13 @@
 
 from opcode import Opcode, OpcodeType, OperandType
 from expression import Expression
+from memory import AddressType
 
 # NOTE: Must be a new-style class.
 class Instruction(Opcode):
     
-    def __init__(self, methodName, opcode, operandType, numwords=1):
-        Opcode.__init__(self, methodName, methodName, opcode, operandType, numwords)
+    def __init__(self, methodName, opcode, operandType=OperandType.NONE, addressType=None, numwords=1):
+        Opcode.__init__(self, methodName, methodName, opcode, operandType, addressType, numwords)
 
     def parse(self, context, operands):
         if self.operandType == OperandType.NONE:

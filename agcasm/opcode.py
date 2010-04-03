@@ -19,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import sys
+from memory import AddressType
 
 class OpcodeType:
     BASIC        = 0
@@ -28,17 +29,15 @@ class OpcodeType:
 
 class OperandType:
     NONE         = 0    # No operand.
-    ERASABLE_10  = 1    # 10-bit erasable address.
-    ERASABLE_12  = 2    # 12-bit erasable address.
-    FIXED_9      = 3    # 9-bit fixed address. Only used by EDRUPT?
-    FIXED_12     = 4    # 12-bit fixed address.
-    GENERAL_12   = 5    # 12-bit general address (fixed or erasable).
-    CHANNEL      = 6    # 9-bit I/O channel address.
+    OCTAL        = 1    # Octal constant.
+    DECIMAL      = 2    # Decimal constant.
+    SYMBOLIC     = 3    # Symbol.
+    EXPRESSION   = 4    # Symbolic expression.
 
 # NOTE: Must be a new-style class.
 class Opcode(object):
     
-    def __init__(self, methodName=None, mnemonic=None, opcode=0, operandType=None, numwords=1):
+    def __init__(self, methodName=None, mnemonic=None, opcode=0, operandType=None, addressType=AddressType.GENERAL_12, numwords=1):
         if mnemonic == None:
             self.mnemonic = methodName
         else:
@@ -46,6 +45,7 @@ class Opcode(object):
         self.methodName = methodName
         self.opcode = opcode
         self.operandType = operandType
+        self.addressType = addressType
         self.numwords = numwords
 
     def parse(self, context, operand):

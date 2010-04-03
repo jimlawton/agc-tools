@@ -23,13 +23,13 @@ from number import Decimal, DoubleDecimal, Octal, DoubleOctal
 from memory import MemoryType
 from symbol_table import SymbolTableEntry
 from expression import Expression, Number
-from opcode import Opcode
+from opcode import Opcode, OperandType
 
 # NOTE: Must be a new-style class.
 class Directive(Opcode):
     
-    def __init__(self, methodName, mnemonic=None, numwords=0):
-        Opcode.__init__(self, methodName, mnemonic, None, None, numwords)
+    def __init__(self, methodName, mnemonic=None, operandType=OperandType.NONE, numwords=0):
+        Opcode.__init__(self, methodName, mnemonic, None, operandType, None, numwords)
         
     def parse(self, context, symbol, operands):
         retval = self.__getattribute__("parse_" + self.methodName)(context, symbol, operands)
