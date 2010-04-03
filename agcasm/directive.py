@@ -273,18 +273,7 @@ class Directive(Opcode):
         return retval
 
     def parse_EqualsSign(self, context, symbol, operands):
-        retval = False
-        if symbol:
-            if operands:
-                expr = Expression(context, operands)
-                if expr.valid:
-                    context.symtab.add(symbol, operands, expr.value)
-                else:
-                    context.symtab.add(symbol, operands)
-                retval = True
-            else:
-                context.symtab.add(symbol, operands[0], context.loc)
-        return retval
+        return self.parse_EQUALS(context, symbol, operands)
 
     def parse_EqualsECADR(self, context, symbol, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
@@ -478,13 +467,17 @@ class Directive(Opcode):
         retval = False
         if symbol:
             if operands:
-                if operands[0].isdigit():
-                    context.symtab.add(symbol, operands[0], int(operands[0], 8))
+                expr = Expression(context, operands)
+                if expr.valid:
+                    context.symtab.add(symbol, operands, expr.value)
+                    context.code = [ expr.value ]
+                    retval = True
                 else:
-                    context.symtab.add(symbol, operands[0])
+                    context.symtab.add(symbol, operands)
             else:
                 context.symtab.add(symbol, None, context.loc)
-            retval = True
+                context.code = [ context.loc ]
+                retval = True
         return retval
 
     def parse_ERASE(self, context, symbol, operands):
