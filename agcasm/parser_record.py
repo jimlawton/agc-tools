@@ -60,9 +60,6 @@ class ParserRecord:
             else:
                 text += "%05o %05o " % (self.code[0], self.code[1])
         else:
-            if self.address != None:
-                text += "UNDEFINED   "
-            else:
-                text += 12 * ' '
+            text += 12 * ' '
         text += "%s" % self.srcline
         return text
