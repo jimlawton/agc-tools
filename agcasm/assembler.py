@@ -36,7 +36,6 @@ class Assembler:
             self.listfile = listfile
             self.binfile = binfile
             self.srcfile = None
-            self.verbose = verbose
             self.opcodes = OPCODES[self.arch]
             self.symtab = SymbolTable(self)
             self.linenum = 0
@@ -138,9 +137,9 @@ class Assembler:
                     operands = operands.strip().split()
                 if self.context.mode == OpcodeType.EXTENDED and opcode not in self.context.opcodes[OpcodeType.EXTENDED]:
                     self.context.error("missing EXTEND before extended instruction")
-                    sys.exit()
-                self.parse(label, opcode, operands)
-                self.context.records.append(self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment))
+                else:
+                    self.parse(label, opcode, operands)
+                    self.context.records.append(self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment))
 
     def parse(self, label, opcode, operands):
         try:
