@@ -45,8 +45,11 @@ class Assembler:
             self.checklist = []
             self.loc = 0
             self.passnum = 1
+            self.sbank = 0
             self.ebank = 0
             self.fbank = 0
+            self.lastEbank = 0
+            self.lastEbankEquals = False
             self.bankloc = {}
             self.code = []
             for bank in range(len(self.memmap.memmap)):

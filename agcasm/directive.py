@@ -144,8 +144,7 @@ class Directive(Opcode):
         return retval
     
     def parse_2BCADR(self, context, symbol, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        return self.parse_2CADR(context, symbol, operands)
     
     def parse_2CADR(self, context, symbol, operands):
         retval = False
@@ -170,6 +169,9 @@ class Directive(Opcode):
                     word2 = context.memmap.getBankNumber(word1)
                 context.code = [word1, word2]
             retval = True
+            if context.lastEbankEquals:
+                context.ebank = context.lastEbank
+                context.lastEbankEquals = False
         return retval
 
     def parse_2DEC(self, context, symbol, operands):
@@ -329,8 +331,10 @@ class Directive(Opcode):
                     bbval |= (4 << 4)
                 # Bits 3-1 equals the current EBANK= code.
                 bbval |= (context.ebank & 07)
-                # TODO: emit bbval to code stream.
                 context.code = [ bbval ]
+            if context.lastEbankEquals:
+                context.ebank = context.lastEbank
+                context.lastEbankEquals = False
             retval = True
         return retval
     
@@ -432,17 +436,20 @@ class Directive(Opcode):
     
     def parse_EBANKEquals(self, context, symbol, operands):
         retval = False
-        # TODO: handle one-shot EBANK=.
         if operands:
             op = Number(operands[0])
             if op.isValid():
+                context.lastEbank = context.ebank
                 context.ebank = op.value
+                context.lastEbankEquals = True
             else:
                 entry = context.symtab.lookup(operands[0])
                 if entry != None:
                     bank = context.memmap.getBankNumber(entry.value)
                     if bank != None:
+                        context.lastEbank = context.ebank
                         context.ebank = bank
+                        context.lastEbankEquals = True
                 else:
                     if context.passnum > 1:
                         context.error("undefined symbol \"%s\"" % operands[0])
