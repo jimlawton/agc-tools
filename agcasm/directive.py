@@ -600,8 +600,20 @@ class Directive(Opcode):
         return retval
 
     def parse_SBANKEquals(self, context, symbol, operands):
-        context.warn("unsupported directive: %s %s" % (self.mnemonic, operands))
-        return True
+        retval = False
+        pa = None
+        if operands:
+            expr = Expression(context, operands)
+            print expr
+            if expr.complete:
+                pa = expr.value
+                if context.memmap.isFixed(pa):
+                    context.code = [ pa ]
+                    context.sbank = pa
+                else:
+                    context.error("operand must be in fixed memory")
+            retval = True
+        return retval
     
     def parse_SETLOC(self, context, symbol, operands):
         retval = False
