@@ -42,10 +42,7 @@ class Instruction(Opcode):
             expr = Expression(context, operands)
             if expr.complete:
                 pa = expr.value
-                if context.memmap.isErasable(pa):
-                    context.code = [ self.opcode + pa ]
-                else:
-                    context.error("operand must be in erasable memory")
+                context.code = [ self.opcode + pa ]
     
     def parse_ADS(self, context, operands):
         pass
