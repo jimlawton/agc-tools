@@ -39,6 +39,7 @@ class Expression:
                     if len(operands) == 1:
                         self.value = op1
                         self.valid = True
+                        self.complete = True
             if len(operands) >= 2:
                 if len(operands) == 2:
                     if operands[1].startswith('+') or operands[1].startswith('-'):
@@ -71,3 +72,10 @@ class Expression:
                 retval = entry.value
 
         return retval
+
+    def __str__(self):
+        text = "Expression: valid=%s" % str(self.valid)
+        text += ", complete=%s" % str(self.complete)
+        text += ", operands=%s" % str(self.operands)
+        text += ", value=%06o" % self.value
+        return text
