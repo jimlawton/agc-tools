@@ -32,6 +32,12 @@ class SymbolTableEntry:
     def isComplete(self):
         return (self.value != None)
 
+    def addReference(self, ref):
+        self.references.append(ref)
+
+    def getReferences(self):
+        return self.references
+
     def __str__(self):
         text = "%-8s "  % (self.name)
         if self.value == -1:
@@ -52,24 +58,18 @@ class SymbolTable:
         self.symbols = {}
         self.context = context
         
-    def add(self, name=None, symbolic=None, value=None, update=True):
+    def add(self, name=None, symbolic=None, value=None):
         if name in self.symbols:
             self.context.error("symbol \"%s\" already defined!" % (name))
         else:
             self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value)
-            if update:
+            if value != None:
                 for symbol in self.symbols:
                     entry = self.symbols[symbol]
                     if not entry.isComplete():
                         for reference in entry.references:
                             if symbolic in reference.operands:
-                                reference.reparse()
-
-    def addReference(self, ref):
-        self.references.append(ref)
-
-    def getReferences(self):
-        return self.references
+                                reference.reparse()                 # FIXME: This won't work.
 
     def keys(self):
         return self.symbols.keys()
