@@ -574,9 +574,6 @@ class Directive(Opcode):
             retval = True
         return retval
 
-    def parse_OCTAL(self, context, symbol, operands):
-        return self.parse_OCT(context, symbol, operands)
-    
     def parse_REMADR(self, context, symbol, operands):
         retval = False
         bank = None
@@ -612,18 +609,21 @@ class Directive(Opcode):
                 else:
                     context.error("operand must be in fixed memory")
             retval = True
+        else:
+            context.error("missing operand")
         return retval
     
     def parse_SETLOC(self, context, symbol, operands):
         retval = False
         if operands:
-            if operands[0].isdigit():
-                context.loc = int(operands[0], 8)
-            else:
-                entry = context.symtab.lookup(operands[0])
-                if entry:
-                    context.loc = entry.value
+            expr = Expression(context, operands)
+            if expr.complete:
+                pa = expr.value
+                context.code = [ pa ]
+                context.loc = pa
             retval = True
+        else:
+            context.error("missing operand")
         return retval
 
     def parse_SUBRO(self, context, symbol, operands):
