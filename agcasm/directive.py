@@ -604,7 +604,6 @@ class Directive(Opcode):
         pa = None
         if operands:
             expr = Expression(context, operands)
-            print expr
             if expr.complete:
                 pa = expr.value
                 if context.memmap.isFixed(pa):
