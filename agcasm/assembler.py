@@ -56,6 +56,10 @@ class Assembler:
                 self.bankloc[bank] = 0
             self.records = []
             self.srcline = None
+            self.interpMode = False
+            self.interpArgs = 0
+            self.currentRecord = None
+            self.addSymbol = True
 
     def __init__(self, arch, listfile, binfile, verbose=False):
         self.verbose = verbose
@@ -89,6 +93,7 @@ class Assembler:
             self.context.linenum += 1
             self.context.global_linenum += 1
             self.context.code = None
+            self.context.addSymbol = True
             label = None
             pseudolabel = None
             opcode = None
@@ -141,19 +146,26 @@ class Assembler:
                 if self.context.mode == OpcodeType.EXTENDED and opcode not in self.context.opcodes[OpcodeType.EXTENDED]:
                     self.context.error("missing EXTEND before extended instruction")
                 else:
+                    self.context.currentRecord = self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment)
                     self.parse(label, opcode, operands)
-                    self.context.records.append(self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment))
+                    self.context.records.append(self.context.currentRecord)
 
     def parse(self, label, opcode, operands):
         try:
+            # Check for any outstanding interpretive operands first, i.e. until interpArgs reaches zero.
             if opcode in self.context.opcodes[OpcodeType.INTERPRETIVE]:
-                self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, label, operands)
+                self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, operands)
+                self.context.interpMode = True
             if opcode in self.context.opcodes[OpcodeType.DIRECTIVE]:
-                self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, label, operands)
+                self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, operands)
             if opcode in self.context.opcodes[self.context.mode]:
                 self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
                 if opcode != "EXTEND" and self.context.mode == OpcodeType.EXTENDED:
                     self.context.mode = OpcodeType.BASIC
+            if label != None and self.context.addSymbol == True:
+                self.context.symtab.add(label, operands, self.context.loc)
+            #if not self.context.currentRecord.isComplete():
+            #    ste = self.context.symtab[]
         except:
             self.error("Exception processing line:")
             raise
