@@ -21,7 +21,6 @@
 import sys
 from number import Decimal, DoubleDecimal, Octal, DoubleOctal
 from memory import MemoryType
-from symbol_table import SymbolTableEntry
 from expression import Expression, Number
 from opcode import Opcode, OperandType
 
@@ -31,16 +30,16 @@ class Directive(Opcode):
     def __init__(self, methodName, mnemonic=None, operandType=OperandType.NONE, numwords=0):
         Opcode.__init__(self, methodName, mnemonic, None, operandType, None, numwords)
         
-    def parse(self, context, symbol, operands):
-        retval = self.__getattribute__("parse_" + self.methodName)(context, symbol, operands)
+    def parse(self, context, operands):
+        retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
         context.loc += self.numwords
         return retval
 
     def ignore(self, context):
         context.info("ignoring directive \"%s\"" % self.mnemonic)
 
-    def parse_Minus1DNADR(self, context, symbol, operands):
-        retval = self.parse_1DNADR(context, symbol, operands)
+    def parse_Minus1DNADR(self, context, operands):
+        retval = self.parse_1DNADR(context, operands)
         words = []
         if context.code != None:
             for i in range(len(context.code)):
@@ -48,8 +47,8 @@ class Directive(Opcode):
             context.code = words
         return retval
     
-    def parse_Minus2CADR(self, context, symbol, operands):
-        retval = self.parse_2CADR(context, symbol, operands)
+    def parse_Minus2CADR(self, context, operands):
+        retval = self.parse_2CADR(context, operands)
         words = []
         if context.code != None:
             for i in range(len(context.code)):
@@ -57,8 +56,8 @@ class Directive(Opcode):
             context.code = words
         return retval
     
-    def parse_Minus2DNADR(self, context, symbol, operands):
-        retval = self.parse_2DNADR(context, symbol, operands)
+    def parse_Minus2DNADR(self, context, operands):
+        retval = self.parse_2DNADR(context, operands)
         words = []
         if context.code != None:
             for i in range(len(context.code)):
@@ -66,8 +65,8 @@ class Directive(Opcode):
             context.code = words
         return retval
 
-    def parse_Minus3DNADR(self, context, symbol, operands):
-        retval = self.parse_3DNADR(context, symbol, operands)
+    def parse_Minus3DNADR(self, context, operands):
+        retval = self.parse_3DNADR(context, operands)
         words = []
         if context.code != None:
             for i in range(len(context.code)):
@@ -75,8 +74,8 @@ class Directive(Opcode):
             context.code = words
         return retval
 
-    def parse_Minus4DNADR(self, context, symbol, operands):
-        retval = self.parse_4DNADR(context, symbol, operands)
+    def parse_Minus4DNADR(self, context, operands):
+        retval = self.parse_4DNADR(context, operands)
         words = []
         if context.code != None:
             for i in range(len(context.code)):
@@ -84,8 +83,8 @@ class Directive(Opcode):
             context.code = words
         return retval
     
-    def parse_Minus5DNADR(self, context, symbol, operands):
-        retval = self.parse_5DNADR(context, symbol, operands)
+    def parse_Minus5DNADR(self, context, operands):
+        retval = self.parse_5DNADR(context, operands)
         words = []
         if context.code != None:
             for i in range(len(context.code)):
@@ -93,8 +92,8 @@ class Directive(Opcode):
             context.code = words
         return retval
     
-    def parse_Minus6DNADR(self, context, symbol, operands):
-        retval = self.parse_6DNADR(context, symbol, operands)
+    def parse_Minus6DNADR(self, context, operands):
+        retval = self.parse_6DNADR(context, operands)
         words = []
         if context.code != None:
             for i in range(len(context.code)):
@@ -102,8 +101,8 @@ class Directive(Opcode):
             context.code = words
         return retval
     
-    def parse_MinusDNCHAN(self, context, symbol, operands):
-        retval = self.parse_DNCHAN(context, symbol, operands)
+    def parse_MinusDNCHAN(self, context, operands):
+        retval = self.parse_DNCHAN(context, operands)
         words = []
         if context.code != None:
             for i in range(len(context.code)):
@@ -111,8 +110,8 @@ class Directive(Opcode):
             context.code = words
         return retval
     
-    def parse_MinusDNPTR(self, context, symbol, operands):
-        retval = self.parse_DNPTR(context, symbol, operands)
+    def parse_MinusDNPTR(self, context, operands):
+        retval = self.parse_DNPTR(context, operands)
         words = []
         if context.code != None:
             for i in range(len(context.code)):
@@ -120,8 +119,8 @@ class Directive(Opcode):
             context.code = words
         return retval
     
-    def parse_MinusGENADR(self, context, symbol, operands):
-        retval = self.parse_GENADR(context, symbol, operands)
+    def parse_MinusGENADR(self, context, operands):
+        retval = self.parse_GENADR(context, operands)
         words = []
         if context.code != None:
             for i in range(len(context.code)):
@@ -129,7 +128,7 @@ class Directive(Opcode):
             context.code = words
         return retval
     
-    def parse_1DNADR(self, context, symbol, operands):
+    def parse_1DNADR(self, context, operands):
         retval = False
         pa = None
         if operands:
@@ -143,10 +142,7 @@ class Directive(Opcode):
                     context.error("operand must be in erasable memory")
         return retval
     
-    def parse_2BCADR(self, context, symbol, operands):
-        return self.parse_2CADR(context, symbol, operands)
-    
-    def parse_2CADR(self, context, symbol, operands):
+    def parse_2CADR(self, context, operands):
         retval = False
         word1 = word2 = None
         if operands:
@@ -174,20 +170,18 @@ class Directive(Opcode):
                 context.lastEbankEquals = False
         return retval
 
-    def parse_2DEC(self, context, symbol, operands):
+    def parse_2DEC(self, context, operands):
         retval = False
         if operands:
             op = DoubleDecimal(" ".join(operands))
             if op.isValid():
                 context.code = op.value
-                if symbol:
-                    context.symtab.add(symbol, operands, context.loc)
                 retval = True
             else:
                 context.error("syntax error: %s %s" % (self.mnemonic, operands))
         return retval
 
-    def parse_2DNADR(self, context, symbol, operands):
+    def parse_2DNADR(self, context, operands):
         retval = False
         pa = None
         if operands:
@@ -201,24 +195,22 @@ class Directive(Opcode):
             retval = True
         return retval
     
-    def parse_2FCADR(self, context, symbol, operands):
+    def parse_2FCADR(self, context, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def parse_2OCT(self, context, symbol, operands):
+    def parse_2OCT(self, context, operands):
         retval = False
         if operands:
             op = DoubleOctal(" ".join(operands))
             if op.isValid():
                 context.code = op.value
-                if symbol:
-                    context.symtab.add(symbol, operands, context.loc)
             else:
                 context.error("syntax error: %s %s" % (self.mnemonic, operands))
             retval = True
         return retval
     
-    def parse_3DNADR(self, context, symbol, operands):
+    def parse_3DNADR(self, context, operands):
         retval = False
         pa = None
         if operands:
@@ -232,7 +224,7 @@ class Directive(Opcode):
             retval = True
         return retval
     
-    def parse_4DNADR(self, context, symbol, operands):
+    def parse_4DNADR(self, context, operands):
         retval = False
         pa = None
         if operands:
@@ -246,7 +238,7 @@ class Directive(Opcode):
             retval = True
         return retval
     
-    def parse_5DNADR(self, context, symbol, operands):
+    def parse_5DNADR(self, context, operands):
         retval = False
         pa = None
         if operands:
@@ -260,7 +252,7 @@ class Directive(Opcode):
             retval = True
         return retval
     
-    def parse_6DNADR(self, context, symbol, operands):
+    def parse_6DNADR(self, context, operands):
         retval = False
         pa = None
         if operands:
@@ -274,15 +266,12 @@ class Directive(Opcode):
             retval = True
         return retval
 
-    def parse_EqualsSign(self, context, symbol, operands):
-        return self.parse_EQUALS(context, symbol, operands)
-
-    def parse_EqualsECADR(self, context, symbol, operands):
+    def parse_EqualsECADR(self, context, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
     
-    def parse_EqualsMINUS(self, context, symbol, operands):
-        retval = self.parse_EqualsSign(context, symbol, operands)
+    def parse_EqualsMINUS(self, context, operands):
+        retval = self.parse_EQUALS(context, operands)
         words = []
         if context.code != None:
             for i in range(len(context.code)):
@@ -290,7 +279,7 @@ class Directive(Opcode):
             context.code = words
         return retval
     
-    def parse_ADRES(self, context, symbol, operands):
+    def parse_ADRES(self, context, operands):
         retval = False
         if operands:
             expr = Expression(context, operands)
@@ -302,7 +291,7 @@ class Directive(Opcode):
             retval = True
         return retval
 
-    def parse_BANK(self, context, symbol, operands):
+    def parse_BANK(self, context, operands):
         if operands:
             expr = Expression(context, operands)
             if expr.valid:
@@ -312,7 +301,7 @@ class Directive(Opcode):
             context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
         return True
 
-    def parse_BBCON(self, context, symbol, operands):
+    def parse_BBCON(self, context, operands):
         retval = False
         if operands:
             fbank = None
@@ -338,7 +327,7 @@ class Directive(Opcode):
             retval = True
         return retval
     
-    def parse_BLOCK(self, context, symbol, operands):
+    def parse_BLOCK(self, context, operands):
         retval = False
         if operands:
             expr = Expression(context, operands)
@@ -355,11 +344,11 @@ class Directive(Opcode):
             retval = True
         return retval
 
-    def parse_BNKSUM(self, context, symbol, operands):
+    def parse_BNKSUM(self, context, operands):
         self.ignore(context)
         return True
     
-    def parse_CADR(self, context, symbol, operands):
+    def parse_CADR(self, context, operands):
         retval = False
         word = None
         if operands:
@@ -370,57 +359,55 @@ class Directive(Opcode):
             retval = True
         return retval
     
-    def parse_CHECKEquals(self, context, symbol, operands):
+    def parse_CHECKEquals(self, context, operands):
         retval = False
-        if operands:
-            fields = operands[0].split()
-            defn = context.symtab.lookup(fields[0])
-            if not defn:
-                # Add to checklist and check at the end.
-                context.checklist.append(SymbolTableEntry(context, symbol, operands[0]))
+        if context.currentRecord.label != None:
+            lhs = Expression(context, [ context.currentRecord.label ])
+            if operands:
+                rhs = Expression(context, operands)
+                if not lhs.complete or not rhs.complete:
+                    # Add to checklist and check at the end.
+                    context.checklist.append(context.currentRecord)
+                else:
+                    lpa = lhs.value
+                    rpa = rhs.value
+                    if lpa != rpa:
+                        context.error("CHECK= test failed, \"%s\" (%06o) != \"%s\" (%06o)" % (context.currentRecord.label, lpa, ' '.join(operands), rpa))
+                retval = True
             else:
-                # TODO: Change to use Expression.
-                pa = defn.value
-                if len(fields) > 1:
-                    op = Number(fields[1].strip())
-                    if op.isValid():
-                        pa += op.value
-                    else:
-                        context.error("invalid expression, \"%s\"" % operands)
-            retval = False
+                context.error("missing operand")
+        else:
+            context.error("syntax error")
+        context.addSymbol = False
         return retval
     
-    def parse_COUNT(self, context, symbol, operands):
+    def parse_COUNT(self, context, operands):
         self.ignore(context)
         return True
     
-    def parse_DEC(self, context, symbol, operands):
+    def parse_DEC(self, context, operands):
         retval = False
         if operands:
             op = Decimal(" ".join(operands))
             if op.isValid():
                 context.code = [ op.value ]
-                if symbol:
-                    context.symtab.add(symbol, operands, context.loc)
             else:
-                context.error("syntax error: %s %s" % (self.mnemonic, operands))
+                context.error("invalid syntax")
             retval = True
         return retval
     
-    def parse_DNCHAN(self, context, symbol, operands):
+    def parse_DNCHAN(self, context, operands):
         retval = False
         if operands:
             op = Octal(" ".join(operands))
             if op.isValid():
                 context.code = [ op.value + 034000 ]
-                if symbol:
-                    context.symtab.add(symbol, operands, context.loc)
             else:
                 context.error("syntax error: %s %s" % (self.mnemonic, operands))
             retval = True
         return retval
     
-    def parse_DNPTR(self, context, symbol, operands):
+    def parse_DNPTR(self, context, operands):
         retval = False
         pa = None
         if operands:
@@ -434,7 +421,7 @@ class Directive(Opcode):
             retval = True
         return retval
     
-    def parse_EBANKEquals(self, context, symbol, operands):
+    def parse_EBANKEquals(self, context, operands):
         retval = False
         if operands:
             op = Number(operands[0])
@@ -451,12 +438,11 @@ class Directive(Opcode):
                         context.ebank = bank
                         context.lastEbankEquals = True
                 else:
-                    if context.passnum > 1:
-                        context.error("undefined symbol \"%s\"" % operands[0])
+                    context.currentRecord.undefineds.append(operands[0])
             retval = True
         return retval
 
-    def parse_ECADR(self, context, symbol, operands):
+    def parse_ECADR(self, context, operands):
         retval = False
         pa = None
         if operands:
@@ -470,24 +456,24 @@ class Directive(Opcode):
             retval = True
         return retval
 
-    def parse_EQUALS(self, context, symbol, operands):
+    def parse_EQUALS(self, context, operands):
         retval = False
-        if symbol:
-            if operands:
-                expr = Expression(context, operands)
-                if expr.valid:
-                    context.symtab.add(symbol, operands, expr.value)
-                    context.code = [ expr.value ]
-                    retval = True
-                else:
-                    context.symtab.add(symbol, operands)
-            else:
-                context.symtab.add(symbol, None, context.loc)
-                context.code = [ context.loc ]
+        if operands:
+            expr = Expression(context, operands)
+            if expr.valid:
+                context.symtab.add(context.currentRecord.label, operands, expr.value)
+                context.code = [ expr.value ]
                 retval = True
+            else:
+                context.symtab.add(context.currentRecord.label, operands)
+        else:
+            context.symtab.add(context.currentRecord.label, None, context.loc)
+            context.code = [ context.loc ]
+            retval = True
+        context.addSymbol = False
         return retval
 
-    def parse_ERASE(self, context, symbol, operands):
+    def parse_ERASE(self, context, operands):
         size = 0
         if operands == None:
             size = 1
@@ -504,12 +490,13 @@ class Directive(Opcode):
                 op = Number(operands[0])
                 if op.isValid():
                     size = op.value + 1
-        if symbol and op.isValid():
-            context.symtab.add(symbol, operand, op.value)
+        if context.currentRecord.label != None and op.isValid():
+            context.symtab.add(context.currentRecord.label, operands, context.loc)
         context.loc += size
+        context.addSymbol = False
         return True
         
-    def parse_FCADR(self, context, symbol, operands):
+    def parse_FCADR(self, context, operands):
         retval = False
         pa = None
         if operands:
@@ -523,7 +510,7 @@ class Directive(Opcode):
             retval = True
         return retval
 
-    def parse_GENADR(self, context, symbol, operands):
+    def parse_GENADR(self, context, operands):
         retval = False
         bank = None
         aval = None
@@ -545,7 +532,7 @@ class Directive(Opcode):
             context.code = [ aval ]
         return retval
     
-    def parse_MEMORY(self, context, symbol, operands):
+    def parse_MEMORY(self, context, operands):
         #if '-' in operands:
         #    op1 = int(operands[0], 8)
         #    if symbol:
@@ -555,26 +542,18 @@ class Directive(Opcode):
         self.ignore(context)
         return True
     
-    def parse_MM(self, context, symbol, operands):
-        return self.parse_DEC(context, symbol, operands)
-    
-    def parse_NV(self, context, symbol, operands):
-        return self.parse_VN(context, symbol, operands)
-    
-    def parse_OCT(self, context, symbol, operands):
+    def parse_OCT(self, context, operands):
         retval = False
         if operands:
             op = Octal(operands[0])
             if op.isValid():
                 context.code = [ op.value ]
-                if symbol:
-                    context.symtab.add(symbol, operands[0], op.value)
             else:
                 context.error("syntax error: %s %s" % (self.mnemonic, operands[0]))
             retval = True
         return retval
 
-    def parse_REMADR(self, context, symbol, operands):
+    def parse_REMADR(self, context, operands):
         retval = False
         bank = None
         aval = None
@@ -596,7 +575,7 @@ class Directive(Opcode):
             context.code = [ aval ]
         return retval
 
-    def parse_SBANKEquals(self, context, symbol, operands):
+    def parse_SBANKEquals(self, context, operands):
         retval = False
         pa = None
         if operands:
@@ -613,7 +592,7 @@ class Directive(Opcode):
             context.error("missing operand")
         return retval
     
-    def parse_SETLOC(self, context, symbol, operands):
+    def parse_SETLOC(self, context, operands):
         retval = False
         if operands:
             expr = Expression(context, operands)
@@ -626,11 +605,11 @@ class Directive(Opcode):
             context.error("missing operand")
         return retval
 
-    def parse_SUBRO(self, context, symbol, operands):
+    def parse_SUBRO(self, context, operands):
         self.ignore(context)
         return True
     
-    def parse_VN(self, context, symbol, operands):
+    def parse_VN(self, context, operands):
         retval = False
         if operands:
             op = Decimal(operands[0])
@@ -638,8 +617,6 @@ class Directive(Opcode):
                 lower = int(operands[0][-2:])
                 upper = int(operands[0][:-2])
                 context.code = [ upper * 128 + lower ]
-                if symbol:
-                    context.symtab.add(symbol, operands[0], context.loc)
             else:
                 context.error("syntax error: %s %s" % (self.mnemonic, operands))
             retval = True
