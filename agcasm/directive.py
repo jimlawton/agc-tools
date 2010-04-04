@@ -477,11 +477,9 @@ class Directive(Opcode):
         size = 0
         if operands == None:
             size = 1
-            operand = None
             op = Number("1")
         else:
             # TODO: Change to use Expression.
-            operand = operands[0]
             if '-' in operands[0]:
                 op = Number(operands[0].strip())
                 if op.isValid():

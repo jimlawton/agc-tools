@@ -19,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import sys
+from expression import Expression
 
 class SymbolTableEntry:
     
@@ -50,12 +51,15 @@ class SymbolTableEntry:
             else:
                 text += 10 * ' ' 
         if self.symbolic:
-            text += " \"%s\""  % (self.symbolic)
+            text += " \"%s\""  % (' '.join(self.symbolic))
+        if len(self.references) > 0:
+            text += self.references
         return text
 
 class SymbolTable:
     def __init__(self, context):
         self.symbols = {}
+        self.undefineds = []
         self.context = context
         
     def add(self, name=None, symbolic=None, value=None):
@@ -63,14 +67,41 @@ class SymbolTable:
             if name in self.symbols.keys():
                 self.context.error("symbol \"%s\" already defined!" % (name))
             else:
-                self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value)
-                if value != None:
-                    for symbol in self.symbols:
-                        entry = self.symbols[symbol]
-                        if not entry.isComplete():
-                            for reference in entry.references:
-                                if symbolic in reference.operands:
-                                    reference.reparse()                 # FIXME: This won't work.
+                ste = SymbolTableEntry(self.context, name, symbolic, value)
+                self.symbols[name] = self.context.currentSTE = ste 
+                if value == None:
+                    self.undefineds.append(self.context.currentRecord)
+                else:
+                    i = 0
+                    for record in self.undefineds:
+                        if name in record.operands:
+                            expr = Expression(self.context, record.operands)
+                            if expr.valid:
+                                record.code = [ expr.value ]
+                                record.complete = True
+
+    def resolve(self, maxPasses=10):
+        self.context.warn("resolving symbols...")
+        nUndefs = len(self.undefineds)
+        nPrevUndefs = len(self.undefineds)
+        for i in range(maxPasses):
+            self.context.warn("pass %d: %d undefined symbols" % (i, nUndefs))
+            if nUndefs == 0:
+                self.context.error("aborting, maximum number of passes reached")
+                break
+            j = 0
+            for record in self.undefineds:
+                expr = Expression(self.context, record.operands)
+                if expr.valid:
+                    record.code = [ expr.value ]
+                    record.complete = True
+                    self.undefineds.__delitem__(j)
+                j += 1
+            nUndefs = len(self.undefineds)
+            if nUndefs == nPrevUndefs:
+                self.context.error("aborting, no progress in resolving symbols")
+                break
+            nPrevUndefs = nUndefs
 
     def keys(self):
         return self.symbols.keys()

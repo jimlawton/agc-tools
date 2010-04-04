@@ -52,6 +52,8 @@ def main():
     for arg in args:
         assembler.assemble(arg)
 
+    assembler.resolve()
+    
     print "Writing listing..."
     print >>listfile 
     print >>listfile, "Listing"

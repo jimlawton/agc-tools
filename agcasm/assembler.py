@@ -60,6 +60,7 @@ class Assembler:
             self.interpArgs = 0
             self.currentRecord = None
             self.addSymbol = True
+            self.currentSTE = None
 
     def __init__(self, arch, listfile, binfile, verbose=False):
         self.verbose = verbose
@@ -164,12 +165,13 @@ class Assembler:
                     self.context.mode = OpcodeType.BASIC
             if label != None and self.context.addSymbol == True:
                 self.context.symtab.add(label, operands, self.context.loc)
-            #if not self.context.currentRecord.isComplete():
-            #    ste = self.context.symtab[]
         except:
             self.error("Exception processing line:")
             raise
-        
+
+    def resolve(self, maxPasses=10):
+        self.context.symtab.resolve(maxPasses)
+
     def error(self, text):
         print >>sys.stderr, "%s, line %d, error: %s" % (self.context.srcfile, self.context.linenum, text) 
         print >>sys.stderr, self.context.srcline
