@@ -20,7 +20,6 @@
 
 from opcode import Opcode, OpcodeType, OperandType
 from expression import Expression
-from memory import AddressType
 
 # NOTE: Must be a new-style class.
 class Instruction(Opcode):
@@ -32,18 +31,21 @@ class Instruction(Opcode):
         if self.operandType == OperandType.NONE:
             context.code = [ self.opcode ]
         else:
+            pa = None
+            if operands:
+                expr = Expression(context, operands)
+                if expr.complete:
+                    pa = expr.value
+                    context.code = [ self.opcode + pa ]
+            else:
+                context.error("missing operand")
             self.__getattribute__("parse_" + self.mnemonic)(context, operands)
             pass
         context.loc += self.numwords
         
     def parse_AD(self, context, operands):
-        pa = None
-        if operands:
-            expr = Expression(context, operands)
-            if expr.complete:
-                pa = expr.value
-                context.code = [ self.opcode + pa ]
-    
+        pass
+
     def parse_ADS(self, context, operands):
         pass
     
