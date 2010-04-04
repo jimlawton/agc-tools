@@ -23,10 +23,9 @@ from opcode import Opcode
 # NOTE: Must be a new-style class.
 class Interpretive(Opcode):
     
-    def __init__(self, methodName, mnemonic, opcode, numOperands=1, switch=None, nnnn=None):
+    def __init__(self, methodName, mnemonic, opcode, numOperands=1, switchcode=None):
         Opcode.__init__(self, methodName, mnemonic, opcode, None, 1)
-        self.switch = switch
-        self.nnnn = nnnn
+        self.switchcode = switchcode
 
     def parse(self, context, symbol, operands):
         #retval = self.__getattribute__("parse_" + self.name)(context, symbol, operands)
