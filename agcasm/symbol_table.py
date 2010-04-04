@@ -59,17 +59,18 @@ class SymbolTable:
         self.context = context
         
     def add(self, name=None, symbolic=None, value=None):
-        if name in self.symbols:
-            self.context.error("symbol \"%s\" already defined!" % (name))
-        else:
-            self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value)
-            if value != None:
-                for symbol in self.symbols:
-                    entry = self.symbols[symbol]
-                    if not entry.isComplete():
-                        for reference in entry.references:
-                            if symbolic in reference.operands:
-                                reference.reparse()                 # FIXME: This won't work.
+        if name != None:
+            if name in self.symbols.keys():
+                self.context.error("symbol \"%s\" already defined!" % (name))
+            else:
+                self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value)
+                if value != None:
+                    for symbol in self.symbols:
+                        entry = self.symbols[symbol]
+                        if not entry.isComplete():
+                            for reference in entry.references:
+                                if symbolic in reference.operands:
+                                    reference.reparse()                 # FIXME: This won't work.
 
     def keys(self):
         return self.symbols.keys()
