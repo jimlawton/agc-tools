@@ -56,10 +56,13 @@ class ParserRecord:
             if len(self.code) == 0:
                 text += "UNDEFINED   "
             elif len(self.code) == 1:
-                text += "%05o %s " % (self.code[0], 5 * ' ')
+                if self.code[0] > 077777:
+                    text += "%06o %s " % (self.code[0], 5 * ' ')
+                else:
+                    text += " %05o %s " % (self.code[0], 5 * ' ')
             else:
-                text += "%05o %05o " % (self.code[0], self.code[1])
+                text += "%05o %05o  " % (self.code[0], self.code[1])
         else:
-            text += 12 * ' '
+            text += 13 * ' '
         text += "%s" % self.srcline
         return text
