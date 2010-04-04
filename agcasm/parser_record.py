@@ -35,7 +35,8 @@ class ParserRecord:
         self.numwords = 0                   # Number of code words generated.
         self.ebank = None                   # Current E-Bank.
         self.complete = False               # Assembly complete? i.e. all symbols resolved.
-
+        self.undefineds = []                # Undefined symbols.
+        
     def setEBank(self, ebank):
         self.ebank = ebank
 
