@@ -27,8 +27,8 @@ class Interpretive(Opcode):
         Opcode.__init__(self, methodName, mnemonic, opcode, None, 1)
         self.switchcode = switchcode
 
-    def parse(self, context, symbol, operands):
-        #retval = self.__getattribute__("parse_" + self.name)(context, symbol, operands)
+    def parse(self, context, operands):
+        #retval = self.__getattribute__("parse_" + self.name)(context, operands)
         context.loc += self.numwords
         #return retval
         
