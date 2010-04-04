@@ -32,7 +32,7 @@ class Expression:
         op1 = 0
         op2 = 0
         
-        if operands and 1 <= len(operands) <= 3:
+        if operands != None and 1 <= len(operands) <= 3:
             if len(operands) >= 1:
                 op1 = self._parseOperand(context, operands[0])
                 if op1 != None:
