@@ -49,7 +49,9 @@ class Instruction(Opcode):
                         context.currentRecord.complete = True
                 else:
                     context.error("missing operand")
-                #self.__getattribute__("parse_" + self.mnemonic)(context, operands)
+                parser = self.__getattribute__("parse_" + self.mnemonic)
+                if parser:
+                    parser(context, operands)
         context.loc += self.numwords
         return retval
     
@@ -80,9 +82,6 @@ class Instruction(Opcode):
     def parse_CCS(self, context, operands):
         pass
     
-    def parse_COM(self, context, operands):
-        pass
-    
     def parse_CS(self, context, operands):
         pass
     
@@ -92,22 +91,7 @@ class Instruction(Opcode):
     def parse_DCA(self, context, operands):
         pass
     
-    def parse_DCOM(self, context, operands):
-        pass
-    
-    def parse_DDOUBL(self, context, operands):
-        pass
-    
     def parse_DIM(self, context, operands):
-        pass
-    
-    def parse_DOUBLE(self, context, operands):
-        pass
-    
-    def parse_DTCB(self, context, operands):
-        pass
-    
-    def parse_DTCF(self, context, operands):
         pass
     
     def parse_DV(self, context, operands):
@@ -128,9 +112,6 @@ class Instruction(Opcode):
     def parse_INDEX(self, context, operands):
         pass
     
-    def parse_INHINT(self, context, operands):
-        pass
-    
     def parse_LXCH(self, context, operands):
         pass
     
@@ -146,12 +127,6 @@ class Instruction(Opcode):
     def parse_NDX(self, context, operands):
         pass
     
-    def parse_NOOP(self, context, operands):
-        pass
-    
-    def parse_OVSK(self, context, operands):
-        pass
-    
     def parse_QXCH(self, context, operands):
         pass
     
@@ -161,31 +136,16 @@ class Instruction(Opcode):
     def parse_READ(self, context, operands):
         pass
     
-    def parse_RELINT(self, context, operands):
-        pass
-    
-    def parse_RESUME(self, context, operands):
-        pass
-    
-    def parse_RETURN(self, context, operands):
-        pass
-    
     def parse_ROR(self, context, operands):
         pass
     
     def parse_RXOR(self, context, operands):
         pass
     
-    def parse_SQUARE(self, context, operands):
-        pass
-    
     def parse_SU(self, context, operands):
         pass
     
     def parse_TC(self, context, operands):
-        pass
-    
-    def parse_TCAA(self, context, operands):
         pass
     
     def parse_TCF(self, context, operands):
@@ -205,16 +165,3 @@ class Instruction(Opcode):
     
     def parse_XCH(self, context, operands):
         pass
-    
-    def parse_XLQ(self, context, operands):
-        pass
-    
-    def parse_XXALQ(self, context, operands):
-        pass
-    
-    def parse_ZL(self, context, operands):
-        pass
-    
-    def parse_ZQ(self, context, operands):
-        pass
-
