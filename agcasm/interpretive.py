@@ -28,7 +28,11 @@ class Interpretive(Opcode):
         self.switchcode = switchcode
 
     def parse(self, context, operands):
-        #retval = self.__getattribute__("parse_" + self.name)(context, operands)
+        retval = False
+        try:
+            retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
+        except:
+            pass
         context.loc += self.numwords
-        #return retval
+        return retval
         

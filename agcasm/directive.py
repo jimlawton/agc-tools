@@ -31,7 +31,11 @@ class Directive(Opcode):
         Opcode.__init__(self, methodName, mnemonic, None, operandType, None, numwords)
         
     def parse(self, context, operands):
-        retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
+        retval = False
+        try:
+            retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
+        except:
+            pass
         context.loc += self.numwords
         if self.numwords == 0:
             context.currentRecord.complete = True

@@ -19,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from opcode import Opcode, OpcodeType, OperandType
-from expression import Expression, AddressExpression
+from expression import AddressExpression
 
 # NOTE: Must be a new-style class.
 class Instruction(Opcode):
@@ -49,9 +49,10 @@ class Instruction(Opcode):
                         context.currentRecord.complete = True
                 else:
                     context.error("missing operand")
-                parser = self.__getattribute__("parse_" + self.mnemonic)
-                if parser:
-                    parser(context, operands)
+                try:
+                    retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
+                except:
+                    pass
         context.loc += self.numwords
         return retval
     
