@@ -33,6 +33,8 @@ class Directive(Opcode):
     def parse(self, context, operands):
         retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
         context.loc += self.numwords
+        if self.numwords == 0:
+            context.currentRecord.complete = True
         return retval
 
     def ignore(self, context):
@@ -41,91 +43,101 @@ class Directive(Opcode):
     def parse_Minus1DNADR(self, context, operands):
         retval = self.parse_1DNADR(context, operands)
         words = []
-        if context.code != None:
-            for i in range(len(context.code)):
-                words.append(~context.code[i])
-            context.code = words
+        if context.currentRecord.code != None:
+            for i in range(len(context.currentRecord.code)):
+                words.append(~context.currentRecord.code[i])
+            context.currentRecord.code = words
+            context.currentRecord.complete = True
         return retval
     
     def parse_Minus2CADR(self, context, operands):
         retval = self.parse_2CADR(context, operands)
         words = []
-        if context.code != None:
-            for i in range(len(context.code)):
-                words.append(~context.code[i])
-            context.code = words
+        if context.currentRecord.code != None:
+            for i in range(len(context.currentRecord.code)):
+                words.append(~context.currentRecord.code[i])
+            context.currentRecord.code = words
+            context.currentRecord.complete = True
         return retval
     
     def parse_Minus2DNADR(self, context, operands):
         retval = self.parse_2DNADR(context, operands)
         words = []
-        if context.code != None:
-            for i in range(len(context.code)):
-                words.append(~context.code[i])
-            context.code = words
+        if context.currentRecord.code != None:
+            for i in range(len(context.currentRecord.code)):
+                words.append(~context.currentRecord.code[i])
+            context.currentRecord.code = words
+            context.currentRecord.complete = True
         return retval
 
     def parse_Minus3DNADR(self, context, operands):
         retval = self.parse_3DNADR(context, operands)
         words = []
-        if context.code != None:
-            for i in range(len(context.code)):
-                words.append(~context.code[i])
-            context.code = words
+        if context.currentRecord.code != None:
+            for i in range(len(context.currentRecord.code)):
+                words.append(~context.currentRecord.code[i])
+            context.currentRecord.code = words
+            context.currentRecord.complete = True
         return retval
 
     def parse_Minus4DNADR(self, context, operands):
         retval = self.parse_4DNADR(context, operands)
         words = []
-        if context.code != None:
-            for i in range(len(context.code)):
-                words.append(~context.code[i])
-            context.code = words
+        if context.currentRecord.code != None:
+            for i in range(len(context.currentRecord.code)):
+                words.append(~context.currentRecord.code[i])
+            context.currentRecord.code = words
+            context.currentRecord.complete = True
         return retval
     
     def parse_Minus5DNADR(self, context, operands):
         retval = self.parse_5DNADR(context, operands)
         words = []
-        if context.code != None:
-            for i in range(len(context.code)):
-                words.append(~context.code[i])
-            context.code = words
+        if context.currentRecord.code != None:
+            for i in range(len(context.currentRecord.code)):
+                words.append(~context.currentRecord.code[i])
+            context.currentRecord.code = words
+            context.currentRecord.complete = True
         return retval
     
     def parse_Minus6DNADR(self, context, operands):
         retval = self.parse_6DNADR(context, operands)
         words = []
-        if context.code != None:
-            for i in range(len(context.code)):
-                words.append(~context.code[i])
-            context.code = words
+        if context.currentRecord.code != None:
+            for i in range(len(context.currentRecord.code)):
+                words.append(~context.currentRecord.code[i])
+            context.currentRecord.code = words
+            context.currentRecord.complete = True
         return retval
     
     def parse_MinusDNCHAN(self, context, operands):
         retval = self.parse_DNCHAN(context, operands)
         words = []
-        if context.code != None:
-            for i in range(len(context.code)):
-                words.append(~context.code[i])
-            context.code = words
+        if context.currentRecord.code != None:
+            for i in range(len(context.currentRecord.code)):
+                words.append(~context.currentRecord.code[i])
+            context.currentRecord.code = words
+            context.currentRecord.complete = True
         return retval
     
     def parse_MinusDNPTR(self, context, operands):
         retval = self.parse_DNPTR(context, operands)
         words = []
-        if context.code != None:
-            for i in range(len(context.code)):
-                words.append(~context.code[i])
-            context.code = words
+        if context.currentRecord.code != None:
+            for i in range(len(context.currentRecord.code)):
+                words.append(~context.currentRecord.code[i])
+            context.currentRecord.code = words
+            context.currentRecord.complete = True
         return retval
     
     def parse_MinusGENADR(self, context, operands):
         retval = self.parse_GENADR(context, operands)
         words = []
-        if context.code != None:
-            for i in range(len(context.code)):
-                words.append(~context.code[i])
-            context.code = words
+        if context.currentRecord.code != None:
+            for i in range(len(context.currentRecord.code)):
+                words.append(~context.currentRecord.code[i])
+            context.currentRecord.code = words
+            context.currentRecord.complete = True
         return retval
     
     def parse_1DNADR(self, context, operands):
@@ -136,7 +148,8 @@ class Directive(Opcode):
             if expr.complete:
                 pa = expr.value
                 if context.memmap.isErasable(pa):
-                    context.code = [ pa ]
+                    context.currentRecord.code = [ pa ]
+                    context.currentRecord.complete = True
                     retval = True
                 else:
                     context.error("operand must be in erasable memory")
@@ -163,7 +176,8 @@ class Directive(Opcode):
                     word2 |= (context.ebank & 07)
                 else:
                     word2 = context.memmap.getBankNumber(word1)
-                context.code = [word1, word2]
+                context.currentRecord.code = [word1, word2]
+                context.currentRecord.complete = True
             retval = True
             if context.lastEbankEquals:
                 context.ebank = context.lastEbank
@@ -175,7 +189,8 @@ class Directive(Opcode):
         if operands:
             op = DoubleDecimal(" ".join(operands))
             if op.isValid():
-                context.code = op.value
+                context.currentRecord.code = op.value
+                context.currentRecord.complete = True
                 retval = True
             else:
                 context.error("syntax error: %s %s" % (self.mnemonic, operands))
@@ -189,7 +204,8 @@ class Directive(Opcode):
             if expr.complete:
                 pa = expr.value
                 if context.memmap.isErasable(pa):
-                    context.code = [ pa + 04000 ] 
+                    context.currentRecord.code = [ pa + 04000 ] 
+                    context.currentRecord.complete = True
                 else:
                     context.error("operand must be in erasable memory")
             retval = True
@@ -204,7 +220,8 @@ class Directive(Opcode):
         if operands:
             op = DoubleOctal(" ".join(operands))
             if op.isValid():
-                context.code = op.value
+                context.currentRecord.code = op.value
+                context.currentRecord.complete = True
             else:
                 context.error("syntax error: %s %s" % (self.mnemonic, operands))
             retval = True
@@ -218,7 +235,8 @@ class Directive(Opcode):
             if expr.complete:
                 pa = expr.value
                 if context.memmap.isErasable(pa):
-                    context.code = [ pa + 010000 ]
+                    context.currentRecord.code = [ pa + 010000 ]
+                    context.currentRecord.complete = True
                 else:
                     context.error("operand must be in erasable memory")
             retval = True
@@ -232,7 +250,8 @@ class Directive(Opcode):
             if expr.complete:
                 pa = expr.value
                 if context.memmap.isErasable(pa):
-                    context.code = [ pa + 014000 ]
+                    context.currentRecord.code = [ pa + 014000 ]
+                    context.currentRecord.complete = True
                 else:
                     context.error("operand must be in erasable memory")
             retval = True
@@ -246,7 +265,8 @@ class Directive(Opcode):
             if expr.complete:
                 pa = expr.value
                 if context.memmap.isErasable(pa):
-                    context.code = [ pa + 020000 ]
+                    context.currentRecord.code = [ pa + 020000 ]
+                    context.currentRecord.complete = True
                 else:
                     context.error("operand must be in erasable memory")
             retval = True
@@ -260,7 +280,8 @@ class Directive(Opcode):
             if expr.complete:
                 pa = expr.value
                 if context.memmap.isErasable(pa):
-                    context.code = [ pa + 024000 ]
+                    context.currentRecord.code = [ pa + 024000 ]
+                    context.currentRecord.complete = True
                 else:
                     context.error("operand must be in erasable memory")
             retval = True
@@ -273,10 +294,11 @@ class Directive(Opcode):
     def parse_EqualsMINUS(self, context, operands):
         retval = self.parse_EQUALS(context, operands)
         words = []
-        if context.code != None:
-            for i in range(len(context.code)):
-                words.append(~context.code[i])
-            context.code = words
+        if context.currentRecord.code != None:
+            for i in range(len(context.currentRecord.code)):
+                words.append(~context.currentRecord.code[i])
+            context.currentRecord.code = words
+            context.currentRecord.complete = True
         return retval
     
     def parse_ADRES(self, context, operands):
@@ -287,7 +309,8 @@ class Directive(Opcode):
                 (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
                 if bank and (bank == context.fbank or bank == context.ebank):
                     aval = offset
-                    context.code = [ aval ]
+                    context.currentRecord.code = [ aval ]
+                    context.currentRecord.complete = True
             retval = True
         return retval
 
@@ -297,8 +320,10 @@ class Directive(Opcode):
             if expr.valid:
                 context.fbank = expr.value
                 context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, expr.value, context.bankloc[expr.value])
+                context.currentRecord.complete = True
         else:
             context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
+            context.currentRecord.complete = True
         return True
 
     def parse_BBCON(self, context, operands):
@@ -320,7 +345,8 @@ class Directive(Opcode):
                     bbval |= (4 << 4)
                 # Bits 3-1 equals the current EBANK= code.
                 bbval |= (context.ebank & 07)
-                context.code = [ bbval ]
+                context.currentRecord.code = [ bbval ]
+                context.currentRecord.complete = True
             if context.lastEbankEquals:
                 context.ebank = context.lastEbank
                 context.lastEbankEquals = False
@@ -355,7 +381,8 @@ class Directive(Opcode):
             expr = Expression(context, operands)
             if expr.complete:
                 word = expr.value
-                context.code = [ word - 010000 ]
+                context.currentRecord.code = [ word - 010000 ]
+                context.currentRecord.complete = True
             retval = True
         return retval
     
@@ -390,7 +417,8 @@ class Directive(Opcode):
         if operands:
             op = Decimal(" ".join(operands))
             if op.isValid():
-                context.code = [ op.value ]
+                context.currentRecord.code = [ op.value ]
+                context.currentRecord.complete = True
             else:
                 context.error("invalid syntax")
             retval = True
@@ -401,7 +429,8 @@ class Directive(Opcode):
         if operands:
             op = Octal(" ".join(operands))
             if op.isValid():
-                context.code = [ op.value + 034000 ]
+                context.currentRecord.code = [ op.value + 034000 ]
+                context.currentRecord.complete = True
             else:
                 context.error("syntax error: %s %s" % (self.mnemonic, operands))
             retval = True
@@ -415,7 +444,8 @@ class Directive(Opcode):
             if expr.complete:
                 channel = expr.value
                 if context.memmap.isChannel(channel):
-                    context.code = [ pa + 030000 ]
+                    context.currentRecord.code = [ pa + 030000 ]
+                    context.currentRecord.complete = True
                 else:
                     context.error("operand must be a channel number")
             retval = True
@@ -450,7 +480,8 @@ class Directive(Opcode):
             if expr.complete:
                 pa = expr.value
                 if context.memmap.isErasable(pa):
-                    context.code = [ pa ]
+                    context.currentRecord.code = [ pa ]
+                    context.currentRecord.complete = True
                 else:
                     context.error("operand must be in erasable memory")
             retval = True
@@ -462,13 +493,15 @@ class Directive(Opcode):
             expr = Expression(context, operands)
             if expr.valid:
                 context.symtab.add(context.currentRecord.label, operands, expr.value)
-                context.code = [ expr.value ]
+                context.currentRecord.code = [ expr.value ]
+                context.currentRecord.complete = True
                 retval = True
             else:
                 context.symtab.add(context.currentRecord.label, operands)
         else:
             context.symtab.add(context.currentRecord.label, None, context.loc)
-            context.code = [ context.loc ]
+            context.currentRecord.code = [ context.loc ]
+            context.currentRecord.complete = True
             retval = True
         context.addSymbol = False
         return retval
@@ -502,7 +535,8 @@ class Directive(Opcode):
             if expr.complete:
                 pa = expr.value
                 if context.memmap.isFixed(pa):
-                    context.code = [ pa ]
+                    context.currentRecord.code = [ pa ]
+                    context.currentRecord.complete = True
                 else:
                     context.error("FCADR operand must be in fixed memory")
             retval = True
@@ -527,7 +561,8 @@ class Directive(Opcode):
                     aval = offset
             retval = False
         if aval != None:
-            context.code = [ aval ]
+            context.currentRecord.code = [ aval ]
+            context.currentRecord.complete = True
         return retval
     
     def parse_MEMORY(self, context, operands):
@@ -545,7 +580,8 @@ class Directive(Opcode):
         if operands:
             op = Octal(operands[0])
             if op.isValid():
-                context.code = [ op.value ]
+                context.currentRecord.code = [ op.value ]
+                context.currentRecord.complete = True
             else:
                 context.error("syntax error: %s %s" % (self.mnemonic, operands[0]))
             retval = True
@@ -570,7 +606,8 @@ class Directive(Opcode):
                     aval = offset
             retval = True
         if aval != None:
-            context.code = [ aval ]
+            context.currentRecord.code = [ aval ]
+            context.currentRecord.complete = True
         return retval
 
     def parse_SBANKEquals(self, context, operands):
@@ -581,7 +618,8 @@ class Directive(Opcode):
             if expr.complete:
                 pa = expr.value
                 if context.memmap.isFixed(pa):
-                    context.code = [ pa ]
+                    context.currentRecord.code = [ pa ]
+                    context.currentRecord.complete = True
                     context.sbank = pa
                 else:
                     context.error("operand must be in fixed memory")
@@ -596,7 +634,8 @@ class Directive(Opcode):
             expr = Expression(context, operands)
             if expr.complete:
                 pa = expr.value
-                context.code = [ pa ]
+                context.currentRecord.code = [ pa ]
+                context.currentRecord.complete = True
                 context.loc = pa
             retval = True
         else:
@@ -614,7 +653,8 @@ class Directive(Opcode):
             if op.isValid():
                 lower = int(operands[0][-2:])
                 upper = int(operands[0][:-2])
-                context.code = [ upper * 128 + lower ]
+                context.currentRecord.code = [ upper * 128 + lower ]
+                context.currentRecord.complete = True
             else:
                 context.error("syntax error: %s %s" % (self.mnemonic, operands))
             retval = True
