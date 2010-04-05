@@ -47,14 +47,3 @@ class Opcode(object):
         self.operandType = operandType
         self.addressType = addressType
         self.numwords = numwords
-
-    def parse(self, context, operand):
-        if context.mode == OpcodeType.EXTENDED and self.opcode not in context.opcodes[OpcodeType.EXTENDED]:
-            context.error("missing EXTEND before extended instruction")
-            sys.exit()
-        if self.operandType == OperandType.NONE:
-            context.code = [ self.opcode ]
-        else:
-            self.__getattribute__("parse_" + self.methodName)(operand)
-        context.loc += self.numwords
-
