@@ -132,7 +132,6 @@ class Assembler:
                     if line[1] == '+' or line[1] == '-':
                         pseudolabel = fields[0]
                         fields = fields[1:]
-                # TODO: how to handle interpretive code?
                 try:
                     opcode = fields[0]
                 except:
