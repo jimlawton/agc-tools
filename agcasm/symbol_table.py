@@ -19,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import sys
-from expression import Expression
+from expression import Expression, AddressExpression
 
 class SymbolTableEntry:
     
@@ -41,8 +41,8 @@ class SymbolTableEntry:
 
     def __str__(self):
         text = "%-8s "  % (self.name)
-        if self.value == -1:
-            text += "%-20s" % "UNDEFINED"
+        if self.value == None:
+            text += "%-20s" % "******"
         else:
             text += "%-10s" % self.context.memmap.pseudoToString(self.value)
             (bank, offset) = self.context.memmap.pseudoToSegmented(self.value)
@@ -80,20 +80,21 @@ class SymbolTable:
                                 record.complete = True
 
     def resolve(self, maxPasses=10):
-        self.context.warn("resolving symbols...")
-        nUndefs = len(self.undefineds)
-        nPrevUndefs = len(self.undefineds)
+        self.context.info("resolving symbols...")
+        nPrevUndefs = nUndefs = len(self.undefineds)
         for i in range(maxPasses):
             self.context.warn("pass %d: %d undefined symbols" % (i, nUndefs))
             if nUndefs == 0:
-                self.context.error("aborting, maximum number of passes reached")
+                self.context.info("all symbols resolved")
                 break
-            j = 0
             for record in self.undefineds:
-                expr = Expression(self.context, record.operands)
+                expr = AddressExpression(self.context, record.operands)
                 if expr.valid:
                     record.code = [ expr.value ]
                     record.complete = True
+            j = 0
+            for record in self.undefineds:
+                if record.complete:
                     self.undefineds.__delitem__(j)
                 j += 1
             nUndefs = len(self.undefineds)
@@ -120,3 +121,6 @@ class SymbolTable:
         symbols.sort()
         for symbol in symbols:
             print >>out, self.symbols[symbol]
+
+        for symbol in self.undefineds:
+            print >>out, self.undefineds
