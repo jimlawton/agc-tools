@@ -72,7 +72,6 @@ class SymbolTable:
                 if value == None:
                     self.undefineds.append(self.context.currentRecord)
                 else:
-                    i = 0
                     for record in self.undefineds:
                         if name in record.operands:
                             expr = Expression(self.context, record.operands)
