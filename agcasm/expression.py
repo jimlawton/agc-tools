@@ -23,11 +23,12 @@ from number import Number
 class Expression:
     """Class that represents an AGC expression."""
     
-    def __init__(self, context, operands):
+    def __init__(self, context, operands, addressExpr=False):
         self.valid = False
         self.complete = False
         self.operands = operands
         self.value = None
+        self.addressExpr = addressExpr
 
         op1 = 0
         op2 = 0
@@ -38,6 +39,9 @@ class Expression:
                 if op1 != None:
                     if len(operands) == 1:
                         self.value = op1
+                        if self.addressExpr:
+                            if operands[0].startswith('+') or operands[0].startswith('-'):
+                                self.value += context.loc
                         self.valid = True
                         self.complete = True
             if len(operands) >= 2:
@@ -79,3 +83,9 @@ class Expression:
         text += ", operands=%s" % str(self.operands)
         text += ", value=%06o" % self.value
         return text
+
+class AddressExpression(Expression):
+    "Class that represents an address expression."
+    
+    def __init__(self, context, operands):
+        Expression.__init__(self, context, operands, True)
