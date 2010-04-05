@@ -19,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from opcode import Opcode, OpcodeType, OperandType
-from expression import Expression
+from expression import Expression, AddressExpression
 
 # NOTE: Must be a new-style class.
 class Instruction(Opcode):
@@ -41,10 +41,11 @@ class Instruction(Opcode):
             else:
                 pa = None
                 if operands:
-                    expr = Expression(context, operands)
+                    expr = AddressExpression(context, operands)
                     if expr.complete:
                         pa = expr.value
-                        context.currentRecord.code = [ self.opcode + pa ]
+                        (bank, offset) = context.memmap.pseudoToSegmented(pa)
+                        context.currentRecord.code = [ self.opcode + offset ]
                         context.currentRecord.complete = True
                 else:
                     context.error("missing operand")
