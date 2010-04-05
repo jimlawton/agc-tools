@@ -30,19 +30,25 @@ class Instruction(Opcode):
     def parse(self, context, operands):
         retval = True
         if self.operandType == OperandType.NONE:
-            context.currentRecord.code = [ self.opcode ]
-            context.currentRecord.complete = True
-        else:
-            pa = None
-            if operands:
-                expr = Expression(context, operands)
-                if expr.complete:
-                    pa = expr.value
-                    context.currentRecord.code = [ self.opcode + pa ]
-                    context.currentRecord.complete = True
+            if operands != None:
+                context.error("instruction takes no operand")
             else:
+                context.currentRecord.code = [ self.opcode ]
+                context.currentRecord.complete = True
+        else:
+            if operands == None:
                 context.error("missing operand")
-            #self.__getattribute__("parse_" + self.mnemonic)(context, operands)
+            else:
+                pa = None
+                if operands:
+                    expr = Expression(context, operands)
+                    if expr.complete:
+                        pa = expr.value
+                        context.currentRecord.code = [ self.opcode + pa ]
+                        context.currentRecord.complete = True
+                else:
+                    context.error("missing operand")
+                #self.__getattribute__("parse_" + self.mnemonic)(context, operands)
         context.loc += self.numwords
         return retval
     
