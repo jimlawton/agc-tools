@@ -45,7 +45,7 @@ OPCODES = {
             "DV":     Instruction("DV",     010000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "DXCH":   Instruction("DXCH",   050001,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
             "EXTEND": Instruction("EXTEND", 000006),
-            "INCR":   Instruction("INCR",   024000),
+            "INCR":   Instruction("INCR",   024000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
             "INDEX":  Instruction("INDEX",  050000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
             "INHINT": Instruction("INHINT", 000004),
             "LXCH":   Instruction("LXCH",   022000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
