@@ -18,7 +18,6 @@
 # along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import sys
 from memory import AddressType
 
 class OpcodeType:
@@ -37,7 +36,7 @@ class OperandType:
 # NOTE: Must be a new-style class.
 class Opcode(object):
     
-    def __init__(self, methodName=None, mnemonic=None, opcode=0, operandType=None, addressType=AddressType.GENERAL_12, numwords=1):
+    def __init__(self, methodName=None, mnemonic=None, opcode=0, operandType=None, operandOptional=False, addressType=AddressType.GENERAL_12, numwords=1):
         if mnemonic == None:
             self.mnemonic = methodName
         else:
@@ -45,5 +44,7 @@ class Opcode(object):
         self.methodName = methodName
         self.opcode = opcode
         self.operandType = operandType
+        self.operandOptional = operandOptional
         self.addressType = addressType
         self.numwords = numwords
+        self.words = []
