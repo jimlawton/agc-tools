@@ -21,22 +21,29 @@
 import sys
 from number import Decimal, DoubleDecimal, Octal, DoubleOctal
 from memory import MemoryType
-from expression import Expression, Number
+from expression import Expression, AddressExpression, Number
 from opcode import Opcode, OperandType
 
 # NOTE: Must be a new-style class.
 class Directive(Opcode):
     
-    def __init__(self, methodName, mnemonic=None, operandType=OperandType.NONE, numwords=0):
-        Opcode.__init__(self, methodName, mnemonic, None, operandType, None, numwords)
+    def __init__(self, methodName, mnemonic=None, operandType=OperandType.NONE, operandOptional=False, numwords=0):
+        Opcode.__init__(self, methodName, mnemonic, None, operandType, operandOptional, None, numwords)
         
     def parse(self, context, operands):
         retval = False
+        if self.operandType == OperandType.NONE:
+            if operands != None:
+                context.error("instruction takes no operand")
+        else:
+            if operands == None:
+                if not self.operandOptional:
+                    context.error("missing operand")
         try:
             retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
         except:
             pass
-        context.loc += self.numwords
+        context.incrLoc(self.numwords)
         if self.numwords == 0:
             context.currentRecord.complete = True
         return retval
@@ -148,7 +155,7 @@ class Directive(Opcode):
         retval = False
         pa = None
         if operands:
-            expr = Expression(context, operands)
+            expr = AddressExpression(context, operands)
             if expr.complete:
                 pa = expr.value
                 if context.memmap.isErasable(pa):
@@ -162,57 +169,53 @@ class Directive(Opcode):
     def parse_2CADR(self, context, operands):
         retval = False
         word1 = word2 = None
-        if operands:
-            expr = Expression(context, operands)
-            if expr.complete:
-                word1 = expr.value
-                if context.memmap.isFixed(word1):
-                    word2 = 0
-                    # Bits 15-11 of the 2nd generated word contain the bank number.
-                    word2 |= ((context.fbank & 037) << 10) 
-                    # Bits 10-8 and 4 are zero. 
-                    # Bits 7-5 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
-                    if 030 <= context.fbank <= 037:
-                        word2 |= (3 << 4)
-                    elif 040 <= context.fbank <= 043:
-                        word2 |= (4 << 4)
-                    # Bits 3-1 equals the current EBANK= code.
-                    word2 |= (context.ebank & 07)
-                else:
-                    word2 = context.memmap.getBankNumber(word1)
-                context.currentRecord.code = [word1, word2]
-                context.currentRecord.complete = True
+        expr = AddressExpression(context, operands)
+        if expr.complete:
+            word1 = expr.value
+            if context.memmap.isFixed(word1):
+                word2 = 0
+                # Bits 15-11 of the 2nd generated word contain the bank number.
+                word2 |= ((context.fbank & 037) << 10) 
+                # Bits 10-8 and 4 are zero. 
+                # Bits 7-5 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
+                if 030 <= context.fbank <= 037:
+                    word2 |= (3 << 4)
+                elif 040 <= context.fbank <= 043:
+                    word2 |= (4 << 4)
+                # Bits 3-1 equals the current EBANK= code.
+                word2 |= (context.ebank & 07)
+            else:
+                word2 = context.memmap.getBankNumber(word1)
+            context.currentRecord.code = [word1, word2]
+            context.currentRecord.complete = True
             retval = True
-            if context.lastEbankEquals:
-                context.ebank = context.lastEbank
-                context.lastEbankEquals = False
+        if context.lastEbankEquals:
+            context.revertEBank()
         return retval
 
     def parse_2DEC(self, context, operands):
-        retval = False
-        if operands:
-            op = DoubleDecimal(" ".join(operands))
-            if op.isValid():
-                context.currentRecord.code = op.value
-                context.currentRecord.complete = True
-                retval = True
-            else:
-                context.error("syntax error: %s %s" % (self.mnemonic, operands))
+        retval = True
+        op = DoubleDecimal(" ".join(operands))
+        if op.isValid():
+            context.currentRecord.code = op.value
+            context.currentRecord.complete = True
+        else:
+            context.error("syntax error: %s %s" % (self.mnemonic, operands))
+            retval = False
         return retval
 
     def parse_2DNADR(self, context, operands):
-        retval = False
+        retval = True
         pa = None
-        if operands:
-            expr = Expression(context, operands)
-            if expr.complete:
-                pa = expr.value
-                if context.memmap.isErasable(pa):
-                    context.currentRecord.code = [ pa + 04000 ] 
-                    context.currentRecord.complete = True
-                else:
-                    context.error("operand must be in erasable memory")
-            retval = True
+        expr = Expression(context, operands)
+        if expr.complete:
+            pa = expr.value
+            if context.memmap.isErasable(pa):
+                context.currentRecord.code = [ pa + 04000 ] 
+                context.currentRecord.complete = True
+            else:
+                context.error("operand must be in erasable memory")
+                retval = False
         return retval
     
     def parse_2FCADR(self, context, operands):
@@ -297,11 +300,8 @@ class Directive(Opcode):
     
     def parse_EqualsMINUS(self, context, operands):
         retval = self.parse_EQUALS(context, operands)
-        words = []
-        if context.currentRecord.code != None:
-            for i in range(len(context.currentRecord.code)):
-                words.append(~context.currentRecord.code[i])
-            context.currentRecord.code = words
+        if context.currentRecord.target != None:
+            context.currentRecord.target = ~context.currentRecord.target
             context.currentRecord.complete = True
         return retval
     
@@ -322,10 +322,12 @@ class Directive(Opcode):
         if operands:
             expr = Expression(context, operands)
             if expr.valid:
+                context.bankloc[context.fbank] = context.loc
                 context.fbank = expr.value
                 context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, expr.value, context.bankloc[expr.value])
                 context.currentRecord.complete = True
         else:
+            context.bankloc[context.fbank] = context.loc
             context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
             context.currentRecord.complete = True
         return True
@@ -463,6 +465,7 @@ class Directive(Opcode):
                 context.lastEbank = context.ebank
                 context.ebank = op.value
                 context.lastEbankEquals = True
+                context.currentRecord.target = op.value
             else:
                 entry = context.symtab.lookup(operands[0])
                 if entry != None:
@@ -471,6 +474,7 @@ class Directive(Opcode):
                         context.lastEbank = context.ebank
                         context.ebank = bank
                         context.lastEbankEquals = True
+                        context.currentRecord.target = entry.value
                 else:
                     context.currentRecord.undefineds.append(operands[0])
             retval = True
@@ -497,14 +501,14 @@ class Directive(Opcode):
             expr = Expression(context, operands)
             if expr.valid:
                 context.symtab.add(context.currentRecord.label, operands, expr.value)
-                context.currentRecord.code = [ expr.value ]
+                context.currentRecord.target = expr.value
                 context.currentRecord.complete = True
                 retval = True
             else:
                 context.symtab.add(context.currentRecord.label, operands)
         else:
             context.symtab.add(context.currentRecord.label, None, context.loc)
-            context.currentRecord.code = [ context.loc ]
+            context.currentRecord.target = context.loc
             context.currentRecord.complete = True
             retval = True
         context.addSymbol = False
@@ -556,11 +560,8 @@ class Directive(Opcode):
                 aval = op.value
             else:
                 entry = context.symtab.lookup(operands[0])
-                if entry:
+                if entry != None:
                     (bank, offset) = context.memmap.pseudoToSegmented(entry.value)
-                else:
-                    if context.passnum > 1:
-                        context.error("undefined symbol \"%s\"" % operands[0])
                 if bank:
                     aval = offset
             retval = False
@@ -603,9 +604,6 @@ class Directive(Opcode):
                 entry = context.symtab.lookup(operands[0])
                 if entry:
                     (bank, offset) = context.memmap.pseudoToSegmented(entry.value)
-                else:
-                    if context.passnum > 1:
-                        context.error("undefined symbol \"%s\"" % operands[0])
                 if bank and (bank != context.fbank and bank != context.ebank):
                     aval = offset
             retval = True
@@ -622,7 +620,7 @@ class Directive(Opcode):
             if expr.complete:
                 pa = expr.value
                 if context.memmap.isFixed(pa):
-                    context.currentRecord.code = [ pa ]
+                    context.currentRecord.target = pa
                     context.currentRecord.complete = True
                     context.sbank = pa
                 else:
@@ -638,7 +636,7 @@ class Directive(Opcode):
             expr = Expression(context, operands)
             if expr.complete:
                 pa = expr.value
-                context.currentRecord.code = [ pa ]
+                context.currentRecord.target = pa
                 context.currentRecord.complete = True
                 context.loc = pa
             retval = True
