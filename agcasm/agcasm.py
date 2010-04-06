@@ -72,6 +72,7 @@ def main():
     assembler.context.symtab.printTable(symtabfile)
     
     assembler.info("Done.")
+    print "Done."
 
 if __name__=="__main__":
     sys.exit(main())
