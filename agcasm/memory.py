@@ -155,7 +155,7 @@ class MemoryMap:
         return "%02o,%04o" % (bank, address)
         
     def pseudoToSegmented(self, pa):
-        retval = (None, 0)
+        retval = (None, None)
         if pa != None:
             bank = self._findBank(pa)
             if bank:
