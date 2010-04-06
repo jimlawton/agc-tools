@@ -20,7 +20,6 @@
 
 import sys
 from number import Decimal, DoubleDecimal, Octal, DoubleOctal
-from memory import MemoryType
 from expression import Expression, AddressExpression, Number
 from opcode import Opcode, OperandType
 
@@ -356,6 +355,17 @@ class Directive(Opcode):
             retval = True
         return retval
     
+    def parse_BBCONstar(self, context, operands):
+        retval = False
+        context.currentRecord.code = [ 066100 ]
+        context.currentRecord.complete = True
+        if context.lastEbankEquals:
+            context.ebank = context.lastEbank
+            # TODO: recalculate sbank, based on superbit=1.
+            context.lastEbankEquals = False
+        retval = True
+        return retval
+    
     def parse_BLOCK(self, context, operands):
         retval = False
         if operands:
@@ -495,14 +505,17 @@ class Directive(Opcode):
         if operands:
             expr = Expression(context, operands)
             if expr.valid:
-                context.symtab.add(context.currentRecord.label, operands, expr.value)
+                if not context.reparse:
+                    context.symtab.add(context.currentRecord.label, operands, expr.value)
                 context.currentRecord.target = expr.value
                 context.currentRecord.complete = True
                 retval = True
             else:
-                context.symtab.add(context.currentRecord.label, operands)
+                if not context.reparse:
+                    context.symtab.add(context.currentRecord.label, operands)
         else:
-            context.symtab.add(context.currentRecord.label, None, context.loc)
+            if not context.reparse:
+                context.symtab.add(context.currentRecord.label, None, context.loc)
             context.currentRecord.target = context.loc
             context.currentRecord.complete = True
             retval = True
@@ -524,7 +537,7 @@ class Directive(Opcode):
                 op = Number(operands[0])
                 if op.isValid():
                     size = op.value + 1
-        if context.currentRecord.label != None and op.isValid():
+        if context.currentRecord.label != None and op.isValid() and not context.reparse:
             context.symtab.add(context.currentRecord.label, operands, context.loc)
         context.loc += size
         context.addSymbol = False

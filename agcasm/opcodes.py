@@ -123,7 +123,7 @@ OPCODES = {
             "ADRES":    Directive("ADRES",          None,       OperandType.EXPRESSION, False,      1),
             "BANK":     Directive("BANK",           None,       OperandType.OCTAL,      True,       0),
             "BBCON":    Directive("BBCON",          None,       OperandType.EXPRESSION, False,      1),
-            "BBCON*":   Directive("BBCON",          "BBCON*",   OperandType.EXPRESSION, False,      1),
+            "BBCON*":   Directive("BBCONstar",      "BBCON*",   OperandType.NONE,       False,      1),
             "BLOCK":    Directive("BLOCK",          None,       OperandType.OCTAL,      False,      0),
             "BNKSUM":   Directive("BNKSUM",         None,       OperandType.OCTAL,      True,       0),
             "CADR":     Directive("CADR",           None,       OperandType.EXPRESSION, False,      1),
