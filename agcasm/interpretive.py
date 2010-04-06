@@ -24,7 +24,7 @@ from opcode import Opcode
 class Interpretive(Opcode):
     
     def __init__(self, methodName, mnemonic, opcode, numOperands=1, switchcode=None):
-        Opcode.__init__(self, methodName, mnemonic, opcode, None, 1)
+        Opcode.__init__(self, methodName, mnemonic, opcode, None, False, None, 1)
         self.switchcode = switchcode
 
     def parse(self, context, operands):
