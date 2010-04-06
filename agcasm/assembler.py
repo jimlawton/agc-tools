@@ -44,7 +44,7 @@ class Assembler:
         return ParserRecord(srcfile, linenum, srcline, label, pseudolabel, opcode, operands, comment, address, code)
 
     def assemble(self, srcfile):
-        print "Assembling", srcfile
+        self.info("Assembling %s" % srcfile)
         self.context.srcfile = srcfile
         self.context.linenum = 0
         lines = open(srcfile).readlines()
@@ -65,8 +65,7 @@ class Assembler:
             if line.startswith('$'):
                 modname = line[1:].split()[0]
                 if not os.path.isfile(modname):
-                    print >>sys.stderr, "File \"%s\" does not exist" % modname
-                    sys.exit(1)
+                    self.fatal("File \"%s\" does not exist" % modname)
                 self.context.records.append(self._makeNewRecord(srcline, None, None, None, None, comment))
                 self.assemble(modname)
                 continue
@@ -111,6 +110,8 @@ class Assembler:
                     self.context.currentRecord = self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment)
                     self.parse(label, opcode, operands)
                     self.context.records.append(self.context.currentRecord)
+                    if label != None:
+                        self.context.symtab.symbols[label].recordIndex = len(self.context.records) - 1
 
     def parse(self, label, opcode, operands):
         try:
@@ -130,17 +131,22 @@ class Assembler:
             self.error("Exception processing line:")
             raise
 
-    def reparse(self, record):
+    def reparse(self, recordIndex):
         "Reparse a ParserRecord, without affecting assembler state. Return the generated code words, if any."
         self.context.reparse = True
         saveRecord = self.context.currentRecord
-        self.context.currentRecord = record
+        record = self.context.currentRecord = self.context.records[recordIndex]
         self.parse(record.label, record.opcode, record.operands)
+        self.context.records[recordIndex] = self.context.currentRecord
         self.context.currentRecord = saveRecord
         self.context.reparse = False
         
     def resolve(self, maxPasses=10):
         self.context.symtab.resolve(maxPasses)
+
+    def fatal(self, text):
+        self.error(text)
+        sys.exit(1)
 
     def error(self, text):
         print >>sys.stderr, "%s, line %d, error: %s" % (self.context.srcfile, self.context.linenum, text) 
