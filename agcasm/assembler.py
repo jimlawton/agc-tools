@@ -20,11 +20,8 @@
 
 import os
 import sys
-from memory import MemoryMap, MemoryType
 from opcode import OpcodeType
-from opcodes import OPCODES
 from parser_record import ParserRecord
-from symbol_table import SymbolTable
 
 class Assembler:
     """Class defining an AGC assembler."""
@@ -127,7 +124,7 @@ class Assembler:
                 self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
                 if opcode != "EXTEND" and self.context.mode == OpcodeType.EXTENDED:
                     self.context.mode = OpcodeType.BASIC
-            if label != None and self.context.addSymbol == True:
+            if label != None and self.context.addSymbol == True and not self.context.reparse:
                 self.context.symtab.add(label, operands, self.context.loc)
         except:
             self.error("Exception processing line:")
@@ -136,8 +133,10 @@ class Assembler:
     def reparse(self, record):
         "Reparse a ParserRecord, without affecting assembler state. Return the generated code words, if any."
         self.context.reparse = True
+        saveRecord = self.context.currentRecord
         self.context.currentRecord = record
         self.parse(record.label, record.opcode, record.operands)
+        self.context.currentRecord = saveRecord
         self.context.reparse = False
         
     def resolve(self, maxPasses=10):
@@ -146,7 +145,7 @@ class Assembler:
     def error(self, text):
         print >>sys.stderr, "%s, line %d, error: %s" % (self.context.srcfile, self.context.linenum, text) 
         print >>sys.stderr, self.context.srcline
-        
+
     def warn(self, text):
         print >>sys.stderr, "%s, line %d, warning: %s" % (self.context.srcfile, self.context.linenum, text)
 
