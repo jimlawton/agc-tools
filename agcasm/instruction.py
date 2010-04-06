@@ -44,7 +44,7 @@ class Instruction(Opcode):
                     expr = AddressExpression(context, operands)
                     if expr.complete:
                         pa = expr.value
-                        (bank, offset) = context.memmap.pseudoToSegmented(pa)
+                        offset = context.memmap.pseudoToBankOffset(pa)
                         context.currentRecord.code = [ self.opcode + offset ]
                         context.currentRecord.complete = True
                 else:
@@ -53,7 +53,9 @@ class Instruction(Opcode):
                     retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
                 except:
                     pass
-        context.loc += self.numwords
+        context.incrLoc(self.numwords)
+        if self.numwords == 0:
+            context.currentRecord.complete = True
         return retval
     
     def parse_AD(self, context, operands):
