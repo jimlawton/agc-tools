@@ -93,12 +93,14 @@ class Assembler:
                 self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank])
                 self.lastEbankEquals = False
 
-        def switchFBank(self, bank):
+        def switchFBank(self, bank=None):
             if not self.reparse:
-                self.fbankloc[self.fbank] = self.memmap.pseudoToBankOffset(self.loc)
-                self.fbank = bank
-                self.loc = self.memmap.segmentedToPseudo(MemoryType.FIXED, bank, self.fbankloc[self.fbank])
-                
+                if bank:
+                    self.fbankloc[self.fbank] = self.memmap.pseudoToBankOffset(self.loc)
+                    self.fbank = bank
+                    self.loc = self.memmap.segmentedToPseudo(MemoryType.FIXED, bank, self.fbankloc[self.fbank])
+                else:
+                    self.loc = self.memmap.segmentedToPseudo(MemoryType.FIXED, self.fbank, self.fbankloc[self.fbank])
 
     def __init__(self, arch, listfile, binfile, verbose=False):
         self.verbose = verbose
