@@ -23,6 +23,7 @@ import sys
 from optparse import OptionParser
 from architecture import Architecture
 from assembler import Assembler
+from context import Context
 
 def main():
     parser = OptionParser("usage: %prog [options] src_file [src_file...]")
@@ -47,7 +48,8 @@ def main():
     symtabfile = open(args[0].split('.')[0] + ".symtab", 'w')
     binfile = open(args[0] + ".bin", 'wb')
 
-    assembler = Assembler(Architecture.AGC4_B2, listfile, binfile, options.verbose)
+    context = Context(Architecture.AGC4_B2, listfile, binfile, options.verbose)
+    assembler = Assembler(context)
 
     for arg in args:
         assembler.assemble(arg)

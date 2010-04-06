@@ -29,83 +29,8 @@ from symbol_table import SymbolTable
 class Assembler:
     """Class defining an AGC assembler."""
 
-    class Context:
-        def __init__(self, arch, listfile, binfile, verbose=False):
-            self.verbose = verbose
-            self.arch = arch
-            self.listfile = listfile
-            self.binfile = binfile
-            self.srcfile = None
-            self.opcodes = OPCODES[self.arch]
-            self.symtab = SymbolTable(self)
-            self.linenum = 0
-            self.global_linenum = 0
-            self.mode = OpcodeType.BASIC
-            self.memmap = MemoryMap(arch, verbose)
-            self.checklist = []
-            self.lastEbank = 0
-            self.lastEbankEquals = False
-            self.code = []
-            self.records = []
-            self.srcline = None
-            self.interpMode = False
-            self.interpArgs = 0
-            self.currentRecord = None
-            self.addSymbol = True
-            self.reparse = False
-            self.reparseWords = []
-
-            self.loc = 0
-            self.sbank = 0
-            self.ebank = 0
-            self.fbank = 0
-
-            self.ebankloc = {}
-            self.fbankloc = {}
-
-            for bank in range(len(self.memmap.banks[MemoryType.ERASABLE])):
-                self.ebankloc[bank] = 0
-            for bank in range(len(self.memmap.banks[MemoryType.FIXED])):
-                self.fbankloc[bank] = 0
-            
-        def setLoc(self, loc):
-            if not self.reparse:
-                self.loc = loc
-
-        def incrLoc(self, delta):
-            if not self.reparse:
-                self.loc += delta
-
-        def setSBank(self, bank):
-            if not self.reparse:
-                self.sbank = bank
-
-        def switchEBank(self, bank):
-            if not self.reparse:
-                self.ebankloc[self.ebank] = self.memmap.pseudoToBankOffset(self.loc)
-                self.ebank = bank
-                self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, bank, self.ebankloc[bank])
-
-        def revertEbank(self):
-            if not self.reparse:
-                self.ebankloc[self.ebank] = self.memmap.pseudoToBankOffset(self.loc)
-                self.ebank = self.lastEbank
-                self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank])
-                self.lastEbankEquals = False
-
-        def switchFBank(self, bank=None):
-            if not self.reparse:
-                if bank:
-                    self.fbankloc[self.fbank] = self.memmap.pseudoToBankOffset(self.loc)
-                    self.fbank = bank
-                    self.loc = self.memmap.segmentedToPseudo(MemoryType.FIXED, bank, self.fbankloc[self.fbank])
-                else:
-                    self.loc = self.memmap.segmentedToPseudo(MemoryType.FIXED, self.fbank, self.fbankloc[self.fbank])
-
-    def __init__(self, arch, listfile, binfile, verbose=False):
-        self.verbose = verbose
-        self.context = Assembler.Context(arch, listfile, binfile, verbose)
-        self.context.verbose = verbose
+    def __init__(self, context):
+        self.context = context
         self.context.error = self.error
         self.context.warn = self.warn
         self.context.info = self.info
@@ -226,5 +151,5 @@ class Assembler:
         print >>sys.stderr, "%s, line %d, warning: %s" % (self.context.srcfile, self.context.linenum, text)
 
     def info(self, text):
-        if self.verbose:
+        if self.context.verbose:
             print >>sys.stderr, "%s, line %d, %s" % (self.context.srcfile, self.context.linenum, text)
