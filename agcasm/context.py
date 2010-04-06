@@ -26,6 +26,7 @@ from symbol_table import SymbolTable
 class Context:
     def __init__(self, arch, listfile, binfile, verbose=False):
         self.verbose = verbose
+        self.assembler = None
         self.arch = arch
         self.listfile = listfile
         self.binfile = binfile
