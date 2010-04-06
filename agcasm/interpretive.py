@@ -33,6 +33,7 @@ class Interpretive(Opcode):
             retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
         except:
             pass
-        context.loc += self.numwords
+        context.incrLoc(self.numwords)
+        if self.numwords == 0:
+            context.currentRecord.complete = True
         return retval
-        
