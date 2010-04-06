@@ -25,7 +25,7 @@ from expression import AddressExpression
 class Instruction(Opcode):
     
     def __init__(self, methodName, opcode, operandType=OperandType.NONE, addressType=None, numwords=1):
-        Opcode.__init__(self, methodName, methodName, opcode, operandType, addressType, numwords)
+        Opcode.__init__(self, methodName, methodName, opcode, operandType, False, addressType, numwords)
 
     def parse(self, context, operands):
         retval = True
