@@ -399,19 +399,16 @@ class Directive(Opcode):
         retval = False
         if context.currentRecord.label != None:
             lhs = Expression(context, [ context.currentRecord.label ])
-            if operands:
-                rhs = Expression(context, operands)
-                if not lhs.complete or not rhs.complete:
-                    # Add to checklist and check at the end.
-                    context.checklist.append(context.currentRecord)
-                else:
-                    lpa = lhs.value
-                    rpa = rhs.value
-                    if lpa != rpa:
-                        context.error("CHECK= test failed, \"%s\" (%06o) != \"%s\" (%06o)" % (context.currentRecord.label, lpa, ' '.join(operands), rpa))
-                retval = True
+            rhs = Expression(context, operands)
+            if not lhs.complete or not rhs.complete:
+                # Add to checklist and check at the end.
+                context.checklist.append(context.currentRecord)
             else:
-                context.error("missing operand")
+                lpa = lhs.value
+                rpa = rhs.value
+                if lpa != rpa:
+                    context.error("CHECK= test failed, \"%s\" (%06o) != \"%s\" (%06o)" % (context.currentRecord.label, lpa, ' '.join(operands), rpa))
+            retval = True
         else:
             context.error("syntax error")
         context.addSymbol = False
@@ -619,33 +616,27 @@ class Directive(Opcode):
     def parse_SBANKEquals(self, context, operands):
         retval = False
         pa = None
-        if operands:
-            expr = Expression(context, operands)
-            if expr.complete:
-                pa = expr.value
-                if context.memmap.isFixed(pa):
-                    context.currentRecord.target = pa
-                    context.currentRecord.complete = True
-                    context.sbank = pa
-                else:
-                    context.error("operand must be in fixed memory")
-            retval = True
-        else:
-            context.error("missing operand")
+        expr = Expression(context, operands)
+        if expr.complete:
+            pa = expr.value
+            if context.memmap.isFixed(pa):
+                context.currentRecord.target = pa
+                context.currentRecord.complete = True
+                context.sbank = pa
+                retval = True
+            else:
+                context.error("operand must be in fixed memory")
         return retval
     
     def parse_SETLOC(self, context, operands):
         retval = False
-        if operands:
-            expr = Expression(context, operands)
-            if expr.complete:
-                pa = expr.value
-                context.currentRecord.target = pa
-                context.currentRecord.complete = True
-                context.setLoc(pa)
+        expr = Expression(context, operands)
+        if expr.complete:
+            pa = expr.value
+            context.currentRecord.target = pa
+            context.currentRecord.complete = True
+            context.setLoc(pa)
             retval = True
-        else:
-            context.error("missing operand")
         return retval
 
     def parse_SUBRO(self, context, operands):
