@@ -24,25 +24,31 @@ class Expression:
     """Class that represents an AGC expression."""
     
     def __init__(self, context, operands, addressExpr=False):
-        self.valid = False
-        self.complete = False
-        self.operands = operands
-        self.value = None
-        self.addressExpr = addressExpr
+        self.complete = False               # Expression complete, all references resolved.
+        self.operands = operands            # List of operand fields.
+        self.value = None                   # If complete, calculated result of the expression.
+        self.addressExpr = addressExpr      # Indicates that the expression is an Address Expression.
 
         op1 = 0
         op2 = 0
         
         if operands != None and 1 <= len(operands) <= 3:
             if len(operands) >= 1:
-                op1 = self._parseOperand(context, operands[0])
+                operand = operands[0]
+                if len(operands) == 1 and self.addressExpr and (operand.startswith('+') or operand.startswith('-')):
+                    operand = operand[1:]
+                op1 = self._parseOperand(context, operand)
                 if op1 != None:
                     if len(operands) == 1:
-                        self.value = op1
                         if self.addressExpr:
-                            if operands[0].startswith('+') or operands[0].startswith('-'):
-                                self.value += context.loc
-                        self.valid = True
+                            if operand.startswith('+'): 
+                                self.value = context.loc + op1
+                            elif operand.startswith('-'):
+                                self.value = context.loc - op1
+                            else:
+                                self.value = op1
+                        else:
+                            self.value = op1
                         self.complete = True
             if len(operands) >= 2:
                 if len(operands) == 2:
@@ -60,7 +66,6 @@ class Expression:
                         self.value = op1 + op2
                     else:
                         self.value = op1 - op2
-                    self.valid = True
                     self.complete = True
         else:
             context.error("invalid syntax")
@@ -74,12 +79,10 @@ class Expression:
             entry = context.symtab.lookup(operand)
             if entry:
                 retval = entry.value
-
         return retval
 
     def __str__(self):
-        text = "Expression: valid=%s" % str(self.valid)
-        text += ", complete=%s" % str(self.complete)
+        text = "Expression: complete=%s" % str(self.complete)
         text += ", operands=%s" % str(self.operands)
         text += ", value=%06o" % self.value
         return text
