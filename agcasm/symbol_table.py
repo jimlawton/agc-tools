@@ -19,7 +19,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import sys
-from expression import Expression, AddressExpression
 
 class SymbolTableEntry:
     
@@ -67,17 +66,13 @@ class SymbolTable:
             if name in self.symbols.keys():
                 self.context.error("symbol \"%s\" already defined!" % (name))
             else:
-                ste = SymbolTableEntry(self.context, name, symbolic, value)
-                self.symbols[name] = self.context.currentSTE = ste 
+                self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value) 
                 if value == None:
                     self.undefineds.append(self.context.currentRecord)
                 else:
                     for record in self.undefineds:
                         if name in record.operands:
-                            expr = Expression(self.context, record.operands)
-                            if expr.valid:
-                                record.code = [ expr.value ]
-                                record.complete = True
+                            self.context.assembler.reparse(record)
 
     def resolve(self, maxPasses=10):
         self.context.info("resolving symbols...")
@@ -88,10 +83,8 @@ class SymbolTable:
                 self.context.info("all symbols resolved")
                 break
             for record in self.undefineds:
-                expr = AddressExpression(self.context, record.operands)
-                if expr.valid:
-                    record.code = [ expr.value ]
-                    record.complete = True
+                self.context.assembler.reparse(record)
+            # Prune the undefineds list.
             j = 0
             for record in self.undefineds:
                 if record.complete:
