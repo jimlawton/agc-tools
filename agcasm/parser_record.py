@@ -51,7 +51,7 @@ class ParserRecord:
         else:
             text += 7 * ' ' 
         if self.target != None:
-            text += "%06o " % self.target
+            text += "%05o  " % self.target
         else:
             text += 7 * ' ' 
         if self.code != None:
