@@ -28,6 +28,7 @@ class SymbolTableEntry:
         self.symbolic = symbolic
         self.value = value
         self.references = []
+        self.recordIndex = None
 
     def isComplete(self):
         return (self.value != None)
@@ -58,7 +59,7 @@ class SymbolTableEntry:
 class SymbolTable:
     def __init__(self, context):
         self.symbols = {}
-        self.undefineds = []
+        self.undefs = []
         self.context = context
         
     def add(self, name=None, symbolic=None, value=None):
@@ -68,34 +69,47 @@ class SymbolTable:
             else:
                 self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value) 
                 if value == None:
-                    self.undefineds.append(self.context.currentRecord)
-                else:
-                    for record in self.undefineds:
-                        if name in record.operands:
-                            self.context.assembler.reparse(record)
+                    self.undefs.append(name)
+                #else:
+                #    tmpUndefs = []
+                #    for symbol in self.undefs:
+                #        record = self.symbols[symbol].record
+                #        if name in record.operands:
+                #            if name == "+ROLL1" or name == "FIVE":
+                #                print "Reparsing symbol %s for %s" % (record.label, name)
+                #            self.context.assembler.reparse(record)
+                #            print record
+                #        if not record.complete:
+                #            tmpUndefs.append(name)
+                #    self.undefs = tmpUndefs
+                #    print "After reparse: undefs:", self.undefs
 
     def resolve(self, maxPasses=10):
         self.context.info("resolving symbols...")
-        nPrevUndefs = nUndefs = len(self.undefineds)
+        nPrevUndefs = nUndefs = len(self.undefs)
         for i in range(maxPasses):
             self.context.warn("pass %d: %d undefined symbols" % (i, nUndefs))
             if nUndefs == 0:
                 self.context.info("all symbols resolved")
                 break
-            for record in self.undefineds:
-                self.context.assembler.reparse(record)
-            # Prune the undefineds list.
-            j = 0
-            for record in self.undefineds:
-                if record.complete:
-                    self.undefineds.__delitem__(j)
-                j += 1
-            nUndefs = len(self.undefineds)
+            for symbol in self.undefs:
+                self.context.assembler.reparse(self.symbols[symbol].recordIndex)
+            self.pruneUndefines()
+            nUndefs = len(self.undefs)
             if nUndefs == nPrevUndefs:
                 self.context.error("aborting, no progress in resolving symbols")
                 break
             nPrevUndefs = nUndefs
 
+    def pruneUndefines(self):
+        # Prune the undefs list.
+        tmpUndefs =[]
+        for symbol in self.undefs:
+            record = self.context.records[self.symbols[symbol].recordIndex]
+            if not record.complete:
+                tmpUndefs.append(symbol)
+        self.undefs = tmpUndefs
+        
     def keys(self):
         return self.symbols.keys()
 
@@ -115,5 +129,5 @@ class SymbolTable:
         for symbol in symbols:
             print >>out, self.symbols[symbol]
 
-        for symbol in self.undefineds:
-            print >>out, self.undefineds
+        for symbol in self.undefs:
+            print >>out, self.symbols[symbol]
