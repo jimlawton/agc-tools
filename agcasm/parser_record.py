@@ -35,6 +35,7 @@ class ParserRecord:
         self.numwords = 0                   # Number of code words generated.
         self.ebank = None                   # Current E-Bank.
         self.complete = False               # Assembly complete? i.e. all symbols resolved.
+        self.target = None                  # Target address, if any, e.g. for = directive. 
         
     def setEBank(self, ebank):
         self.ebank = ebank
@@ -47,6 +48,10 @@ class ParserRecord:
         text += "%06d " % self.linenum
         if self.address != None:
             text += "%06o " % self.address
+        else:
+            text += 7 * ' ' 
+        if self.target != None:
+            text += "%06o " % self.target
         else:
             text += 7 * ' ' 
         if self.code != None:
