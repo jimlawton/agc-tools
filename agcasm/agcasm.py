@@ -41,9 +41,6 @@ def main():
             parser.error("File \"%s\" does not exist" % arg)
             sys.exit(1)
 
-    print "Simple AGC Assembler"
-    print
-
     listfile = open(args[0].split('.')[0] + ".lst", 'w')
     symtabfile = open(args[0].split('.')[0] + ".symtab", 'w')
     binfile = open(args[0] + ".bin", 'wb')
@@ -52,25 +49,29 @@ def main():
     assembler = Assembler(context)
     context.assembler = assembler
     
+    assembler.info("Simple AGC Assembler, v0.1")
+    assembler.info("")
+
     for arg in args:
         assembler.assemble(arg)
 
+    assembler.info("Resolving symbols...")
     assembler.resolve()
     
-    print "Writing listing..."
+    assembler.info("Writing listing...")
     print >>listfile 
     print >>listfile, "Listing"
     print >>listfile, "-------"
     for record in assembler.context.records:
         print >>listfile, record
 
-    print "Writing symbol table..."
+    assembler.info("Writing symbol table...")
     print >>symtabfile 
     print >>symtabfile, "Symbol Table"
     print >>symtabfile, "------------"
     assembler.context.symtab.printTable(symtabfile)
     
-    print "Done."
+    assembler.info("Done.")
 
 if __name__=="__main__":
     sys.exit(main())
