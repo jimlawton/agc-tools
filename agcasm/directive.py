@@ -322,13 +322,10 @@ class Directive(Opcode):
         if operands:
             expr = Expression(context, operands)
             if expr.valid:
-                context.bankloc[context.fbank] = context.loc
-                context.fbank = expr.value
-                context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, expr.value, context.bankloc[expr.value])
+                context.switchFBank(expr.value)
                 context.currentRecord.complete = True
         else:
-            context.bankloc[context.fbank] = context.loc
-            context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, context.fbank, context.bankloc[context.fbank])
+            context.switchFBank()
             context.currentRecord.complete = True
         return True
 
@@ -366,11 +363,9 @@ class Directive(Opcode):
             if expr.valid:
                 bank = expr.value
                 if bank == 0:
-                    context.ebank = bank
-                    context.loc = context.memmap.segmentedToPseudo(MemoryType.ERASABLE, bank, context.bankloc[bank])
+                    context.switchEBank(bank)
                 else:
-                    context.fbank = bank
-                    context.loc = context.memmap.segmentedToPseudo(MemoryType.FIXED, bank, context.bankloc[bank])
+                    context.switchFBank(bank)
             else:
                 context.error("invalid syntax")
             retval = True
