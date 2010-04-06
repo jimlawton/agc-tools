@@ -50,7 +50,8 @@ def main():
 
     context = Context(Architecture.AGC4_B2, listfile, binfile, options.verbose)
     assembler = Assembler(context)
-
+    context.assembler = assembler
+    
     for arg in args:
         assembler.assemble(arg)
 
