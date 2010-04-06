@@ -20,7 +20,7 @@
 
 import os
 import sys
-from memory import MemoryMap
+from memory import MemoryMap, MemoryType
 from opcode import OpcodeType
 from opcodes import OPCODES
 from parser_record import ParserRecord
@@ -43,24 +43,62 @@ class Assembler:
             self.mode = OpcodeType.BASIC
             self.memmap = MemoryMap(arch, verbose)
             self.checklist = []
-            self.loc = 0
-            self.passnum = 1
-            self.sbank = 0
-            self.ebank = 0
-            self.fbank = 0
             self.lastEbank = 0
             self.lastEbankEquals = False
-            self.bankloc = {}
             self.code = []
-            for bank in range(len(self.memmap.memmap)):
-                self.bankloc[bank] = 0
             self.records = []
             self.srcline = None
             self.interpMode = False
             self.interpArgs = 0
             self.currentRecord = None
             self.addSymbol = True
-            self.currentSTE = None
+            self.reparse = False
+            self.reparseWords = []
+
+            self.loc = 0
+            self.sbank = 0
+            self.ebank = 0
+            self.fbank = 0
+
+            self.ebankloc = {}
+            self.fbankloc = {}
+
+            for bank in range(len(self.memmap.banks[MemoryType.ERASABLE])):
+                self.ebankloc[bank] = 0
+            for bank in range(len(self.memmap.banks[MemoryType.FIXED])):
+                self.fbankloc[bank] = 0
+            
+        def setLoc(self, loc):
+            if not self.reparse:
+                self.loc = loc
+
+        def incrLoc(self, delta):
+            if not self.reparse:
+                self.loc += delta
+
+        def setSBank(self, bank):
+            if not self.reparse:
+                self.sbank = bank
+
+        def switchEBank(self, bank):
+            if not self.reparse:
+                self.ebankloc[self.ebank] = self.memmap.pseudoToBankOffset(self.loc)
+                self.ebank = bank
+                self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, bank, self.ebankloc[bank])
+
+        def revertEbank(self):
+            if not self.reparse:
+                self.ebankloc[self.ebank] = self.memmap.pseudoToBankOffset(self.loc)
+                self.ebank = self.lastEbank
+                self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank])
+                self.lastEbankEquals = False
+
+        def switchFBank(self, bank):
+            if not self.reparse:
+                self.fbankloc[self.fbank] = self.memmap.pseudoToBankOffset(self.loc)
+                self.fbank = bank
+                self.loc = self.memmap.segmentedToPseudo(MemoryType.FIXED, bank, self.fbankloc[self.fbank])
+                
 
     def __init__(self, arch, listfile, binfile, verbose=False):
         self.verbose = verbose
@@ -168,6 +206,13 @@ class Assembler:
             self.error("Exception processing line:")
             raise
 
+    def reparse(self, record):
+        "Reparse a ParserRecord, without affecting assembler state. Return the generated code words, if any."
+        self.context.reparse = True
+        self.context.currentRecord = record
+        self.parse(record.label, record.opcode, record.operands)
+        self.context.reparse = False
+        
     def resolve(self, maxPasses=10):
         self.context.symtab.resolve(maxPasses)
 
