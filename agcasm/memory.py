@@ -163,6 +163,23 @@ class MemoryMap:
                 retval = (bank.banknum, offset)
         return retval
     
+    def pseudoToBank(self, pa):
+        retval = None
+        if pa != None:
+            bank = self._findBank(pa)
+            if bank:
+                retval = bank.banknum
+        return retval
+    
+    def pseudoToBankOffset(self, pa):
+        retval = None
+        if pa != None:
+            bank = self._findBank(pa)
+            if bank:
+                offset = pa - bank.startaddr
+                retval = offset
+        return retval
+    
     def pseudoToString(self, pa):
         if pa != None:
             return "%06o" % (pa)
