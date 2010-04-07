@@ -23,7 +23,7 @@
 # AGC system image. This script finds each change of address in the AGC 
 # sources (from the listing) and forms a list of code blocks ordered by 
 # resulting core (ROM) address. This allows differences between core files 
-# to be more easily traced to the relevant sectionsof the AGC sources. 
+# to be more easily traced to the relevant sections of the AGC sources. 
  
 import sys
 import glob
