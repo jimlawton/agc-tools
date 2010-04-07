@@ -51,9 +51,11 @@ class SymbolTableEntry:
             else:
                 text += 10 * ' ' 
         if self.symbolic:
-            text += " \"%s\""  % (' '.join(self.symbolic))
-        if len(self.references) > 0:
-            text += self.references
+            text += "%-32s " % (' '.join(self.symbolic))
+        else:
+            text += 33 * ' '
+        if self.recordIndex != None:
+            text += " %s" % (self.context.records[self.recordIndex].srcline)
         return text
 
 class SymbolTable:
@@ -68,29 +70,30 @@ class SymbolTable:
                 self.context.error("symbol \"%s\" already defined!" % (name))
             else:
                 self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value) 
+                self.symbols[name].recordIndex = self.context.global_linenum - 1
                 if value == None:
                     self.undefs.append(name)
-                #else:
-                #    tmpUndefs = []
-                #    for symbol in self.undefs:
-                #        record = self.symbols[symbol].record
-                #        if name in record.operands:
-                #            if name == "+ROLL1" or name == "FIVE":
-                #                print "Reparsing symbol %s for %s" % (record.label, name)
-                #            self.context.assembler.reparse(record)
-                #            print record
-                #        if not record.complete:
-                #            tmpUndefs.append(name)
-                #    self.undefs = tmpUndefs
-                #    print "After reparse: undefs:", self.undefs
+                    self.context.log("Added undefined symbol %s" % name)
+                else:
+                    self.context.log("Added defined symbol %s" % name)
+
+    def update(self, name=None, symbolic=None, value=None):
+        if name != None:
+            if name not in self.symbols.keys():
+                self.context.error("symbol \"%s\" not defined!" % (name))
+            else:
+                entry = self.symbols[name]
+                entry.value = value
+                self.symbols[name] = entry
+                self.context.log("Updated symbol %s" % name)
 
     def resolve(self, maxPasses=10):
-        self.context.info("resolving symbols...")
+        self.context.log("resolving symbols...")
         nPrevUndefs = nUndefs = len(self.undefs)
         for i in range(maxPasses):
-            self.context.warn("pass %d: %d undefined symbols" % (i, nUndefs))
+            self.context.log("pass %d: %d undefined symbols" % (i, nUndefs))
             if nUndefs == 0:
-                self.context.info("all symbols resolved")
+                self.context.log("all symbols resolved")
                 break
             for symbol in self.undefs:
                 self.context.assembler.reparse(self.symbols[symbol].recordIndex)
@@ -103,11 +106,14 @@ class SymbolTable:
 
     def pruneUndefines(self):
         # Prune the undefs list.
+        self.context.log("Pruning undefined symbols list (%d)" % len(self.undefs))
         tmpUndefs =[]
         for symbol in self.undefs:
             record = self.context.records[self.symbols[symbol].recordIndex]
             if not record.complete:
                 tmpUndefs.append(symbol)
+            else:
+                self.context.log("Removing %s from undefined symbols list" % symbol)
         self.undefs = tmpUndefs
         
     def keys(self):
