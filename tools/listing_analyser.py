@@ -52,9 +52,7 @@ class CoreBlock:
 def analyse(listing):
     """Analyse the supplied yaYUL listing file, and return an address map, ordered by core address. """
 
-    page = 0
     linenum = 0
-    start = True
     pagenum = 0
     blocks = []
 
@@ -72,7 +70,7 @@ def analyse(listing):
                             if pagenum.isdigit():
                                 pagenum = int(pagenum)
                             else:
-                                print >>sys.stderr,"%s: line %d, invalid page number \"%s\"" % (sfile, linenum, pagenum)
+                                print >>sys.stderr,"%s: line %d, invalid page number \"%s\"" % (listing, linenum, pagenum)
                     if len(elems) > 2:
                         if elems[2] == "COUNT*":
                             address = elems[1]
