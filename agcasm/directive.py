@@ -22,12 +22,17 @@ import sys
 from number import Decimal, DoubleDecimal, Octal, DoubleOctal
 from expression import Expression, AddressExpression, Number
 from opcode import Opcode, OperandType
+from record_type import RecordType
 
 # NOTE: Must be a new-style class.
 class Directive(Opcode):
     
     def __init__(self, methodName, mnemonic=None, operandType=OperandType.NONE, operandOptional=False, numwords=0):
         Opcode.__init__(self, methodName, mnemonic, None, operandType, operandOptional, None, numwords)
+        if numwords == 0:
+            self.type = RecordType.ASMCONST
+        else:
+            self.type = RecordType.CONST
         
     def parse(self, context, operands):
         retval = False
@@ -42,6 +47,7 @@ class Directive(Opcode):
             retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
         except:
             pass
+        context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
         if self.numwords == 0:
             context.currentRecord.complete = True
@@ -408,6 +414,7 @@ class Directive(Opcode):
                 rpa = rhs.value
                 if lpa != rpa:
                     context.error("CHECK= test failed, \"%s\" (%06o) != \"%s\" (%06o)" % (context.currentRecord.label, lpa, ' '.join(operands), rpa))
+                context.currentRecord.target = lpa
             retval = True
         else:
             context.error("syntax error")
@@ -500,6 +507,8 @@ class Directive(Opcode):
             if expr.complete:
                 if not context.reparse:
                     context.symtab.add(context.currentRecord.label, operands, expr.value)
+                else:
+                    context.symtab.update(context.currentRecord.label, operands, expr.value)
                 context.currentRecord.target = expr.value
                 context.currentRecord.complete = True
                 retval = True
@@ -509,9 +518,12 @@ class Directive(Opcode):
         else:
             if not context.reparse:
                 context.symtab.add(context.currentRecord.label, None, context.loc)
+            else:
+                context.symtab.update(context.currentRecord.label, None, context.loc)
             context.currentRecord.target = context.loc
             context.currentRecord.complete = True
             retval = True
+        context.currentRecord.type = RecordType.ASMCONST
         context.addSymbol = False
         return retval
 
@@ -530,8 +542,11 @@ class Directive(Opcode):
                 op = Number(operands[0])
                 if op.isValid():
                     size = op.value + 1
-        if context.currentRecord.label != None and op.isValid() and not context.reparse:
-            context.symtab.add(context.currentRecord.label, operands, context.loc)
+        if context.currentRecord.label != None and op.isValid():
+            if not context.reparse:
+                context.symtab.add(context.currentRecord.label, operands, context.loc)
+            else:
+                context.symtab.update(context.currentRecord.label, operands, context.loc)
         context.incrLoc(size)
         context.addSymbol = False
         return True

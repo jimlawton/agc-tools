@@ -41,10 +41,11 @@ class Opcode(object):
             self.mnemonic = methodName
         else:
             self.mnemonic = mnemonic
-        self.methodName = methodName
-        self.opcode = opcode
-        self.operandType = operandType
-        self.operandOptional = operandOptional
-        self.addressType = addressType
-        self.numwords = numwords
-        self.words = []
+        self.methodName = methodName                # Parser method name.
+        self.opcode = opcode                        # Opcode mnemonic string.
+        self.operandType = operandType              # Operand type.
+        self.operandOptional = operandOptional      # Operand is optional?
+        self.addressType = addressType              # Operand address type, if applicable.
+        self.numwords = numwords                    # Number of code words generated.
+        self.words = []                             # List of code words.
+        self.type = None                            # Parser record type for this opcode.

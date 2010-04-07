@@ -22,6 +22,7 @@ import os
 import sys
 from opcode import OpcodeType
 from parser_record import ParserRecord
+from record_type import RecordType
 
 class Assembler:
     """Class defining an AGC assembler."""
@@ -33,7 +34,7 @@ class Assembler:
         self.context.info = self.info
         self.context.log = self.log
 
-    def _makeNewRecord(self, line, label, pseudolabel, opcode, operands, comment):
+    def _makeNewRecord(self, line, type, label, pseudolabel, opcode, operands, comment):
         srcfile = self.context.srcfile
         linenum = self.context.linenum
         srcline = line
@@ -42,7 +43,9 @@ class Assembler:
         if label == None and pseudolabel == None and opcode == None and operands == None:
             address = None
             code = None
-        return ParserRecord(srcfile, linenum, srcline, label, pseudolabel, opcode, operands, comment, address, code)
+        if type == None:
+            type = RecordType.NONE
+        return ParserRecord(srcfile, linenum, srcline, type, label, pseudolabel, opcode, operands, comment, address, code)
 
     def assemble(self, srcfile):
         self.info("Assembling %s" % srcfile)
@@ -67,15 +70,15 @@ class Assembler:
                 modname = line[1:].split()[0]
                 if not os.path.isfile(modname):
                     self.fatal("File \"%s\" does not exist" % modname)
-                self.context.records.append(self._makeNewRecord(srcline, None, None, None, None, comment))
+                self.context.records.append(self._makeNewRecord(srcline, RecordType.INCLUDE, None, None, None, None, comment))
                 self.assemble(modname)
                 continue
             if len(line.strip()) == 0:
-                self.context.records.append(self._makeNewRecord(srcline, None, None, None, None, None))
+                self.context.records.append(self._makeNewRecord(srcline, RecordType.BLANK, None, None, None, None, None))
                 continue
             if line.strip().startswith('#'):
                 comment = line
-                self.context.records.append(self._makeNewRecord(srcline, None, None, None, None, comment))
+                self.context.records.append(self._makeNewRecord(srcline, RecordType.COMMENT, None, None, None, None, comment))
             else:
                 # Real parsing starts here.
                 if '#' in line:
@@ -87,7 +90,7 @@ class Assembler:
                     if len(fields) == 1:
                         # Label only.
                         self.context.symtab.add(label, None, self.context.loc)
-                        self.context.records.append(self._makeNewRecord(srcline, label, None, None, None, comment))
+                        self.context.records.append(self._makeNewRecord(srcline, RecordType.LABEL, label, None, None, None, comment))
                         continue
                     fields = fields[1:]
                 else:
@@ -108,7 +111,7 @@ class Assembler:
                 if self.context.mode == OpcodeType.EXTENDED and opcode not in self.context.opcodes[OpcodeType.EXTENDED]:
                     self.context.error("missing EXTEND before extended instruction")
                 else:
-                    self.context.currentRecord = self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment)
+                    self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
                     self.parse(label, opcode, operands)
                     self.context.records.append(self.context.currentRecord)
 

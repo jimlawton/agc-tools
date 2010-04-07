@@ -18,25 +18,15 @@
 # along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from opcode import Opcode
-from record_type import RecordType
-
-# NOTE: Must be a new-style class.
-class Interpretive(Opcode):
+class RecordType:
+    """Class storing type of a parser record."""
     
-    def __init__(self, methodName, mnemonic, opcode, numOperands=1, switchcode=None):
-        Opcode.__init__(self, methodName, mnemonic, opcode, None, False, None, 1)
-        self.switchcode = switchcode
-        self.type = RecordType.INTERP
-
-    def parse(self, context, operands):
-        retval = False
-        try:
-            retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
-        except:
-            pass
-        context.currentRecord.type = self.type
-        context.incrLoc(self.numwords)
-        if self.numwords == 0:
-            context.currentRecord.complete = True
-        return retval
+    NONE        = 0     # Invalid.
+    INCLUDE     = 1     # Include directive.
+    BLANK       = 2     # Blank line.
+    COMMENT     = 3     # Comment-only line.
+    LABEL       = 4     # Label-only line.
+    ASMCONST    = 5     # Assembler constant, no code generated.
+    CONST       = 6     # Constant, code generated.
+    EXEC        = 7     # Executable line, code generated.
+    INTERP      = 8     # Interpretive line.

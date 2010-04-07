@@ -20,12 +20,14 @@
 
 from opcode import Opcode, OpcodeType, OperandType
 from expression import AddressExpression
+from record_type import RecordType
 
 # NOTE: Must be a new-style class.
 class Instruction(Opcode):
     
     def __init__(self, methodName, opcode, operandType=OperandType.NONE, addressType=None, numwords=1):
         Opcode.__init__(self, methodName, methodName, opcode, operandType, False, addressType, numwords)
+        self.type = RecordType.EXEC
 
     def parse(self, context, operands):
         retval = True
@@ -53,6 +55,7 @@ class Instruction(Opcode):
                     retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
                 except:
                     pass
+        context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
         if self.numwords == 0:
             context.currentRecord.complete = True
