@@ -94,7 +94,7 @@ OPCODES = {
             "ZQ":     Instruction("ZQ",     022007)
         },
         OpcodeType.DIRECTIVE: {
-            # Name                Method            Mnemonic    Operand Type            Optional?    Words
+            # Name                Method            Mnemonic    Operand Type            Optional?   Words
             "-1DNADR":  Directive("Minus1DNADR",    "-1DNADR",  OperandType.EXPRESSION, False,      1),
             "-2CADR":   Directive("Minus2CADR",     "-2CADR",   OperandType.EXPRESSION, False,      1),
             "-2DNADR":  Directive("Minus2DNADR",    "-2DNADR",  OperandType.EXPRESSION, False,      1),
