@@ -31,7 +31,8 @@ class Assembler:
         self.context.error = self.error
         self.context.warn = self.warn
         self.context.info = self.info
-        
+        self.context.log = self.log
+
     def _makeNewRecord(self, line, label, pseudolabel, opcode, operands, comment):
         srcfile = self.context.srcfile
         linenum = self.context.linenum
@@ -110,8 +111,6 @@ class Assembler:
                     self.context.currentRecord = self._makeNewRecord(srcline, label, pseudolabel, opcode, operands, comment)
                     self.parse(label, opcode, operands)
                     self.context.records.append(self.context.currentRecord)
-                    if label != None:
-                        self.context.symtab.symbols[label].recordIndex = len(self.context.records) - 1
 
     def parse(self, label, opcode, operands):
         try:
@@ -125,8 +124,11 @@ class Assembler:
                 self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
                 if opcode != "EXTEND" and self.context.mode == OpcodeType.EXTENDED:
                     self.context.mode = OpcodeType.BASIC
-            if label != None and self.context.addSymbol == True and not self.context.reparse:
-                self.context.symtab.add(label, operands, self.context.loc)
+            if label != None and self.context.addSymbol == True:
+                if not self.context.reparse:
+                    self.context.symtab.add(label, operands, self.context.loc)
+                else:
+                    self.context.symtab.update(label, operands, self.context.loc)
         except:
             self.error("Exception processing line:")
             raise
@@ -158,3 +160,7 @@ class Assembler:
     def info(self, text):
         if self.context.verbose:
             print >>sys.stderr, "%s, line %d, %s" % (self.context.srcfile, self.context.linenum, text)
+
+    def log(self, text):
+        if self.context.logging:
+            print >>self.context.logfile, "%s" % (text)

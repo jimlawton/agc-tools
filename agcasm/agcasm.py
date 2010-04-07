@@ -28,6 +28,7 @@ from context import Context
 def main():
     parser = OptionParser("usage: %prog [options] src_file [src_file...]")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="Verbose output.")
+    parser.add_option("-l", "--log", action="store_true", dest="logging", default=False, help="Print detailed log information.")
     (options, args) = parser.parse_args()
 
     if len(args) < 1:
@@ -44,8 +45,9 @@ def main():
     listfile = open(args[0].split('.')[0] + ".lst", 'w')
     symtabfile = open(args[0].split('.')[0] + ".symtab", 'w')
     binfile = open(args[0] + ".bin", 'wb')
+    logfile = open(args[0].split('.')[0] + ".log", 'w')
 
-    context = Context(Architecture.AGC4_B2, listfile, binfile, options.verbose)
+    context = Context(Architecture.AGC4_B2, listfile, binfile, options.verbose, options.logging, logfile)
     assembler = Assembler(context)
     context.assembler = assembler
     

@@ -24,8 +24,10 @@ from opcodes import OPCODES
 from symbol_table import SymbolTable
 
 class Context:
-    def __init__(self, arch, listfile, binfile, verbose=False):
+    def __init__(self, arch, listfile, binfile, verbose=False, logging=False, logfile=None):
         self.verbose = verbose
+        self.logging = logging
+        self.logfile = logfile
         self.assembler = None
         self.arch = arch
         self.listfile = listfile
