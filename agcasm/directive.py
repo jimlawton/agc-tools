@@ -50,7 +50,8 @@ class Directive(Opcode):
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
         if self.numwords == 0:
-            context.currentRecord.complete = True
+            if self.methodName != "EQUALS":
+                context.currentRecord.complete = True
         return retval
 
     def ignore(self, context):
