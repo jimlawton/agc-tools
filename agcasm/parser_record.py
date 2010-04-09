@@ -39,7 +39,7 @@ class ParserRecord:
         self.ebank = None                   # Current E-Bank.
         self.complete = False               # Assembly complete? i.e. all symbols resolved.
         self.target = None                  # Target address, if any, e.g. for = directive.
-        self.type = None                    # Type of record. 
+        self.type = None                    # Type of record.
         
     def setEBank(self, ebank):
         self.ebank = ebank
