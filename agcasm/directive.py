@@ -57,8 +57,8 @@ class Directive(Opcode):
     def ignore(self, context):
         context.info("ignoring directive \"%s\"" % self.mnemonic)
 
-    def parse_Minus1DNADR(self, context, operands):
-        retval = self.parse_1DNADR(context, operands)
+    def parse_MinusDNADR(self, context, operands):
+        retval = self.parse_DNADR(context, operands)
         words = []
         if context.currentRecord.code != None:
             for i in range(len(context.currentRecord.code)):
@@ -69,56 +69,6 @@ class Directive(Opcode):
     
     def parse_Minus2CADR(self, context, operands):
         retval = self.parse_2CADR(context, operands)
-        words = []
-        if context.currentRecord.code != None:
-            for i in range(len(context.currentRecord.code)):
-                words.append(~context.currentRecord.code[i])
-            context.currentRecord.code = words
-            context.currentRecord.complete = True
-        return retval
-    
-    def parse_Minus2DNADR(self, context, operands):
-        retval = self.parse_2DNADR(context, operands)
-        words = []
-        if context.currentRecord.code != None:
-            for i in range(len(context.currentRecord.code)):
-                words.append(~context.currentRecord.code[i])
-            context.currentRecord.code = words
-            context.currentRecord.complete = True
-        return retval
-
-    def parse_Minus3DNADR(self, context, operands):
-        retval = self.parse_3DNADR(context, operands)
-        words = []
-        if context.currentRecord.code != None:
-            for i in range(len(context.currentRecord.code)):
-                words.append(~context.currentRecord.code[i])
-            context.currentRecord.code = words
-            context.currentRecord.complete = True
-        return retval
-
-    def parse_Minus4DNADR(self, context, operands):
-        retval = self.parse_4DNADR(context, operands)
-        words = []
-        if context.currentRecord.code != None:
-            for i in range(len(context.currentRecord.code)):
-                words.append(~context.currentRecord.code[i])
-            context.currentRecord.code = words
-            context.currentRecord.complete = True
-        return retval
-    
-    def parse_Minus5DNADR(self, context, operands):
-        retval = self.parse_5DNADR(context, operands)
-        words = []
-        if context.currentRecord.code != None:
-            for i in range(len(context.currentRecord.code)):
-                words.append(~context.currentRecord.code[i])
-            context.currentRecord.code = words
-            context.currentRecord.complete = True
-        return retval
-    
-    def parse_Minus6DNADR(self, context, operands):
-        retval = self.parse_6DNADR(context, operands)
         words = []
         if context.currentRecord.code != None:
             for i in range(len(context.currentRecord.code)):
@@ -157,19 +107,20 @@ class Directive(Opcode):
             context.currentRecord.complete = True
         return retval
     
-    def parse_1DNADR(self, context, operands):
+    def parse_DNADR(self, context, operands):
         retval = False
         pa = None
-        if operands:
-            expr = AddressExpression(context, operands)
-            if expr.complete:
-                pa = expr.value
-                if context.memmap.isErasable(pa):
-                    context.currentRecord.code = [ pa ]
-                    context.currentRecord.complete = True
-                    retval = True
-                else:
-                    context.error("operand must be in erasable memory")
+        opnum = int(self.opcode[0])
+        dnadrConstants = { 1: 000000, 2: 004000, 3: 010000, 4: 014000, 5: 020000, 6: 024000 }
+        expr = AddressExpression(context, operands)
+        if expr.complete:
+            pa = expr.value
+            if context.memmap.isErasable(pa):
+                context.currentRecord.code = [ pa + dnadrConstants[opnum] ]
+                context.currentRecord.complete = True
+                retval = True
+            else:
+                context.error("operand must be in erasable memory")
         return retval
     
     def parse_2CADR(self, context, operands):
@@ -210,20 +161,6 @@ class Directive(Opcode):
             retval = False
         return retval
 
-    def parse_2DNADR(self, context, operands):
-        retval = True
-        pa = None
-        expr = Expression(context, operands)
-        if expr.complete:
-            pa = expr.value
-            if context.memmap.isErasable(pa):
-                context.currentRecord.code = [ pa + 04000 ] 
-                context.currentRecord.complete = True
-            else:
-                context.error("operand must be in erasable memory")
-                retval = False
-        return retval
-    
     def parse_2FCADR(self, context, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
@@ -240,69 +177,9 @@ class Directive(Opcode):
             retval = True
         return retval
     
-    def parse_3DNADR(self, context, operands):
-        retval = False
-        pa = None
-        if operands:
-            expr = Expression(context, operands)
-            if expr.complete:
-                pa = expr.value
-                if context.memmap.isErasable(pa):
-                    context.currentRecord.code = [ pa + 010000 ]
-                    context.currentRecord.complete = True
-                else:
-                    context.error("operand must be in erasable memory")
-            retval = True
-        return retval
-    
-    def parse_4DNADR(self, context, operands):
-        retval = False
-        pa = None
-        if operands:
-            expr = Expression(context, operands)
-            if expr.complete:
-                pa = expr.value
-                if context.memmap.isErasable(pa):
-                    context.currentRecord.code = [ pa + 014000 ]
-                    context.currentRecord.complete = True
-                else:
-                    context.error("operand must be in erasable memory")
-            retval = True
-        return retval
-    
-    def parse_5DNADR(self, context, operands):
-        retval = False
-        pa = None
-        if operands:
-            expr = Expression(context, operands)
-            if expr.complete:
-                pa = expr.value
-                if context.memmap.isErasable(pa):
-                    context.currentRecord.code = [ pa + 020000 ]
-                    context.currentRecord.complete = True
-                else:
-                    context.error("operand must be in erasable memory")
-            retval = True
-        return retval
-    
-    def parse_6DNADR(self, context, operands):
-        retval = False
-        pa = None
-        if operands:
-            expr = Expression(context, operands)
-            if expr.complete:
-                pa = expr.value
-                if context.memmap.isErasable(pa):
-                    context.currentRecord.code = [ pa + 024000 ]
-                    context.currentRecord.complete = True
-                else:
-                    context.error("operand must be in erasable memory")
-            retval = True
-        return retval
-
     def parse_EqualsECADR(self, context, operands):
-        context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
-        sys.exit()
+        self.ignore(context)
+        return True
     
     def parse_EqualsMINUS(self, context, operands):
         retval = self.parse_EQUALS(context, operands)
