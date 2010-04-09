@@ -23,12 +23,13 @@ import sys
 class SymbolTableEntry:
     
     def __init__(self, context, name, symbolic=None, value=None):
-        self.context = context
-        self.name = name
-        self.symbolic = symbolic
-        self.value = value
-        self.references = []
-        self.recordIndex = None
+        self.context = context              # Assembler context.
+        self.name = name                    # Symbol name.
+        self.symbolic = symbolic            # Symbolic value (expression).
+        self.value = value                  # Actual value.
+        self.recordIndex = None             # Index of the parser record containing the definition of this symbol.
+        self.references = []                # TODO: List of references.
+        self.refType = None                 # Reference type: None, forward or reverse 
 
     def isComplete(self):
         return (self.value != None)
@@ -41,6 +42,10 @@ class SymbolTableEntry:
 
     def __str__(self):
         text = "%-8s "  % (self.name)
+        if self.refType != None:
+            text += "%-4s " % self.refType
+        else:
+            text += 4 * ' ' 
         if self.value == None:
             text += "%-20s" % "******"
         else:
@@ -73,9 +78,11 @@ class SymbolTable:
                 self.symbols[name].recordIndex = self.context.global_linenum - 1
                 if value == None:
                     self.undefs.append(name)
-                    self.context.log("Added undefined symbol %s" % name)
+                    self.symbols[name].refType = "FWD"
+                    self.context.log("[%05d] added undefined symbol %s" % (len(self.symbols), name))
                 else:
-                    self.context.log("Added defined symbol %s" % name)
+                    self.symbols[name].refType = "REV"
+                    self.context.log("[%05d] added defined symbol %s" % (len(self.symbols), name))
 
     def update(self, name=None, symbolic=None, value=None):
         if name != None:
@@ -85,7 +92,7 @@ class SymbolTable:
                 entry = self.symbols[name]
                 entry.value = value
                 self.symbols[name] = entry
-                self.context.log("Updated symbol %s" % name)
+                self.context.log("updated symbol %s" % name)
 
     def resolve(self, maxPasses=10):
         self.context.log("resolving symbols...")
@@ -106,14 +113,14 @@ class SymbolTable:
 
     def pruneUndefines(self):
         # Prune the undefs list.
-        self.context.log("Pruning undefined symbols list (%d)" % len(self.undefs))
+        self.context.log("[%05d] pruning undefined symbols list" % len(self.undefs))
         tmpUndefs =[]
         for symbol in self.undefs:
             record = self.context.records[self.symbols[symbol].recordIndex]
             if not record.complete:
                 tmpUndefs.append(symbol)
             else:
-                self.context.log("Removing %s from undefined symbols list" % symbol)
+                self.context.log("[%05d] removing %s from undefined symbols list" % (len(self.undefs), symbol))
         self.undefs = tmpUndefs
         
     def keys(self):
