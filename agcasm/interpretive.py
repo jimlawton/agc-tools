@@ -30,13 +30,11 @@ class Interpretive(Opcode):
         self.type = RecordType.INTERP
 
     def parse(self, context, operands):
-        retval = False
         try:
-            retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
+            self.__getattribute__("parse_" + self.methodName)(context, operands)
         except:
             pass
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
         if self.numwords == 0:
             context.currentRecord.complete = True
-        return retval

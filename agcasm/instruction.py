@@ -30,7 +30,6 @@ class Instruction(Opcode):
         self.type = RecordType.EXEC
 
     def parse(self, context, operands):
-        retval = True
         if self.operandType == OperandType.NONE:
             if operands != None:
                 context.error("instruction takes no operand")
@@ -52,14 +51,13 @@ class Instruction(Opcode):
                 else:
                     context.error("missing operand")
                 try:
-                    retval = self.__getattribute__("parse_" + self.methodName)(context, operands)
+                    self.__getattribute__("parse_" + self.methodName)(context, operands)
                 except:
                     pass
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
         if self.numwords == 0:
             context.currentRecord.complete = True
-        return retval
     
     def parse_AD(self, context, operands):
         pass
