@@ -30,3 +30,4 @@ class RecordType:
     CONST       = 6     # Constant, code generated.
     EXEC        = 7     # Executable line, code generated.
     INTERP      = 8     # Interpretive line.
+    IGNORE      = 9     # Ignored.
