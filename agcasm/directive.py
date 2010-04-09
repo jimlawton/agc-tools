@@ -55,6 +55,7 @@ class Directive(Opcode):
         return retval
 
     def ignore(self, context):
+        self.type = RecordType.IGNORE
         context.info("ignoring directive \"%s\"" % self.mnemonic)
 
     def parse_MinusDNADR(self, context, operands):
@@ -179,7 +180,6 @@ class Directive(Opcode):
     
     def parse_EqualsECADR(self, context, operands):
         self.ignore(context)
-        return True
     
     def parse_EqualsMINUS(self, context, operands):
         retval = self.parse_EQUALS(context, operands)
@@ -206,9 +206,11 @@ class Directive(Opcode):
             expr = Expression(context, operands)
             if expr.complete:
                 context.switchFBank(expr.value)
+                context.currentRecord.target = context.loc
                 context.currentRecord.complete = True
         else:
             context.switchFBank()
+            context.currentRecord.target = context.loc
             context.currentRecord.complete = True
         return True
 
@@ -250,22 +252,24 @@ class Directive(Opcode):
     
     def parse_BLOCK(self, context, operands):
         retval = False
-        if operands:
-            expr = Expression(context, operands)
-            if expr.complete:
-                bank = expr.value
-                if bank == 0:
-                    context.switchEBank(bank)
-                else:
-                    context.switchFBank(bank)
+        expr = Expression(context, operands)
+        if expr.complete:
+            bank = expr.value
+            if bank == 0:
+                context.switchEBank(bank)
+                context.currentRecord.target = context.loc
+                context.currentRecord.complete = True
             else:
-                context.error("invalid syntax")
+                context.switchFBank(bank)
+                context.currentRecord.target = context.loc
+                context.currentRecord.complete = True
             retval = True
+        else:
+            context.error("invalid syntax")
         return retval
 
     def parse_BNKSUM(self, context, operands):
         self.ignore(context)
-        return True
     
     def parse_CADR(self, context, operands):
         retval = False
@@ -301,7 +305,6 @@ class Directive(Opcode):
     
     def parse_COUNT(self, context, operands):
         self.ignore(context)
-        return True
     
     def parse_DEC(self, context, operands):
         retval = False
