@@ -139,11 +139,13 @@ class Assembler:
     def reparse(self, recordIndex):
         "Reparse a ParserRecord, without affecting assembler state. Return the generated code words, if any."
         self.context.reparse = True
+        self.context.log("updating record: %s" % (self.context.records[recordIndex]))
         saveRecord = self.context.currentRecord
         record = self.context.currentRecord = self.context.records[recordIndex]
         self.parse(record.label, record.opcode, record.operands)
         self.context.records[recordIndex] = self.context.currentRecord
         self.context.currentRecord = saveRecord
+        self.context.log("updated record: %s" % (self.context.records[recordIndex]))
         self.context.reparse = False
         
     def resolve(self, maxPasses=10):
