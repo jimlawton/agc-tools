@@ -50,32 +50,35 @@ class ParserRecord:
     def __str__(self):
         text = ""
         text += "%06d " % self.linenum
-        if self.type == RecordType.CONST or self.type == RecordType.EXEC or self.type == RecordType.INTERP or self.type == RecordType.LABEL:
-            if self.address != None:
-                text += "%06o " % self.address
-            else:
-                text += 6 * '?' + ' '
-        else:
-            text += 7 * ' '
-        if self.type == RecordType.ASMCONST: 
-            if self.target != None:
-                text += "%-6s " % ("%05o" % self.target)
-            else:
-                text += 6 * '?' + ' '
-        else:
-            text += 7 * ' '
-        if self.type == RecordType.CONST or self.type == RecordType.EXEC or self.type == RecordType.INTERP:
-            if self.code != None and len(self.code) > 0:
-                if len(self.code) == 1:
-                    if self.code[0] > 077777:
-                        text += "%06o %s " % (self.code[0], 5 * ' ')
-                    else:
-                        text += " %05o %s " % (self.code[0], 5 * ' ')
+        if self.type == RecordType.IGNORE:
+            text += 27 * ' ' 
+        else: 
+            if self.type == RecordType.CONST or self.type == RecordType.EXEC or self.type == RecordType.INTERP or self.type == RecordType.LABEL:
+                if self.address != None:
+                    text += "%06o " % self.address
                 else:
-                    text += "%05o %05o  " % (self.code[0], self.code[1])
+                    text += 6 * '?' + ' '
             else:
-                text += " ????? " + 6 * ' ' 
-        else:
-            text += 13 * ' '
+                text += 7 * ' '
+            if self.type == RecordType.ASMCONST: 
+                if self.target != None:
+                    text += "%-6s " % ("%05o" % self.target)
+                else:
+                    text += 6 * '?' + ' '
+            else:
+                text += 7 * ' '
+            if self.type == RecordType.CONST or self.type == RecordType.EXEC or self.type == RecordType.INTERP:
+                if self.code != None and len(self.code) > 0:
+                    if len(self.code) == 1:
+                        if self.code[0] > 077777:
+                            text += "%06o %s " % (self.code[0], 5 * ' ')
+                        else:
+                            text += " %05o %s " % (self.code[0], 5 * ' ')
+                    else:
+                        text += "%05o %05o  " % (self.code[0], self.code[1])
+                else:
+                    text += " ????? " + 6 * ' ' 
+            else:
+                text += 13 * ' '
         text += "%s" % self.srcline
         return text
