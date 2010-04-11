@@ -18,8 +18,9 @@
 # along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from opcode import Opcode
+from opcode import Opcode, OpcodeType
 from record_type import RecordType
+from expression import AddressExpression
 
 # NOTE: Must be a new-style class.
 class Interpretive(Opcode):
@@ -30,11 +31,48 @@ class Interpretive(Opcode):
         self.type = RecordType.INTERP
 
     def parse(self, context, operands):
+        # Case 1: One interpretive opcode.
+        # Case 2: Two packed interpretive opcodes.
+        # Case 3: Interpretive opcode, simple operand.
+        # Case 4: Interpretive opcode, operand expression with 2 components (e.g. ['A', '+1']).
+        # Case 5: Interpretive opcode, operand expression with 3 components (e.g. ['A', '-', '1']).
+        
+        # TODO: Handle interpretive operands.
+        # TODO: Handle store opcodes separately.
+        # TODO: Handle interpretive operands ending in ,x. What does it mean?
+        
+        if operands:
+            oplen = len(operands)
+        else:
+            oplen = 0
+        opcodes = [ self.opcode ]
+        nOpFields = oplen
+        
+        operand = None
+        if nOpFields == 0:
+            # Case 1
+            pass
+        elif nOpFields == 1:
+            if operands[0] in context.opcodes[OpcodeType.INTERPRETIVE]:
+                # Case 2
+                opobj = context.opcodes[OpcodeType.INTERPRETIVE][operands[0]]
+                opcodes.append(opobj.opcode)
+        elif nOpFields == 2 or nOpFields == 3:
+            operand = AddressExpression(context, operands)
+        else:
+            context.error("syntax error")
+
+        code = opcodes[0] * 0200 + 1
+        if len(opcodes) == 2:
+            code += opcodes[1] + 1
+        code = ~code & 077777
+
         try:
             self.__getattribute__("parse_" + self.methodName)(context, operands)
         except:
             pass
+
+        context.currentRecord.code = [ code ]
+        context.currentRecord.complete = True
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
-        if self.numwords == 0:
-            context.currentRecord.complete = True
