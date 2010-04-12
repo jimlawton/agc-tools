@@ -39,7 +39,6 @@ class Context:
         self.global_linenum = 0
         self.mode = OpcodeType.BASIC
         self.memmap = MemoryMap(arch, verbose)
-        self.checklist = []
         self.lastEbank = 0
         self.lastEbankEquals = False
         self.code = []
