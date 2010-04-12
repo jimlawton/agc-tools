@@ -19,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class RecordType:
-    """Class storing type of a parser record."""
+    """Class defining type of a parser record."""
     
     NONE        = 0     # Invalid.
     INCLUDE     = 1     # Include directive.
@@ -30,4 +30,82 @@ class RecordType:
     CONST       = 6     # Constant, code generated.
     EXEC        = 7     # Executable line, code generated.
     INTERP      = 8     # Interpretive line.
-    IGNORE      = 9     # Ignored.
+    IGNORE      = 9     # Ignored.`
+    
+    @classmethod
+    def isGenerative(cls, rectype):
+        """Return True if record type generates machine code."""
+        isgenerative = { 
+            None:                 False,
+            RecordType.NONE:      False, 
+            RecordType.INCLUDE:   False, 
+            RecordType.BLANK:     False, 
+            RecordType.COMMENT:   False, 
+            RecordType.LABEL:     False, 
+            RecordType.ASMCONST:  False, 
+            RecordType.CONST:     True, 
+            RecordType.EXEC:      True, 
+            RecordType.INTERP:    True, 
+            RecordType.IGNORE:    False 
+        }
+        if rectype:
+            return isgenerative[rectype]
+        else:
+            return False
+
+    @classmethod
+    def isAddressValid(cls, rectype):
+        """Return True if record type is one in which the address field is valid."""
+        isaddress = { 
+            None:                 False,
+            RecordType.NONE:      False, 
+            RecordType.INCLUDE:   False, 
+            RecordType.BLANK:     False, 
+            RecordType.COMMENT:   False, 
+            RecordType.LABEL:     True, 
+            RecordType.ASMCONST:  False, 
+            RecordType.CONST:     True, 
+            RecordType.EXEC:      True, 
+            RecordType.INTERP:    True, 
+            RecordType.IGNORE:    False 
+        }
+        if rectype:
+            return isaddress[rectype]
+        else:
+            return False
+
+    @classmethod
+    def isReparseable(cls, rectype):
+        """Return True if record type is reparseable."""
+        isreparse = { 
+            RecordType.NONE:      False, 
+            RecordType.INCLUDE:   False, 
+            RecordType.BLANK:     False, 
+            RecordType.COMMENT:   False, 
+            RecordType.LABEL:     False, 
+            RecordType.ASMCONST:  True, 
+            RecordType.CONST:     True, 
+            RecordType.EXEC:      True, 
+            RecordType.INTERP:    True, 
+            RecordType.IGNORE:    False 
+        }
+        if rectype:
+            return isreparse[rectype]
+        else:
+            return False
+
+    @classmethod
+    def isIgnored(cls, rectype):
+        """Return True if record type should be ignored."""
+        if rectype == RecordType.NONE or type == RecordType.IGNORE:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def isInterpretive(cls, rectype):
+        """Return True if record type is interpretive."""
+        if rectype == RecordType.INTERPRETIVE:
+            return True
+        else:
+            return False
