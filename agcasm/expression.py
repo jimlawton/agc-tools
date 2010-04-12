@@ -84,7 +84,10 @@ class Expression:
     def __str__(self):
         text = "Expression: complete=%s" % str(self.complete)
         text += ", operands=%s" % str(self.operands)
-        text += ", value=%06o" % self.value
+        if self.value:
+            text += ", value=%06o" % self.value
+        else:
+            text += ", value=%s" % self.value
         return text
 
 class AddressExpression(Expression):
