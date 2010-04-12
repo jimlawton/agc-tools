@@ -138,18 +138,38 @@ class Assembler:
 
     def reparse(self, recordIndex):
         "Reparse a ParserRecord, without affecting assembler state. Return the generated code words, if any."
+        record = self.context.records[recordIndex]
         self.context.reparse = True
-        self.context.log("updating record: %s" % (self.context.records[recordIndex]))
         saveRecord = self.context.currentRecord
-        record = self.context.currentRecord = self.context.records[recordIndex]
+        self.context.currentRecord = record
         self.parse(record.label, record.opcode, record.operands)
         self.context.records[recordIndex] = self.context.currentRecord
         self.context.currentRecord = saveRecord
-        self.context.log("updated record: %s" % (self.context.records[recordIndex]))
+        self.context.log("updated record %d: %s" % (recordIndex, self.context.records[recordIndex]))
         self.context.reparse = False
         
     def resolve(self, maxPasses=10):
         self.context.symtab.resolve(maxPasses)
+        numRecords = len(self.context.records)
+        self.context.log("updating %d parser records..." % (numRecords))
+        nUndefs = nPrevUndefs = 0
+        for i in range(maxPasses):
+            nPrevUndefs = nUndefs
+            nUndefs = 0
+            for j in range(numRecords):
+                record = self.context.records[j]
+                if not record.complete:
+                    nUndefs += 1
+                    if RecordType.isReparseable(record.type):
+                        self.reparse(j)
+            self.context.log("pass %d: %d incomplete parser records" % (i, nUndefs))
+            if nUndefs == 0:
+                self.context.log("all parser records complete")
+                break
+            if nUndefs == nPrevUndefs:
+                self.context.error("no progress resolving parser records")
+                sys.exit()
+
 
     def fatal(self, text):
         self.error(text)
