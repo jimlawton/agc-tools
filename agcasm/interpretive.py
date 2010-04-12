@@ -68,9 +68,11 @@ class Interpretive(Opcode):
         code = ~code & 077777
 
         try:
-            self.__getattribute__("parse_" + self.methodName)(context, operands)
+            method = self.__getattribute__("parse_" + self.methodName)
         except:
-            pass
+            method = None
+        if method:
+            method(context, operands)
 
         context.currentRecord.code = [ code ]
         context.currentRecord.complete = True

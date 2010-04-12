@@ -50,10 +50,14 @@ class Instruction(Opcode):
                         context.currentRecord.complete = True
                 else:
                     context.error("missing operand")
+                
                 try:
-                    self.__getattribute__("parse_" + self.methodName)(context, operands)
+                    method = self.__getattribute__("parse_" + self.methodName)
                 except:
-                    pass
+                    method = None
+                if method:
+                    method(context, operands)
+
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
         if self.numwords == 0:
