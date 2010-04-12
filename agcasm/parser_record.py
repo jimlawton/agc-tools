@@ -50,10 +50,10 @@ class ParserRecord:
     def __str__(self):
         text = ""
         text += "%06d " % self.linenum
-        if self.type == RecordType.IGNORE:
+        if RecordType.isIgnored(self.type):
             text += 27 * ' ' 
         else: 
-            if self.type == RecordType.CONST or self.type == RecordType.EXEC or self.type == RecordType.INTERP or self.type == RecordType.LABEL:
+            if RecordType.isAddressValid(self.type):
                 if self.address != None:
                     text += "%06o " % self.address
                 else:
@@ -67,7 +67,7 @@ class ParserRecord:
                     text += 6 * '?' + ' '
             else:
                 text += 7 * ' '
-            if self.type == RecordType.CONST or self.type == RecordType.EXEC or self.type == RecordType.INTERP:
+            if RecordType.isGenerative(self.type):
                 if self.code != None and len(self.code) > 0:
                     if len(self.code) == 1:
                         if self.code[0] > 077777:
