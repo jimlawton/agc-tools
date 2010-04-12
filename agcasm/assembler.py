@@ -167,22 +167,26 @@ class Assembler:
                 self.context.log("all parser records complete")
                 break
             if nUndefs == nPrevUndefs:
-                self.context.error("no progress resolving parser records")
+                self.context.error("no progress resolving parser records", True)
+                break
 
     def fatal(self, text):
         self.error(text)
         sys.exit(1)
 
-    def error(self, text):
-        print >>sys.stderr, "%s, line %d, error: %s" % (self.context.srcfile, self.context.linenum, text) 
-        print >>sys.stderr, self.context.srcline
+    def error(self, text, noSource=False):
+        if noSource:
+            print >>sys.stderr, "error: %s" % (text) 
+        else:
+            print >>sys.stderr, "%s, line %d, error: %s" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text) 
+            print >>sys.stderr, self.context.currentRecord.srcline
 
     def warn(self, text):
-        print >>sys.stderr, "%s, line %d, warning: %s" % (self.context.srcfile, self.context.linenum, text)
+        print >>sys.stderr, "%s, line %d, warning: %s" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text)
 
     def info(self, text):
         if self.context.verbose:
-            print >>sys.stderr, "%s, line %d, %s" % (self.context.srcfile, self.context.linenum, text)
+            print >>sys.stderr, "%s, line %d, %s" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text)
 
     def log(self, text):
         if self.context.logging:
