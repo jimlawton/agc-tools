@@ -49,7 +49,7 @@ class Directive(Opcode):
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
         if self.numwords == 0:
-            if self.methodName != "EQUALS":
+            if self.methodName != "EQUALS" and self.opcode != "CHECK=":
                 context.currentRecord.complete = True
 
     def ignore(self, context):
@@ -250,12 +250,9 @@ class Directive(Opcode):
     
     def parse_CHECKEquals(self, context, operands):
         if context.currentRecord.label != None:
-            lhs = Expression(context, [ context.currentRecord.label ])
-            rhs = Expression(context, operands)
-            if not lhs.complete or not rhs.complete:
-                # Add to checklist and check at the end.
-                context.checklist.append(context.currentRecord)
-            else:
+            lhs = AddressExpression(context, [ context.currentRecord.label ])
+            rhs = AddressExpression(context, operands)
+            if lhs.complete and rhs.complete:
                 lpa = lhs.value
                 rpa = rhs.value
                 if lpa != rpa:
