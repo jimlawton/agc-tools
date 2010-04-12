@@ -168,8 +168,6 @@ class Assembler:
                 break
             if nUndefs == nPrevUndefs:
                 self.context.error("no progress resolving parser records")
-                sys.exit()
-
 
     def fatal(self, text):
         self.error(text)
