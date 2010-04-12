@@ -42,14 +42,18 @@ class Directive(Opcode):
             if operands == None:
                 if not self.operandOptional:
                     context.error("missing operand")
+
         try:
-            self.__getattribute__("parse_" + self.methodName)(context, operands)
+            method = self.__getattribute__("parse_" + self.methodName)
         except:
-            pass
+            method = None
+        if method:
+            method(context, operands)
+
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
         if self.numwords == 0:
-            if self.methodName != "EQUALS" and self.opcode != "CHECK=":
+            if self.methodName != "EQUALS" and self.mnemonic != "CHECK=":
                 context.currentRecord.complete = True
 
     def ignore(self, context):
@@ -61,7 +65,7 @@ class Directive(Opcode):
         words = []
         if context.currentRecord.code != None:
             for i in range(len(context.currentRecord.code)):
-                words.append(~context.currentRecord.code[i])
+                words.append(~context.currentRecord.code[i] & 077777)
             context.currentRecord.code = words
             context.currentRecord.complete = True
     
@@ -70,7 +74,7 @@ class Directive(Opcode):
         words = []
         if context.currentRecord.code != None:
             for i in range(len(context.currentRecord.code)):
-                words.append(~context.currentRecord.code[i])
+                words.append(~context.currentRecord.code[i] & 077777)
             context.currentRecord.code = words
             context.currentRecord.complete = True
     
@@ -79,7 +83,7 @@ class Directive(Opcode):
         words = []
         if context.currentRecord.code != None:
             for i in range(len(context.currentRecord.code)):
-                words.append(~context.currentRecord.code[i])
+                words.append(~context.currentRecord.code[i] & 077777)
             context.currentRecord.code = words
             context.currentRecord.complete = True
     
@@ -88,7 +92,7 @@ class Directive(Opcode):
         words = []
         if context.currentRecord.code != None:
             for i in range(len(context.currentRecord.code)):
-                words.append(~context.currentRecord.code[i])
+                words.append(~context.currentRecord.code[i] & 077777)
             context.currentRecord.code = words
             context.currentRecord.complete = True
     
@@ -97,13 +101,16 @@ class Directive(Opcode):
         words = []
         if context.currentRecord.code != None:
             for i in range(len(context.currentRecord.code)):
-                words.append(~context.currentRecord.code[i])
+                words.append(~context.currentRecord.code[i] & 077777)
             context.currentRecord.code = words
             context.currentRecord.complete = True
     
     def parse_DNADR(self, context, operands):
         pa = None
-        opnum = int(self.opcode[0])
+        if self.mnemonic.startswith('-'):
+            opnum = int(self.mnemonic[1])
+        else:
+            opnum = int(self.mnemonic[0])
         dnadrConstants = { 1: 000000, 2: 004000, 3: 010000, 4: 014000, 5: 020000, 6: 024000 }
         expr = AddressExpression(context, operands)
         if expr.complete:
@@ -136,7 +143,7 @@ class Directive(Opcode):
             context.currentRecord.code = [word1, word2]
             context.currentRecord.complete = True
         if context.lastEbankEquals:
-            context.revertEBank()
+            context.revertEbank()
 
     def parse_2DEC(self, context, operands):
         op = DoubleDecimal(" ".join(operands))
@@ -164,7 +171,7 @@ class Directive(Opcode):
     def parse_EqualsMINUS(self, context, operands):
         self.parse_EQUALS(context, operands)
         if context.currentRecord.target != None:
-            context.currentRecord.target = ~context.currentRecord.target
+            context.currentRecord.target = ~context.currentRecord.target & 077777
             context.currentRecord.complete = True
     
     def parse_ADRES(self, context, operands):
@@ -266,12 +273,13 @@ class Directive(Opcode):
         self.ignore(context)
     
     def parse_DEC(self, context, operands):
-        op = Decimal(" ".join(operands))
-        if op.isValid():
-            context.currentRecord.code = [ op.value ]
-            context.currentRecord.complete = True
-        else:
-            context.error("invalid syntax")
+        if operands:
+            op = Decimal(" ".join(operands))
+            if op.isValid():
+                context.currentRecord.code = [ op.value ]
+                context.currentRecord.complete = True
+            else:
+                context.error("invalid syntax")
     
     def parse_DNCHAN(self, context, operands):
         op = Octal(" ".join(operands))
@@ -282,12 +290,11 @@ class Directive(Opcode):
             context.error("syntax error: %s %s" % (self.mnemonic, operands))
     
     def parse_DNPTR(self, context, operands):
-        pa = None
         expr = Expression(context, operands)
         if expr.complete:
             channel = expr.value
             if context.memmap.isChannel(channel):
-                context.currentRecord.code = [ pa + 030000 ]
+                context.currentRecord.code = [ channel + 030000 ]
                 context.currentRecord.complete = True
             else:
                 context.error("operand must be a channel number")
@@ -451,12 +458,13 @@ class Directive(Opcode):
         self.ignore(context)
     
     def parse_VN(self, context, operands):
-        op = Decimal(operands[0])
-        if op.isValid():
-            lower = int(operands[0][-2:])
-            upper = int(operands[0][:-2])
-            context.currentRecord.code = [ upper * 128 + lower ]
-            context.currentRecord.complete = True
-        else:
-            context.error("syntax error: %s %s" % (self.mnemonic, operands))
+        if operands:
+            op = Decimal(operands[0])
+            if op.isValid():
+                lower = int(operands[0][-2:])
+                upper = int(operands[0][:-2])
+                context.currentRecord.code = [ upper * 128 + lower ]
+                context.currentRecord.complete = True
+            else:
+                context.error("syntax error: %s %s" % (self.mnemonic, operands))
 
