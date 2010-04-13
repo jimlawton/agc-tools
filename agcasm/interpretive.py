@@ -60,17 +60,17 @@ class Interpretive(Opcode):
                 opobj = context.opcodes[OpcodeType.INTERPRETIVE][operands[0]]
                 opcodes.append(opobj.opcode)
         elif oplen == 2 or oplen == 3:
-            operand = AddressExpression(context, operands)
+            pass
         else:
             context.syntax("invalid operand expression")
 
-        code = opcodes[0] * 0200 + 1
-        if len(opcodes) == 2:
-            code += opcodes[1] + 1
-        else:
-            if operand != None:
-                code += operand.value & 077777
-        code = ~code & 077777
+        if self.methodName.endswith('*'):
+            context.indexed = True
+
+        context.currentRecord.code = None
+
+        if oplen == 2 or oplen == 3:
+            Interpretive.parseOperand(context, operands)
 
         try:
             method = self.__getattribute__("parse_" + self.methodName)
@@ -78,6 +78,16 @@ class Interpretive(Opcode):
             method = None
         if method:
             method(context, operands)
+
+        code = opcodes[0] * 0200 + 1
+        if len(opcodes) == 2:
+            code += opcodes[1] + 1
+        else:
+            if context.currentRecord.code != None:
+                operandcode = context.currentRecord.code[0]
+                code += operandcode & 077777
+
+        code = ~code & 077777
 
         context.currentRecord.code = [ code ]
         context.currentRecord.complete = True
@@ -88,9 +98,29 @@ class Interpretive(Opcode):
     @classmethod
     def parseOperand(cls, context, operands):
         if context.interpMode and context.interpArgs > 0:
-            operand = AddressExpression(context, operands)
+            newoperands = []
+            indexreg = 0
+            if context.indexed:
+                if ',' in operands:
+                    for operand in operands:
+                        if operand.endswith(',1') or operand.endswith(',2'):
+                            if operand.endswith(',1'):
+                                indexreg = 1
+                            else:
+                                indexreg = 2
+                            newoperands.append(operand[:-2])
+                        else:
+                            newoperands.append(operand)
+                else:
+                    newoperands = operands
+            operand = AddressExpression(context, newoperands)
             if operand.complete:
-                context.currentRecord.code = [ operand.value ]
+                code = operand.value
+                if indexreg > 0:
+                    code += 1
+                    if indexreg == 2:
+                        code = ~code & 077777
+                context.currentRecord.code = [ code ]
                 context.currentRecord.complete = True
             context.incrLoc(1)
             context.interpArgs -= 1
