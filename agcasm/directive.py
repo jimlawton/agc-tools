@@ -226,16 +226,14 @@ class Directive(Opcode):
             context.currentRecord.code = [ bbval ]
             context.currentRecord.complete = True
         if context.lastEbankEquals:
-            context.ebank = context.lastEbank
-            context.lastEbankEquals = False
+            context.revertEbank()
     
     def parse_BBCONstar(self, context, operands):
         context.currentRecord.code = [ 066100 ]
         context.currentRecord.complete = True
         if context.lastEbankEquals:
-            context.ebank = context.lastEbank
+            context.revertEbank()
             # TODO: recalculate sbank, based on superbit=1.
-            context.lastEbankEquals = False
         return True
     
     def parse_BLOCK(self, context, operands):
@@ -311,18 +309,14 @@ class Directive(Opcode):
     def parse_EBANKEquals(self, context, operands):
         op = Number(operands[0])
         if op.isValid():
-            context.lastEbank = context.ebank
-            context.ebank = op.value
-            context.lastEbankEquals = True
+            context.switchEBank(op.value)
             context.currentRecord.target = op.value
         else:
             entry = context.symtab.lookup(operands[0])
             if entry != None:
                 bank = context.memmap.getBankNumber(entry.value)
                 if bank != None:
-                    context.lastEbank = context.ebank
-                    context.ebank = bank
-                    context.lastEbankEquals = True
+                    context.switchEBank(bank)
                     context.currentRecord.target = entry.value
 
     def parse_ECADR(self, context, operands):
@@ -380,7 +374,7 @@ class Directive(Opcode):
             else:
                 context.symtab.update(context.currentRecord.label, operands, context.loc)
         context.currentRecord.target = context.loc
-        context.incrELoc(size)
+        context.incrLoc(size)
         context.addSymbol = False
         
     def parse_FCADR(self, context, operands):
