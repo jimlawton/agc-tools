@@ -18,6 +18,7 @@
 # along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import sys
 from architecture import Architecture
 
 class MemoryType:
@@ -161,6 +162,8 @@ class MemoryMap:
             if bank:
                 offset = pa - bank.startaddr
                 retval = (bank.banknum, offset)
+            else:
+                print >>sys.stderr, "Error, invalid pseudo address %06o" % pa
         return retval
     
     def pseudoToBank(self, pa):
@@ -169,6 +172,8 @@ class MemoryMap:
             bank = self._findBank(pa)
             if bank:
                 retval = bank.banknum
+            else:
+                print >>sys.stderr, "Error, invalid pseudo address %06o" % pa
         return retval
     
     def pseudoToBankOffset(self, pa):
@@ -178,6 +183,8 @@ class MemoryMap:
             if bank:
                 offset = pa - bank.startaddr
                 retval = offset
+            else:
+                print >>sys.stderr, "Error, invalid pseudo address %06o" % pa
         return retval
     
     def pseudoToString(self, pa):
@@ -185,6 +192,18 @@ class MemoryMap:
             return "%06o" % (pa)
         else:
             return "undef "
+    
+    def pseudoToSegmentedString(self, pa):
+        text = ""
+        if pa != None:
+            (bank, offset) = self.pseudoToSegmented(pa)
+            if bank == None or offset == None:
+                text = "??????   "
+            else:
+                text = "(%02o,%04o)" % (bank, offset)
+        else:
+            text = "??????   "
+        return text
     
     def getBankNumber(self, pa):
         banknum = None
