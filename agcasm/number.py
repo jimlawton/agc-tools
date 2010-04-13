@@ -134,7 +134,7 @@ class Number:
         if escale != 0:
             realval *= escale
         if realval > 1.0:
-            print >>sys.stderr, "Invalid number, greater than 1.0 (%s)" % (text)
+            print >>sys.stderr, "Error, invalid number, greater than 1.0 (%s)" % (text)
             sys.exit()
         value = 0
         if self.size == 1:
