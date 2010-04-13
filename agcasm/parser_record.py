@@ -39,7 +39,6 @@ class ParserRecord:
         self.ebank = None                   # Current E-Bank.
         self.complete = False               # Assembly complete? i.e. all symbols resolved.
         self.target = None                  # Target address, if any, e.g. for = directive.
-        self.type = None                    # Type of record.
         
     def isComplete(self):
         return self.complete
@@ -57,6 +56,7 @@ class ParserRecord:
                     text += 6 * '?' + ' '
             else:
                 text += 7 * ' '
+            text += RecordType.toString(self.type) + "  "
             if self.type == RecordType.ASMCONST: 
                 if self.target != None:
                     text += "%-6s " % ("%05o" % self.target)
