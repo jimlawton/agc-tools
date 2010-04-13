@@ -49,15 +49,15 @@ class Context:
         self.currentRecord = None
         self.addSymbol = True
         self.reparse = False
-        self.reparseWords = []
 
-        self.loc = 0
-        self.sbank = 0
-        self.ebank = 0
-        self.fbank = 0
+        self.loc = 0        # Assembler PC, i.e. current position in fixed memory.
+        self.eloc = 0       # Current position in erasable memory.
+        self.sbank = 0      # Current S-Bank.
+        self.ebank = 0      # Current E-Bank.
+        self.fbank = 0      # Current F-Bank.
 
-        self.ebankloc = {}
-        self.fbankloc = {}
+        self.ebankloc = {}  # Saved current location for each erasable bank.
+        self.fbankloc = {}  # Saved current location for each fixed bank.
 
         for bank in range(len(self.memmap.banks[MemoryType.ERASABLE])):
             self.ebankloc[bank] = 0
@@ -72,21 +72,29 @@ class Context:
         if not self.reparse:
             self.loc += delta
 
+    def setELoc(self, loc):
+        if not self.reparse:
+            self.eloc = loc
+
+    def incrELoc(self, delta):
+        if not self.reparse:
+            self.eloc += delta
+
     def setSBank(self, bank):
         if not self.reparse:
             self.sbank = bank
 
     def switchEBank(self, bank):
         if not self.reparse:
-            self.ebankloc[self.ebank] = self.memmap.pseudoToBankOffset(self.loc)
+            self.ebankloc[self.ebank] = self.memmap.pseudoToBankOffset(self.eloc)
             self.ebank = bank
-            self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, bank, self.ebankloc[bank])
+            self.eloc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, bank, self.ebankloc[bank])
 
     def revertEbank(self):
         if not self.reparse:
-            self.ebankloc[self.ebank] = self.memmap.pseudoToBankOffset(self.loc)
+            self.ebankloc[self.ebank] = self.memmap.pseudoToBankOffset(self.eloc)
             self.ebank = self.lastEbank
-            self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank])
+            self.eloc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank])
             self.lastEbankEquals = False
 
     def switchFBank(self, bank=None):
