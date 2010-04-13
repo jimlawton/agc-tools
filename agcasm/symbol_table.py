@@ -82,7 +82,7 @@ class SymbolTable:
                     self.context.log("[%05d] added undefined symbol %s" % (len(self.symbols), name))
                 else:
                     self.symbols[name].refType = "REV"
-                    self.context.log("[%05d] added defined symbol %s" % (len(self.symbols), name))
+                    self.context.log("[%05d] added defined symbol %s (%06o)" % (len(self.symbols), name, value))
 
     def update(self, name=None, symbolic=None, value=None):
         if name != None:
@@ -92,7 +92,7 @@ class SymbolTable:
                 entry = self.symbols[name]
                 entry.value = value
                 self.symbols[name] = entry
-                self.context.log("updated symbol %s" % name)
+                self.context.log("updated symbol %s (%06o)" % (name, value))
 
     def resolve(self, maxPasses=10):
         self.context.log("resolving symbols...")
