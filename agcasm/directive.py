@@ -188,10 +188,15 @@ class Directive(Opcode):
         expr = AddressExpression(context, operands)
         if expr.complete:
             (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
-            if bank and (bank == context.fbank or bank == context.ebank):
-                aval = offset
-                context.currentRecord.code = [ aval ]
-                context.currentRecord.complete = True
+            if bank == None or offset == None:
+                context.error("invalid address %06o" % expr.value)
+            else:
+                if (bank == context.fbank or bank == context.ebank):
+                    aval = offset
+                    context.currentRecord.code = [ aval ]
+                    context.currentRecord.complete = True
+                else:
+                    context.error("bank (%03o) does not match current F bank (%03o) or E bank (%03o)" % (bank, context.fbank, context.ebank))
 
     def parse_BANK(self, context, operands):
         if operands:
@@ -454,8 +459,13 @@ class Directive(Opcode):
         if expr.complete:
             pa = expr.value
             context.currentRecord.target = pa
-            context.currentRecord.complete = True
+            bank = context.memmap.pseudoToBank(pa)
+            if context.memmap.isErasable(pa):
+                context.switchEBank(bank)
+            else:
+                context.switchFBank(bank)
             context.setLoc(pa)
+            context.currentRecord.complete = True
 
     def parse_SUBRO(self, context, operands):
         self.ignore(context)
