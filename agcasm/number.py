@@ -19,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import re
+import sys
 
 class Number:
     
@@ -367,7 +368,8 @@ def test_dp_dec():
         "4.902778 E8 B-30":         (016471, 001352),
         ".203966 E-8 B+28":         (021412, 020500),
         "2.21422176 E4 B-15":       (025477, 003367),
-        ".45162595 E-4 B+14":       (027533, 007571)
+        ".45162595 E-4 B+14":       (027533, 007571),
+        "2538.09 E3 B-27":          (000465, 032324),
     }
     return test(Number.DECIMAL, 2, testdata)
 
