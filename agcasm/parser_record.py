@@ -41,9 +41,6 @@ class ParserRecord:
         self.target = None                  # Target address, if any, e.g. for = directive.
         self.type = None                    # Type of record.
         
-    def setEBank(self, ebank):
-        self.ebank = ebank
-
     def isComplete(self):
         return self.complete
 
