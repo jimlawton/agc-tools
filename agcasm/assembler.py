@@ -23,6 +23,7 @@ import sys
 from opcode import OpcodeType
 from parser_record import ParserRecord
 from record_type import RecordType
+from interpretive import Interpretive
 
 class Assembler:
     """Class defining an AGC assembler."""
@@ -30,6 +31,7 @@ class Assembler:
     def __init__(self, context):
         self.context = context
         self.context.error = self.error
+        self.context.syntax = self.syntax
         self.context.warn = self.warn
         self.context.info = self.info
         self.context.log = self.log
@@ -94,12 +96,13 @@ class Assembler:
                         continue
                     fields = fields[1:]
                 else:
-                    if line[1] == '+' or line[1] == '-':
+                    if line.startswith(' ') and line.strip().startswith('+') or line.strip().startswith('-'):
                         pseudolabel = fields[0]
                         fields = fields[1:]
                 try:
                     opcode = fields[0]
                 except:
+                    print self.context.srcfile, self.context.linenum
                     print line
                     print fields
                     raise
@@ -117,16 +120,19 @@ class Assembler:
 
     def parse(self, label, opcode, operands):
         try:
-            # Check for any outstanding interpretive operands first, i.e. until interpArgs reaches zero.
-            if opcode in self.context.opcodes[OpcodeType.INTERPRETIVE]:
-                self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, operands)
-                self.context.interpMode = True
             if opcode in self.context.opcodes[OpcodeType.DIRECTIVE]:
                 self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, operands)
             if opcode in self.context.opcodes[self.context.mode]:
                 self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
                 if opcode != "EXTEND" and self.context.mode == OpcodeType.EXTENDED:
                     self.context.mode = OpcodeType.BASIC
+            # Check for any outstanding interpretive operands first, i.e. until interpArgs reaches zero.
+            if opcode in self.context.opcodes[OpcodeType.INTERPRETIVE]:
+                self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, operands)
+            else:
+                gotone = Interpretive.parseOperand(self.context, operands)
+                if gotone:
+                    return
             if label != None and self.context.addSymbol == True:
                 if not self.context.reparse:
                     self.context.symtab.add(label, operands, self.context.loc)
@@ -180,6 +186,9 @@ class Assembler:
         else:
             print >>sys.stderr, "%s, line %d, error: %s" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text) 
             print >>sys.stderr, self.context.currentRecord.srcline
+
+    def syntax(self, text):
+        self.error("syntax error: %s" % text)
 
     def warn(self, text):
         print >>sys.stderr, "%s, line %d, warning: %s" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text)

@@ -161,7 +161,7 @@ class Directive(Opcode):
             context.currentRecord.code = op.value
             context.currentRecord.complete = True
         else:
-            context.error("syntax error: %s %s" % (self.mnemonic, operands))
+            context.syntax("operand must be a decimal")
 
     def parse_2FCADR(self, context, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
@@ -173,7 +173,7 @@ class Directive(Opcode):
             context.currentRecord.code = op.value
             context.currentRecord.complete = True
         else:
-            context.error("syntax error: %s %s" % (self.mnemonic, operands))
+            context.syntax("operand mst be an octal")
     
     def parse_EqualsECADR(self, context, operands):
         self.ignore(context)
@@ -249,7 +249,7 @@ class Directive(Opcode):
                 context.currentRecord.target = context.loc
                 context.currentRecord.complete = True
         else:
-            context.error("invalid syntax")
+            context.syntax("operand undefined")
 
     def parse_BNKSUM(self, context, operands):
         self.ignore(context)
@@ -274,7 +274,7 @@ class Directive(Opcode):
                     context.error("CHECK= test failed, \"%s\" (%06o) != \"%s\" (%06o)" % (context.currentRecord.label, lpa, ' '.join(operands), rpa))
                 context.currentRecord.target = lpa
         else:
-            context.error("syntax error")
+            context.syntax("CHECK= directive must have a label")
         context.addSymbol = False
     
     def parse_COUNT(self, context, operands):
@@ -287,7 +287,7 @@ class Directive(Opcode):
                 context.currentRecord.code = [ op.value ]
                 context.currentRecord.complete = True
             else:
-                context.error("invalid syntax")
+                context.syntax("DEC operand must be a decimal number")
     
     def parse_DNCHAN(self, context, operands):
         op = Octal(" ".join(operands))
@@ -295,7 +295,7 @@ class Directive(Opcode):
             context.currentRecord.code = [ op.value + 034000 ]
             context.currentRecord.complete = True
         else:
-            context.error("syntax error: %s %s" % (self.mnemonic, operands))
+            context.syntax("operand must be an octal number")
     
     def parse_DNPTR(self, context, operands):
         expr = AddressExpression(context, operands)
@@ -410,7 +410,7 @@ class Directive(Opcode):
         #    if symbol:
         #        context.symtab.add(symbol, operands[0], op1)
         #else:
-        #    context.error("syntax error: %s %s" % (self.mnemonic, operand))
+        #    context.syntax()
         self.ignore(context)
     
     def parse_OCT(self, context, operands):
@@ -419,7 +419,7 @@ class Directive(Opcode):
             context.currentRecord.code = [ op.value ]
             context.currentRecord.complete = True
         else:
-            context.error("syntax error: %s %s" % (self.mnemonic, operands[0]))
+            context.syntax("operand must be an octal number")
 
     def parse_REMADR(self, context, operands):
         bank = None
@@ -469,5 +469,5 @@ class Directive(Opcode):
                 context.currentRecord.code = [ upper * 128 + lower ]
                 context.currentRecord.complete = True
             else:
-                context.error("syntax error: %s %s" % (self.mnemonic, operands))
+                context.syntax("operand must be a decimal number")
 

@@ -27,6 +27,7 @@ class Interpretive(Opcode):
     
     def __init__(self, methodName, mnemonic, opcode, numOperands=1, switchcode=None):
         Opcode.__init__(self, methodName, mnemonic, opcode, None, False, None, 1)
+        self.numOperands = numOperands
         self.switchcode = switchcode
         self.type = RecordType.INTERP
 
@@ -50,6 +51,8 @@ class Interpretive(Opcode):
         operand = None
         if oplen == 0:
             # Case 1
+            if self.numOperands > 0:
+                context.interpArgs += self.numOperands
             pass
         elif oplen == 1:
             if operands[0] in context.opcodes[OpcodeType.INTERPRETIVE]:
@@ -59,11 +62,14 @@ class Interpretive(Opcode):
         elif oplen == 2 or oplen == 3:
             operand = AddressExpression(context, operands)
         else:
-            context.error("syntax error")
+            context.syntax("invalid operand expression")
 
         code = opcodes[0] * 0200 + 1
         if len(opcodes) == 2:
             code += opcodes[1] + 1
+        else:
+            if operand != None:
+                code += operand.value & 077777
         code = ~code & 077777
 
         try:
@@ -77,3 +83,21 @@ class Interpretive(Opcode):
         context.currentRecord.complete = True
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
+        context.interpMode = True
+
+    @classmethod
+    def parseOperand(cls, context, operands):
+        if context.interpMode and context.interpArgs > 0:
+            operand = AddressExpression(context, operands)
+            if operand.complete:
+                context.currentRecord.code = [ operand.value ]
+                context.currentRecord.complete = True
+            context.incrLoc(1)
+            context.interpArgs -= 1
+            if context.interpArgs == 0:
+                context.interpMode = False
+            return True
+        return False
+
+    def parse_EXIT(self, context, operands):
+        context.interpMode = False

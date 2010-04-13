@@ -56,9 +56,9 @@ class Expression:
                         # Split a +N or -N operand.
                         operands = [ operands[0], operands[1][0], operands[1][1:] ]
                     else:
-                        context.error("invalid syntax")
+                        context.syntax("second operand must be +number or -number")
                 if operands[1] != '+' and operands[1] != '-':
-                    context.error("invalid syntax")
+                    context.syntax("expression must be either addition (+) or subtraction (-)")
             if len(operands) == 3:
                 op2 = self._parseOperand(context, operands[2])
                 if op1 != None and op2 != None:
@@ -67,8 +67,6 @@ class Expression:
                     else:
                         self.value = op1 - op2
                     self.complete = True
-        else:
-            context.error("invalid syntax")
 
     def _parseOperand(self, context, operand):
         retval = None
