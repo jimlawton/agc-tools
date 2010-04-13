@@ -120,12 +120,6 @@ class Assembler:
 
     def parse(self, label, opcode, operands):
         try:
-            if opcode in self.context.opcodes[OpcodeType.DIRECTIVE]:
-                self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, operands)
-            if opcode in self.context.opcodes[self.context.mode]:
-                self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
-                if opcode != "EXTEND" and self.context.mode == OpcodeType.EXTENDED:
-                    self.context.mode = OpcodeType.BASIC
             # Check for any outstanding interpretive operands first, i.e. until interpArgs reaches zero.
             if opcode in self.context.opcodes[OpcodeType.INTERPRETIVE]:
                 self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, operands)
@@ -133,6 +127,12 @@ class Assembler:
                 gotone = Interpretive.parseOperand(self.context, operands)
                 if gotone:
                     return
+            if opcode in self.context.opcodes[OpcodeType.DIRECTIVE]:
+                self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, operands)
+            if opcode in self.context.opcodes[self.context.mode]:
+                self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
+                if opcode != "EXTEND" and self.context.mode == OpcodeType.EXTENDED:
+                    self.context.mode = OpcodeType.BASIC
             if label != None and self.context.addSymbol == True:
                 if not self.context.reparse:
                     self.context.symtab.add(label, operands, self.context.loc)
