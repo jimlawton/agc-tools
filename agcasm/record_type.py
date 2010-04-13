@@ -105,7 +105,24 @@ class RecordType:
     @classmethod
     def isInterpretive(cls, rectype):
         """Return True if record type is interpretive."""
-        if rectype == RecordType.INTERPRETIVE:
+        if rectype == RecordType.INTERP:
             return True
         else:
             return False
+
+    @classmethod
+    def toString(cls, rectype):
+        textdict = { 
+            RecordType.NONE:      "   ", 
+            RecordType.INCLUDE:   " @ ", 
+            RecordType.BLANK:     "   ", 
+            RecordType.COMMENT:   "   ", 
+            RecordType.LABEL:     "-L-", 
+            RecordType.ASMCONST:  "-A-", 
+            RecordType.CONST:     "-C-", 
+            RecordType.EXEC:      "-E-", 
+            RecordType.INTERP:    "-I-", 
+            RecordType.IGNORE:    "   " 
+        }
+        return textdict[rectype]
+    
