@@ -116,6 +116,7 @@ class Interpretive(Opcode):
     @classmethod
     def parseOperand(cls, context, operands):
         if context.interpMode and context.interpArgs > 0:
+            context.log("interpretive: trying to parse operand %s" % operands)
             newoperands = []
             indexreg = 0
             if context.indexed:
@@ -140,7 +141,10 @@ class Interpretive(Opcode):
                         code = ~code & 077777
                 context.currentRecord.code = [ code ]
                 context.currentRecord.complete = True
+                context.log("interpretive: generated operand %05o" % code)
                 return True
+            else:
+                context.log("interpretive: operand undefined")
             context.incrLoc(1)
             context.interpArgs -= 1
             if context.interpArgs == 0:
