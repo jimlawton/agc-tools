@@ -380,7 +380,7 @@ class Directive(Opcode):
             else:
                 context.symtab.update(context.currentRecord.label, operands, context.loc)
         context.currentRecord.target = context.loc
-        context.incrLoc(size)
+        context.incrELoc(size)
         context.addSymbol = False
         
     def parse_FCADR(self, context, operands):
