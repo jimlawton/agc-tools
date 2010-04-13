@@ -42,22 +42,26 @@ class Interpretive(Opcode):
         # TODO: Handle store opcodes separately.
         # TODO: Handle interpretive operands ending in ,x. What does it mean?
         
+        mnemonic2 = None
+        
         if operands:
             oplen = len(operands)
         else:
             oplen = 0
         opcodes = [ self.opcode ]
         
-        operand = None
         if oplen == 0:
+            context.log("interpretive: %s (%03o)" % (self.mnemonic, self.opcode))
             # Case 1
             if self.numOperands > 0:
+                context.log("incrementing interpArgs: %d -> %d" % (context.interpArgs, context.interpArgs + self.numOperands))
                 context.interpArgs += self.numOperands
-            pass
         elif oplen == 1:
             if operands[0] in context.opcodes[OpcodeType.INTERPRETIVE]:
                 # Case 2
+                mnemonic2 = operands[0]
                 opobj = context.opcodes[OpcodeType.INTERPRETIVE][operands[0]]
+                context.log("interpretive: %s (%03o), %s (%03o)" % (self.mnemonic, self.opcode, opobj.mnemonic, opobj.opcode))
                 opcodes.append(opobj.opcode)
         elif oplen == 2 or oplen == 3:
             pass
@@ -69,8 +73,9 @@ class Interpretive(Opcode):
 
         context.currentRecord.code = None
 
+        gotone = False
         if oplen == 2 or oplen == 3:
-            Interpretive.parseOperand(context, operands)
+            gotone = Interpretive.parseOperand(context, operands)
 
         try:
             method = self.__getattribute__("parse_" + self.methodName)
@@ -79,14 +84,27 @@ class Interpretive(Opcode):
         if method:
             method(context, operands)
 
-        code = opcodes[0] * 0200 + 1
+        if mnemonic2 != None:
+            try:
+                method = self.__getattribute__("parse_" + opobj.methodName)
+            except:
+                method = None
+            if method:
+                operands = operands[1:]
+                method(context, operands)
+
+        code = opcodes[0] + 1
         if len(opcodes) == 2:
-            code += opcodes[1] + 1
+            code += (opcodes[1] + 1) * 0200
+            context.log("interpretive: opcodes %03o %03o" % (opcodes[0], opcodes[1]))
         else:
-            if context.currentRecord.code != None:
+            context.log("interpretive: opcode %03o" % (opcodes[0]))
+            if gotone:
                 operandcode = context.currentRecord.code[0]
+                context.log("interpretive: operand %05o" % (operandcode))
                 code += operandcode & 077777
 
+        context.log("interpretive: generated %05o (%03o,%03o)" % (~code & 077777, (code / 0200) & 0177, code & 0177))
         code = ~code & 077777
 
         context.currentRecord.code = [ code ]
@@ -122,11 +140,11 @@ class Interpretive(Opcode):
                         code = ~code & 077777
                 context.currentRecord.code = [ code ]
                 context.currentRecord.complete = True
+                return True
             context.incrLoc(1)
             context.interpArgs -= 1
             if context.interpArgs == 0:
                 context.interpMode = False
-            return True
         return False
 
     def parse_EXIT(self, context, operands):
