@@ -36,7 +36,7 @@ class Assembler:
         self.context.info = self.info
         self.context.log = self.log
 
-    def _makeNewRecord(self, line, type, label, pseudolabel, opcode, operands, comment):
+    def _makeNewRecord(self, line, rectype, label, pseudolabel, opcode, operands, comment):
         srcfile = self.context.srcfile
         linenum = self.context.linenum
         srcline = line
@@ -45,9 +45,10 @@ class Assembler:
         if label == None and pseudolabel == None and opcode == None and operands == None:
             address = None
             code = None
-        if type == None:
-            type = RecordType.NONE
-        return ParserRecord(srcfile, linenum, srcline, type, label, pseudolabel, opcode, operands, comment, address, code)
+        tmpType = rectype
+        if rectype == None:
+            tmpType = RecordType.NONE
+        return ParserRecord(srcfile, linenum, srcline, tmpType, label, pseudolabel, opcode, operands, comment, address, code)
 
     def assemble(self, srcfile):
         self.info("Assembling %s" % srcfile)
@@ -68,55 +69,62 @@ class Assembler:
             opcode = None
             operands = None
             comment = None
+
             if line.startswith('$'):
                 modname = line[1:].split()[0]
                 if not os.path.isfile(modname):
                     self.fatal("File \"%s\" does not exist" % modname)
-                self.context.records.append(self._makeNewRecord(srcline, RecordType.INCLUDE, None, None, None, None, comment))
+                record = self._makeNewRecord(srcline, RecordType.INCLUDE, None, None, None, None, comment)
+                self.context.records.append(record)
                 self.assemble(modname)
                 continue
+            
             if len(line.strip()) == 0:
                 self.context.records.append(self._makeNewRecord(srcline, RecordType.BLANK, None, None, None, None, None))
                 continue
+            
             if line.strip().startswith('#'):
                 comment = line
-                self.context.records.append(self._makeNewRecord(srcline, RecordType.COMMENT, None, None, None, None, comment))
+                record = self._makeNewRecord(srcline, RecordType.COMMENT, None, None, None, None, comment)
+                self.context.records.append(record)
+                continue
+            
+            # Real parsing starts here.
+            if '#' in line:
+                comment = line[line.index('#'):]
+                line = line[:line.index('#')]
+            fields = line.split()
+            if not line.startswith(' ') and not line.startswith('\t'):
+                label = fields[0]
+                if len(fields) == 1:
+                    # Label only.
+                    self.context.symtab.add(label, None, self.context.loc)
+                    record = self._makeNewRecord(srcline, RecordType.LABEL, label, None, None, None, comment)
+                    self.context.records.append(record)
+                    continue
+                fields = fields[1:]
             else:
-                # Real parsing starts here.
-                if '#' in line:
-                    comment = line[line.index('#'):]
-                    line = line[:line.index('#')]
-                fields = line.split()
-                if not line.startswith(' ') and not line.startswith('\t'):
-                    label = fields[0]
-                    if len(fields) == 1:
-                        # Label only.
-                        self.context.symtab.add(label, None, self.context.loc)
-                        self.context.records.append(self._makeNewRecord(srcline, RecordType.LABEL, label, None, None, None, comment))
-                        continue
+                if line.startswith(' ') and line.strip(' ').startswith('+') or line.strip(' ').startswith('-'):
+                    pseudolabel = fields[0]
                     fields = fields[1:]
-                else:
-                    if line.startswith(' ') and line.strip(' ').startswith('+') or line.strip(' ').startswith('-'):
-                        pseudolabel = fields[0]
-                        fields = fields[1:]
-                try:
-                    opcode = fields[0]
-                except:
-                    print self.context.srcfile, self.context.linenum
-                    print line
-                    print fields
-                    raise
-                operands = " " .join(fields[1:])
-                if operands == "":
-                    operands = None
-                else:
-                    operands = operands.strip().split()
-                if self.context.mode == OpcodeType.EXTENDED and opcode not in self.context.opcodes[OpcodeType.EXTENDED]:
-                    self.context.error("missing EXTEND before extended instruction")
-                else:
-                    self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
-                    self.parse(label, opcode, operands)
-                    self.context.records.append(self.context.currentRecord)
+            try:
+                opcode = fields[0]
+            except:
+                print self.context.srcfile, self.context.linenum
+                print line
+                print fields
+                raise
+            operands = " " .join(fields[1:])
+            if operands == "":
+                operands = None
+            else:
+                operands = operands.strip().split()
+            if self.context.mode == OpcodeType.EXTENDED and opcode not in self.context.opcodes[OpcodeType.EXTENDED]:
+                self.context.error("missing EXTEND before extended instruction")
+            else:
+                self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
+                self.parse(label, opcode, operands)
+                self.context.records.append(self.context.currentRecord)
 
     def parse(self, label, opcode, operands):
         try:
@@ -124,7 +132,10 @@ class Assembler:
             if opcode in self.context.opcodes[OpcodeType.INTERPRETIVE]:
                 self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, operands)
             else:
-                gotone = Interpretive.parseOperand(self.context, operands)
+                newoperands = [ opcode ]
+                if operands:
+                    newoperands.extend(operands)
+                gotone = Interpretive.parseOperand(self.context, newoperands)
                 if gotone:
                     return
             if opcode in self.context.opcodes[OpcodeType.DIRECTIVE]:
