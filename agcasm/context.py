@@ -46,6 +46,7 @@ class Context:
         self.srcline = None
         self.interpMode = False
         self.interpArgs = 0
+        self.indexed = False
         self.currentRecord = None
         self.addSymbol = True
         self.reparse = False
