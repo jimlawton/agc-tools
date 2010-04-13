@@ -96,7 +96,7 @@ class Assembler:
                         continue
                     fields = fields[1:]
                 else:
-                    if line.startswith(' ') and line.strip().startswith('+') or line.strip().startswith('-'):
+                    if line.startswith(' ') and line.strip(' ').startswith('+') or line.strip(' ').startswith('-'):
                         pseudolabel = fields[0]
                         fields = fields[1:]
                 try:
