@@ -38,7 +38,17 @@ class Instruction(Opcode):
                 context.currentRecord.complete = True
         else:
             if operands == None:
-                context.error("missing operand")
+                if self.mnemonic == "TC" or self.mnemonic == "DV":
+                    # HACK: TC and DV are also used as labels in interpretive code.
+                    expr = AddressExpression(context, [ self.mnemonic ])
+                    if expr.complete:
+                        context.currentRecord.code = [ expr.value ]
+                        context.currentRecord.complete = True
+                        context.currentRecord.type = self.type
+                        context.incrLoc(self.numwords)
+                        return
+                else:
+                    context.error("missing operand")
             else:
                 pa = None
                 if operands:

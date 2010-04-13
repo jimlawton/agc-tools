@@ -41,7 +41,17 @@ class Directive(Opcode):
         else:
             if operands == None:
                 if not self.operandOptional:
-                    context.error("missing operand")
+                    if self.mnemonic == "MM" or self.mnemonic == "VN":
+                        # HACK: VN and MM are also used as labels in interpretive code.
+                        expr = AddressExpression(context, [ self.mnemonic ])
+                        if expr.complete:
+                            context.currentRecord.code = [ expr.value ]
+                            context.currentRecord.complete = True
+                            context.currentRecord.type = self.type
+                            context.incrLoc(self.numwords)
+                            return
+                    else:
+                        context.error("missing operand")
 
         try:
             method = self.__getattribute__("parse_" + self.methodName)
@@ -175,7 +185,7 @@ class Directive(Opcode):
             context.currentRecord.complete = True
     
     def parse_ADRES(self, context, operands):
-        expr = Expression(context, operands)
+        expr = AddressExpression(context, operands)
         if expr.complete:
             (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
             if bank and (bank == context.fbank or bank == context.ebank):
@@ -198,7 +208,7 @@ class Directive(Opcode):
 
     def parse_BBCON(self, context, operands):
         fbank = None
-        expr = Expression(context, operands)
+        expr = AddressExpression(context, operands)
         if expr.complete:
             fbank = context.memmap.getBankNumber(expr.value)
         if fbank != None:
@@ -249,7 +259,7 @@ class Directive(Opcode):
     def parse_CADR(self, context, operands):
         word = None
         if operands:
-            expr = Expression(context, operands)
+            expr = AddressExpression(context, operands)
             if expr.complete:
                 word = expr.value
                 context.currentRecord.code = [ word - 010000 ]
@@ -290,14 +300,13 @@ class Directive(Opcode):
             context.error("syntax error: %s %s" % (self.mnemonic, operands))
     
     def parse_DNPTR(self, context, operands):
-        expr = Expression(context, operands)
+        expr = AddressExpression(context, operands)
         if expr.complete:
-            channel = expr.value
-            if context.memmap.isChannel(channel):
-                context.currentRecord.code = [ channel + 030000 ]
+            (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
+            if bank and (bank == context.fbank or bank == context.ebank):
+                aval = offset
+                context.currentRecord.code = [ aval ]
                 context.currentRecord.complete = True
-            else:
-                context.error("operand must be a channel number")
     
     def parse_EBANKEquals(self, context, operands):
         op = Number(operands[0])
