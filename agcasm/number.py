@@ -374,8 +374,6 @@ def test_dp_dec():
     return test(Number.DECIMAL, 2, testdata)
 
 if __name__=="__main__":
-    import sys
-
     print "AGC Number classes tester..."
 
     passed = failed = 0
