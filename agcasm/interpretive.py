@@ -46,18 +46,17 @@ class Interpretive(Opcode):
         else:
             oplen = 0
         opcodes = [ self.opcode ]
-        nOpFields = oplen
         
         operand = None
-        if nOpFields == 0:
+        if oplen == 0:
             # Case 1
             pass
-        elif nOpFields == 1:
+        elif oplen == 1:
             if operands[0] in context.opcodes[OpcodeType.INTERPRETIVE]:
                 # Case 2
                 opobj = context.opcodes[OpcodeType.INTERPRETIVE][operands[0]]
                 opcodes.append(opobj.opcode)
-        elif nOpFields == 2 or nOpFields == 3:
+        elif oplen == 2 or oplen == 3:
             operand = AddressExpression(context, operands)
         else:
             context.error("syntax error")
