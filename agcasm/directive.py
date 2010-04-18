@@ -194,6 +194,7 @@ class Directive(Opcode):
                 if (bank == context.fbank or bank == context.ebank):
                     aval = offset
                     context.currentRecord.code = [ aval ]
+                    context.currentRecord.target = expr.value
                     context.currentRecord.complete = True
                 else:
                     context.error("bank (%03o) does not match current F bank (%03o) or E bank (%03o)" % (bank, context.fbank, context.ebank))
