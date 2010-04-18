@@ -85,7 +85,7 @@ class Context:
             if self.memmap.isErasable(self.loc):
                 self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, bank, self.ebankloc[bank])
             self.lastEbankEquals = True
-            self.log("switchEBank: switched to %s" % (self.memmap.pseudoToSegmentedString(self.loc)))
+            self.log("switched EB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.loc), self.srcfile, self.linenum))
 
     def revertEbank(self):
         if not self.reparse:
@@ -105,9 +105,9 @@ class Context:
                     self.fbankloc[self.fbank] = offset
                     self.fbank = bank
                     self.loc = self.memmap.segmentedToPseudo(MemoryType.FIXED, bank, self.fbankloc[self.fbank])
-                    self.log("switchFBank: switched to %s" % (self.memmap.pseudoToSegmentedString(self.loc)))
+                    self.log("switched FB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.loc), self.srcfile, self.linenum))
                 else:
                     self.error("invalid address %06o" % self.loc)
             else:
                 self.loc = self.memmap.segmentedToPseudo(MemoryType.FIXED, self.fbank, self.fbankloc[self.fbank])
-                self.log("switchFBank: switched to %s" % (self.memmap.pseudoToSegmentedString(self.loc)))
+                self.log("switched FB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.loc), self.srcfile, self.linenum))
