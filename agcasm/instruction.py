@@ -56,7 +56,7 @@ class Instruction(Opcode):
                     if expr.complete:
                         pa = expr.value
                         offset = context.memmap.pseudoToBankOffset(pa)
-                        if offset:
+                        if offset != None:
                             context.currentRecord.code = [ self.opcode + offset ]
                             context.currentRecord.complete = True
                 else:
