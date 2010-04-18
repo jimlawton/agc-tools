@@ -50,11 +50,7 @@ class SymbolTableEntry:
             text += "%-20s" % "******"
         else:
             text += "%-10s" % self.context.memmap.pseudoToString(self.value)
-            (bank, offset) = self.context.memmap.pseudoToSegmented(self.value)
-            if bank != None:
-                text += "(%02o,%04o) " % (bank, offset)
-            else:
-                text += 10 * ' ' 
+            text += "%s " % self.context.memmap.pseudoToSegmentedString(self.value)
         if self.symbolic:
             text += "%-32s " % (' '.join(self.symbolic))
         else:
@@ -79,10 +75,10 @@ class SymbolTable:
                 if value == None:
                     self.undefs.append(name)
                     self.symbols[name].refType = "FWD"
-                    self.context.log("[%05d] added undefined symbol %s" % (len(self.symbols), name))
+                    self.context.log("[%05d] added undefined symbol %-8s" % (len(self.symbols), name))
                 else:
                     self.symbols[name].refType = "REV"
-                    self.context.log("[%05d] added defined symbol %s %s" % (len(self.symbols), name, self.context.memmap.pseudoToSegmentedString(value)))
+                    self.context.log("[%05d] added   defined symbol %-8s %s" % (len(self.symbols), name, self.context.memmap.pseudoToSegmentedString(value)))
 
     def update(self, name=None, symbolic=None, value=None):
         if name != None:
@@ -92,7 +88,7 @@ class SymbolTable:
                 entry = self.symbols[name]
                 entry.value = value
                 self.symbols[name] = entry
-                self.context.log("updated symbol %s %s" % (name, self.context.memmap.pseudoToSegmentedString(value)))
+                self.context.log("updated symbol %-8s %s" % (name, self.context.memmap.pseudoToSegmentedString(value)))
 
     def resolve(self, maxPasses=10):
         self.context.log("resolving symbols...")
