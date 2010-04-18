@@ -75,6 +75,7 @@ OPCODES = {
             "BZMF":   Instruction("BZMF",   060000,  OperandType.EXPRESSION,    AddressType.FIXED_12),
             "DCA":    Instruction("DCA",    030001,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "DCOM":   Instruction("DCOM",   040001),
+            "DCS":    Instruction("DCS",    040001,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "DIM":    Instruction("DIM",    026000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
             "EDRUPT": Instruction("EDRUPT", 007000,  OperandType.EXPRESSION,    AddressType.FIXED_9),
             "INDEX":  Instruction("INDEX",  050000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
