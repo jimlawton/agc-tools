@@ -23,7 +23,8 @@ from record_type import RecordType
 class ParserRecord:
     """Class storing parser data."""
     
-    def __init__(self, srcfile, linenum, srcline, type, label, pseudolabel, opcode, operands, comment, address, code):
+    def __init__(self, context, srcfile, linenum, srcline, type, label, pseudolabel, opcode, operands, comment, address, code):
+        self.context = context              # Assembler context.
         self.srcfile = srcfile              # Source filename.
         self.linenum = linenum              # Source line number.
         self.srcline = srcline              # Source line.
@@ -47,35 +48,26 @@ class ParserRecord:
         text = ""
         text += "%06d " % self.linenum
         if RecordType.isIgnored(self.type):
-            text += 27 * ' ' 
+            text += 38 * ' ' 
         else: 
             if RecordType.isAddressValid(self.type):
-                if self.address != None:
-                    text += "%06o " % self.address
-                else:
-                    text += 6 * '?' + ' '
+                text += self.context.memmap.pseudoToSegmentedString(self.address) + ' '
             else:
-                text += 7 * ' '
+                text += 10 * ' '
             text += RecordType.toString(self.type) + "  "
-            if self.type == RecordType.ASMCONST: 
-                if self.target != None:
-                    text += "%-6s " % ("%05o" % self.target)
-                else:
-                    text += 6 * '?' + ' '
+            if self.target: 
+                text += self.context.memmap.pseudoToSegmentedString(self.target) + ' '
             else:
-                text += 7 * ' '
+                text += 10 * ' '
             if RecordType.isGenerative(self.type):
                 if self.code != None and len(self.code) > 0:
                     if len(self.code) == 1:
-                        if self.code[0] > 077777:
-                            text += "%06o %s " % (self.code[0], 5 * ' ')
-                        else:
-                            text += " %05o %s " % (self.code[0], 5 * ' ')
+                        text += " %05o %s " % (self.code[0] & 077777, 5 * ' ')
                     else:
-                        text += "%05o %05o  " % (self.code[0], self.code[1])
+                        text += " %05o %05o " % (self.code[0] & 077777, self.code[1] & 077777)
                 else:
                     text += " ????? " + 6 * ' ' 
             else:
                 text += 13 * ' '
-        text += "%s" % self.srcline
+        text += "   %s" % self.srcline
         return text
