@@ -48,7 +48,7 @@ class Assembler:
         tmpType = rectype
         if rectype == None:
             tmpType = RecordType.NONE
-        return ParserRecord(srcfile, linenum, srcline, tmpType, label, pseudolabel, opcode, operands, comment, address, code)
+        return ParserRecord(self.context, srcfile, linenum, srcline, tmpType, label, pseudolabel, opcode, operands, comment, address, code)
 
     def assemble(self, srcfile):
         self.info("Assembling %s" % srcfile)
@@ -192,20 +192,29 @@ class Assembler:
 
     def error(self, text, noSource=False):
         if noSource:
-            print >>sys.stderr, "error: %s" % (text) 
+            msg = "error: %s" % (text) 
         else:
-            print >>sys.stderr, "%s, line %d, error: %s" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text) 
-            print >>sys.stderr, self.context.currentRecord.srcline
+            msg = "%s, line %d, error: %s\n" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text) 
+            msg += "%s" % self.context.currentRecord.srcline
+        print >>sys.stderr, msg
+        self.log(msg)
 
     def syntax(self, text):
         self.error("syntax error: %s" % text)
 
     def warn(self, text):
-        print >>sys.stderr, "%s, line %d, warning: %s" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text)
+        msg = "%s, line %d, warning: %s" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text)
+        print >>sys.stderr, msg
+        self.log(msg)
 
     def info(self, text):
+        if self.context.currentRecord:
+            msg = "%s, line %d, %s" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text)
+        else:
+            msg = "%s" % (text)
         if self.context.verbose:
-            print >>sys.stderr, "%s, line %d, %s" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text)
+            print msg
+        self.log(msg)
 
     def log(self, text):
         if self.context.logging:
