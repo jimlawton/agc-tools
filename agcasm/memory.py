@@ -51,11 +51,11 @@ class BankDescriptor:
             self.name = name
         else:
             if banknum:
-                self.name = "%03o" % banknum
+                self.name = "%02o" % banknum
         self.superbank = superbank
 
     def __str__(self):
-        return "%06o %d %d %03o %05o" % (self.startaddr, self.memtype, self.banktype, self.banknum, self.size)
+        return "%06o %d %d %02o %04o" % (self.startaddr, self.memtype, self.banktype, self.banknum, self.size)
         
 # Memory Map
 MAPS = {
@@ -196,13 +196,21 @@ class MemoryMap:
     def pseudoToSegmentedString(self, pa):
         text = ""
         if pa != None:
-            (bank, offset) = self.pseudoToSegmented(pa)
-            if bank == None or offset == None:
-                text = "??????   "
+            bankdesc = self._findBank(pa)
+            if bankdesc:
+                (bank, offset) = self.pseudoToSegmented(pa)
+                if bank == None or offset == None:
+                    text = "??????   "
+                else:
+                    if bankdesc.memtype == MemoryType.ERASABLE: 
+                        bankstr = "E%1o" % bankdesc.banknum
+                        text = "(%-2s,%04o)" % (bankstr, offset)
+                    else:
+                        text = "(%02o,%04o)" % (bank, offset)
             else:
-                text = "(%02o,%04o)" % (bank, offset)
+                text = "(??,????)"
         else:
-            text = "??????   "
+            text = "(??,????)"
         return text
     
     def getBankNumber(self, pa):
