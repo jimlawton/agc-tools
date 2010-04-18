@@ -77,15 +77,19 @@ class Context:
             self.sbank = bank
 
     def switchEBank(self, bank):
+        pa = self.ebankloc[bank]
+        self.switchEBankPA(pa)
+
+    def switchEBankPA(self, pa):
         if not self.reparse:
             self.lastEbank = self.ebank
             if self.memmap.isErasable(self.loc):
                 self.ebankloc[self.ebank] = self.memmap.pseudoToBankOffset(self.loc)
-            self.ebank = bank
+            self.ebank = self.memmap.pseudoToBank(pa)
             if self.memmap.isErasable(self.loc):
-                self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, bank, self.ebankloc[bank])
+                self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.ebank, self.ebankloc[self.ebank])
             self.lastEbankEquals = True
-            self.log("switched EB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.loc), self.srcfile, self.linenum))
+            self.log("switched EB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.srcfile, self.linenum))
 
     def revertEbank(self):
         if not self.reparse:
@@ -95,6 +99,7 @@ class Context:
                 self.ebank = self.lastEbank
                 if self.memmap.isErasable(self.loc):
                     self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank])
+                self.log("reverted EB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.srcfile, self.linenum))
                 self.lastEbankEquals = False
 
     def switchFBank(self, bank=None):
