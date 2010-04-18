@@ -151,6 +151,7 @@ class Directive(Opcode):
             else:
                 word2 = context.memmap.getBankNumber(word1)
             context.currentRecord.code = [word1, word2]
+            context.currentRecord.target = expr.value
             context.currentRecord.complete = True
         if context.lastEbankEquals:
             context.revertEbank()
@@ -230,6 +231,7 @@ class Directive(Opcode):
             # Bits 3-1 equals the current EBANK= code.
             bbval |= (context.ebank & 07)
             context.currentRecord.code = [ bbval ]
+            context.currentRecord.target = expr.value
             context.currentRecord.complete = True
         if context.lastEbankEquals:
             context.revertEbank()
@@ -267,6 +269,7 @@ class Directive(Opcode):
             if expr.complete:
                 word = expr.value
                 context.currentRecord.code = [ word - 010000 ]
+                context.currentRecord.target = word
                 context.currentRecord.complete = True
     
     def parse_CHECKEquals(self, context, operands):
