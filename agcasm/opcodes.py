@@ -31,6 +31,7 @@ OPCODES = {
         OpcodeType.BASIC: {
             # Name                Method    Opcode   Operand Type               Address Type 
             "AD":     Instruction("AD",     060000,  OperandType.EXPRESSION,    AddressType.ERASABLE_12), 
+            "ADS":    Instruction("ADS",    026000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
             "CA":     Instruction("CA",     030000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "CAE":    Instruction("CAE",    030000,  OperandType.EXPRESSION,    AddressType.ERASABLE_12),
             "CAF":    Instruction("CAF",    030000,  OperandType.EXPRESSION,    AddressType.FIXED_12),
@@ -69,7 +70,6 @@ OPCODES = {
         },
         OpcodeType.EXTENDED: {
             # Name                Method    Opcode   Operand
-            "ADS":    Instruction("ADS",    026000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
             "AUG":    Instruction("AUG",    024000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10), 
             "BZF":    Instruction("BZF",    010000,  OperandType.EXPRESSION,    AddressType.FIXED_12),  
             "BZMF":   Instruction("BZMF",   060000,  OperandType.EXPRESSION,    AddressType.FIXED_12),
