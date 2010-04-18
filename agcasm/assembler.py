@@ -142,8 +142,6 @@ class Assembler:
                 self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, operands)
             if opcode in self.context.opcodes[self.context.mode]:
                 self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
-                if opcode != "EXTEND" and self.context.mode == OpcodeType.EXTENDED:
-                    self.context.mode = OpcodeType.BASIC
             if label != None and self.context.addSymbol == True:
                 if not self.context.reparse:
                     self.context.symtab.add(label, operands, self.context.loc)
