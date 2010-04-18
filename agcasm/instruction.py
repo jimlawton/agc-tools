@@ -74,8 +74,9 @@ class Instruction(Opcode):
         if self.numwords == 0:
             context.currentRecord.complete = True
 
-        if self.mnemonic != "EXTEND" and context.mode == OpcodeType.EXTENDED:
-            context.mode = OpcodeType.BASIC
+        if context.mode == OpcodeType.EXTENDED:
+            if self.mnemonic != "EXTEND" and self.mnemonic != "INDEX": 
+                context.mode = OpcodeType.BASIC
     
     def parse_EXTEND(self, context, operands):
         context.mode = OpcodeType.EXTENDED
