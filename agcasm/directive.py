@@ -316,21 +316,20 @@ class Directive(Opcode):
                 context.currentRecord.complete = True
     
     def parse_EBANKEquals(self, context, operands):
-        op = Number(operands[0])
-        if op.isValid():
-            context.switchEBank(op.value)
-            context.currentRecord.target = op.value
-        else:
-            entry = context.symtab.lookup(operands[0])
-            if entry != None:
-                bank = context.memmap.getBankNumber(entry.value)
-                if bank != None:
-                    context.switchEBank(bank)
-                    context.currentRecord.target = entry.value
+        pa = None
+        expr = AddressExpression(context, operands)
+        if expr.complete:
+            pa = expr.value
+            if context.memmap.isErasable(pa):
+                context.switchEBankPA(pa)
+                context.currentRecord.target = pa
+                context.currentRecord.complete = True
+            else:
+                context.error("operand must be in erasable memory")
 
     def parse_ECADR(self, context, operands):
         pa = None
-        expr = Expression(context, operands)
+        expr = AddressExpression(context, operands)
         if expr.complete:
             pa = expr.value
             if context.memmap.isErasable(pa):
@@ -388,7 +387,7 @@ class Directive(Opcode):
         
     def parse_FCADR(self, context, operands):
         pa = None
-        expr = Expression(context, operands)
+        expr = AddressExpression(context, operands)
         if expr.complete:
             pa = expr.value
             if context.memmap.isFixed(pa):
@@ -448,7 +447,7 @@ class Directive(Opcode):
 
     def parse_SBANKEquals(self, context, operands):
         pa = None
-        expr = Expression(context, operands)
+        expr = AddressExpression(context, operands)
         if expr.complete:
             pa = expr.value
             if context.memmap.isFixed(pa):
@@ -459,7 +458,7 @@ class Directive(Opcode):
                 context.error("operand must be in fixed memory")
     
     def parse_SETLOC(self, context, operands):
-        expr = Expression(context, operands)
+        expr = AddressExpression(context, operands)
         if expr.complete:
             pa = expr.value
             context.currentRecord.target = pa
