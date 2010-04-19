@@ -158,10 +158,11 @@ class Assembler:
         self.context.reparse = True
         saveRecord = self.context.currentRecord
         self.context.currentRecord = record
+        self.context.mode = record.mode
         self.parse(record.label, record.opcode, record.operands)
         self.context.records[recordIndex] = self.context.currentRecord
         self.context.currentRecord = saveRecord
-        self.context.log("updated record %d: %s" % (recordIndex, self.context.records[recordIndex]))
+        self.context.log("updated record %06d: %s" % (recordIndex, self.context.records[recordIndex]))
         self.context.reparse = False
         
     def resolve(self, maxPasses=10):
