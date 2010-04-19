@@ -192,13 +192,12 @@ class Directive(Opcode):
             if bank == None or offset == None:
                 context.error("invalid address %06o" % expr.value)
             else:
-                if (bank == context.fbank or bank == context.ebank):
-                    context.currentRecord.code = [ offset ]
-                    context.currentRecord.target = expr.value
-                    context.currentRecord.complete = True
-                    context.info("ADRES bank:%03o, FB:%03o, EB:%03o" % (bank, context.fbank, context.ebank))
-                else:
-                    context.error("bank (%03o) does not match current F bank (%03o) or E bank (%03o)" % (bank, context.fbank, context.ebank))
+                context.currentRecord.code = [ offset ]
+                context.currentRecord.target = expr.value
+                context.currentRecord.complete = True
+                context.info("ADRES bank:%03o, FB:%03o, EB:%03o" % (bank, context.fbank, context.ebank))
+                if (bank != context.fbank and bank != context.ebank):
+                    context.warn("bank (%03o) does not match current F bank (%03o) or E bank (%03o)" % (bank, context.fbank, context.ebank))
 
     def parse_BANK(self, context, operands):
         if operands:
