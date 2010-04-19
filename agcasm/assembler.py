@@ -159,6 +159,12 @@ class Assembler:
         saveRecord = self.context.currentRecord
         self.context.currentRecord = record
         self.context.mode = record.mode
+        self.context.sbank = record.sbank
+        self.context.ebank = record.ebank
+        self.context.fbank = record.fbank
+        self.context.loc = record.loc
+        self.context.lastEbank = record.lastEbank
+        self.context.lastEbankEquals = record.lastEbankEquals
         self.parse(record.label, record.opcode, record.operands)
         self.context.records[recordIndex] = self.context.currentRecord
         self.context.currentRecord = saveRecord
