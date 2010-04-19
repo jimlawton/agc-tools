@@ -40,6 +40,7 @@ class ParserRecord:
         self.ebank = None                   # Current E-Bank.
         self.complete = False               # Assembly complete? i.e. all symbols resolved.
         self.target = None                  # Target address, if any, e.g. for = directive.
+        self.mode = context.mode            # Mode.
         
     def isComplete(self):
         return self.complete
