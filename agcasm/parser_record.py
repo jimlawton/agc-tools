@@ -41,6 +41,12 @@ class ParserRecord:
         self.complete = False               # Assembly complete? i.e. all symbols resolved.
         self.target = None                  # Target address, if any, e.g. for = directive.
         self.mode = context.mode            # Mode.
+        self.sbank = context.sbank          # S Bank.
+        self.ebank = context.ebank          # E Bank.
+        self.fbank = context.fbank          # F Bank.
+        self.loc = context.loc
+        self.lastEbank = context.lastEbank
+        self.lastEbankEquals = context.lastEbankEquals
         
     def isComplete(self):
         return self.complete
