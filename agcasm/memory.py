@@ -57,6 +57,24 @@ class BankDescriptor:
     def __str__(self):
         return "%06o %d %d %02o %04o" % (self.startaddr, self.memtype, self.banktype, self.banknum, self.size)
         
+    def isErasable(self):
+        if self.memtype == MemoryType.ERASABLE:
+            return True
+        else:
+            return False
+
+    def isFixed(self):
+        return (not self.isErasable())
+
+    def isSwitched(self):
+        if self.banktype == BankType.SWITCHED:
+            return True
+        else:
+            return False
+        
+    def isUnswitched(self):
+        return (not self.isSwitched())
+
 # Memory Map
 MAPS = {
     # Each entry contains (start_address, size, number)
@@ -142,25 +160,30 @@ class MemoryMap:
             if pa < startaddr + self.memmap[startaddr].size:
                 found = True
                 break
-        
         if found:
             bank = self.memmap[startaddr]
-       
         return bank
         
-    def segmentedToPseudo(self, banktype, bank, address=0):
-        pa = self.banks[banktype][bank].startaddr + address
+    def segmentedToPseudo(self, banktype, bank, offset=0):
+        pa = self.banks[banktype][bank].startaddr + offset
         return pa
     
-    def segmentedToString(self, bank, address=0):
-        return "%02o,%04o" % (bank, address)
+    def segmentedToString(self, bank, offset=0):
+        return "%02o,%04o" % (bank, offset)
         
     def pseudoToSegmented(self, pa):
         retval = (None, None)
         if pa != None:
             bank = self._findBank(pa)
             if bank:
-                offset = pa - bank.startaddr
+                if self.isSwitched(pa):
+                    offset = pa - bank.startaddr
+                    if self.isErasable(pa):
+                        offset += 01400
+                    else:
+                        offset += 02000
+                else:
+                    offset = pa
                 retval = (bank.banknum, offset)
             else:
                 print >>sys.stderr, "Error, invalid pseudo address %06o" % pa
@@ -248,6 +271,20 @@ class MemoryMap:
             memtype = bank.memtype
         return (memtype == MemoryType.ERASABLE)
     
+    def isSwitched(self, pa):
+        banktype = None
+        bank = self._findBank(pa)
+        if bank:
+            banktype = bank.banktype
+        return (banktype == BankType.SWITCHED)
+        
+    def isUnswitched(self, pa):
+        banktype = None
+        bank = self._findBank(pa)
+        if bank:
+            banktype = bank.banktype
+        return (banktype == BankType.UNSWITCHED)
+        
     def isChannel(self, pa):
         retval = False
         if 0 <= pa <= 0777:
