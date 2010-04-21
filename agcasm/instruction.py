@@ -30,6 +30,9 @@ class Instruction(Opcode):
         self.type = RecordType.EXEC
 
     def parse(self, context, operands):
+        if context.mode == OpcodeType.EXTENDED and self.mnemonic not in context.opcodes[OpcodeType.EXTENDED]:
+            self.context.error("missing EXTEND before extended instruction")
+            return
         if self.operandType == OperandType.NONE:
             if operands != None:
                 context.error("instruction takes no operand")
