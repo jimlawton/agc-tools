@@ -121,10 +121,7 @@ class Assembler:
                 operands = operands.strip().split()
 
             self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
-            if self.context.mode == OpcodeType.EXTENDED and opcode not in self.context.opcodes[OpcodeType.EXTENDED]:
-                self.context.error("missing EXTEND before extended instruction")
-            else:
-                self.parse(label, opcode, operands)
+            self.parse(label, opcode, operands)
             self.context.records.append(self.context.currentRecord)
 
     def parse(self, label, opcode, operands):
