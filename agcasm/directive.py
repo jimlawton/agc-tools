@@ -195,9 +195,9 @@ class Directive(Opcode):
                 context.currentRecord.code = [ offset ]
                 context.currentRecord.target = expr.value
                 context.currentRecord.complete = True
-                context.info("ADRES bank:%03o, FB:%03o, EB:%03o" % (bank, context.fbank, context.ebank))
-                if (bank != context.fbank and bank != context.ebank):
-                    context.warn("bank (%03o) does not match current F bank (%03o) or E bank (%03o)" % (bank, context.fbank, context.ebank))
+                context.log("ADRES bank:%03o, FB:%03o, EB:%03o" % (bank, context.fbank, context.ebank))
+                if (context.memmap.isSwitched(expr.value) and bank != context.fbank and bank != context.ebank):
+                    context.error("bank (%03o) does not match current F bank (%03o) or E bank (%03o)" % (bank, context.fbank, context.ebank))
 
     def parse_BANK(self, context, operands):
         if operands:
@@ -458,10 +458,12 @@ class Directive(Opcode):
     
     def parse_SETLOC(self, context, operands):
         expr = AddressExpression(context, operands)
+        context.log("SETLOC: \"%s\" (%06o)" % (operands, expr.value))
         if expr.complete:
             pa = expr.value
             context.currentRecord.target = pa
             bank = context.memmap.pseudoToBank(pa)
+            context.log("SETLOC: bank=%02o" % bank)
             if context.memmap.isErasable(pa):
                 context.switchEBank(bank)
             else:
