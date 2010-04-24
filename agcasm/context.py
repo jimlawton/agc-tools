@@ -65,11 +65,17 @@ class Context:
             self.fbankloc[bank] = 0
         
     def setLoc(self, loc):
+        if not self.memmap.isValid(loc):
+            self.error("trying to set loc to an invalid address (%06o)" % loc)
         if not self.reparse:
+            self.log("changing loc from %06o to %06o" % (self.loc, loc))
             self.loc = loc
 
     def incrLoc(self, delta):
+        if not self.memmap.isValid(self.loc + delta):
+            self.error("trying to set loc to an invalid address (%06o)" % (self.loc + delta))
         if not self.reparse:
+            self.log("incrementing loc from %06o to %06o (delta=%04o)" % (self.loc, self.loc + delta, delta))
             self.loc += delta
 
     def setSBank(self, bank):
@@ -78,41 +84,56 @@ class Context:
 
     def switchEBank(self, bank):
         pa = self.ebankloc[bank]
+        self.printBanks()
         self.switchEBankPA(pa)
 
+    def saveCurrentBank(self):
+        (bank, offset) = self.memmap.pseudoToSegmented(self.loc)
+        if bank!= None and offset != None:
+            if self.memmap.isErasable(self.loc):
+                self.ebankloc[bank] = offset
+            else:
+                self.fbankloc[bank] = offset
+        else:
+            self.error("invalid address %06o" % self.loc)
+            
     def switchEBankPA(self, pa):
         if not self.reparse:
             self.lastEbank = self.ebank
-            if self.memmap.isErasable(self.loc):
-                self.ebankloc[self.ebank] = self.memmap.pseudoToBankOffset(self.loc)
+            self.saveCurrentBank()
             self.ebank = self.memmap.pseudoToBank(pa)
-            if self.memmap.isErasable(self.loc):
-                self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.ebank, self.ebankloc[self.ebank])
+            self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.ebank, self.ebankloc[self.ebank]))
             self.lastEbankEquals = True
             self.log("switched EB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.srcfile, self.linenum))
 
     def revertEbank(self):
         if not self.reparse:
+            self.printBanks()
             if self.lastEbankEquals:
-                if self.memmap.isErasable(self.loc):
-                    self.ebankloc[self.ebank] = self.memmap.pseudoToBankOffset(self.loc)
+                self.saveCurrentBank()
                 self.ebank = self.lastEbank
-                if self.memmap.isErasable(self.loc):
-                    self.loc = self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank])
+                self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank]))
                 self.log("reverted EB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.srcfile, self.linenum))
                 self.lastEbankEquals = False
 
     def switchFBank(self, bank=None):
         if not self.reparse:
-            if bank:
-                offset = self.memmap.pseudoToBankOffset(self.loc)
-                if offset != None:
-                    self.fbankloc[self.fbank] = offset
-                    self.fbank = bank
-                    self.loc = self.memmap.segmentedToPseudo(MemoryType.FIXED, bank, self.fbankloc[self.fbank])
-                    self.log("switched FB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.loc), self.srcfile, self.linenum))
-                else:
-                    self.error("invalid address %06o" % self.loc)
-            else:
-                self.loc = self.memmap.segmentedToPseudo(MemoryType.FIXED, self.fbank, self.fbankloc[self.fbank])
-                self.log("switched FB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.loc), self.srcfile, self.linenum))
+            if bank != None:
+                self.log("switching to bank %02o" % bank)
+                self.saveCurrentBank()
+                self.fbank = bank
+            self.setLoc(self.memmap.segmentedToPseudo(MemoryType.FIXED, self.fbank, self.fbankloc[self.fbank]))
+            self.log("switched FB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.loc), self.srcfile, self.linenum))
+
+    def printBanks(self):
+        text = "LOC=%06o EB=%02o FB=%02o " % (self.loc, self.ebank, self.fbank)
+        text += "EBs: "
+        for eb in self.ebankloc.keys():
+            if self.ebankloc[eb] > 0:
+                text += "%02o:%04o " % (eb, self.ebankloc[eb])
+        text += "FBs: "
+        for fb in self.fbankloc.keys():
+            if self.fbankloc[fb] > 0:
+                text += "%02o:%04o " % (fb, self.fbankloc[fb])
+        self.log(text)
+        
