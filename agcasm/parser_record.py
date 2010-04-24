@@ -68,10 +68,12 @@ class ParserRecord:
                 text += 10 * ' '
             if RecordType.isGenerative(self.type):
                 if self.code != None and len(self.code) > 0:
-                    if len(self.code) == 1:
+                    if len(self.code) == 1 and self.code[0] != None:
                         text += " %05o %s " % (self.code[0] & 077777, 5 * ' ')
-                    else:
+                    elif len(self.code) == 2 and self.code[0] != None and self.code[1] != None:
                         text += " %05o %05o " % (self.code[0] & 077777, self.code[1] & 077777)
+                    else:
+                        text += " ????? " + 6 * ' '
                 else:
                     text += " ????? " + 6 * ' ' 
             else:
