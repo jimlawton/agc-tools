@@ -51,29 +51,29 @@ def main():
     assembler = Assembler(context)
     context.assembler = assembler
     
-    assembler.info("Simple AGC Assembler, v0.1")
-    assembler.info("")
+    assembler.info("Simple AGC Assembler, v0.1", source=False)
+    assembler.info("", source=False)
 
     for arg in args:
         assembler.assemble(arg)
 
-    assembler.info("Resolving symbols...")
+    assembler.info("Resolving symbols...", source=False)
     assembler.resolve()
     
-    assembler.info("Writing listing...")
+    assembler.info("Writing listing...", source=False)
     print >>listfile 
     print >>listfile, "Listing"
     print >>listfile, "-------"
     for record in assembler.context.records:
         print >>listfile, record
 
-    assembler.info("Writing symbol table...")
+    assembler.info("Writing symbol table...", source=False)
     print >>symtabfile 
     print >>symtabfile, "Symbol Table"
     print >>symtabfile, "------------"
     assembler.context.symtab.printTable(symtabfile)
     
-    assembler.info("Done.")
+    assembler.info("Done.", source=False)
     print "Done."
 
 if __name__=="__main__":
