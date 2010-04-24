@@ -174,7 +174,7 @@ class Directive(Opcode):
             context.currentRecord.code = op.value
             context.currentRecord.complete = True
         else:
-            context.syntax("operand mst be an octal")
+            context.syntax("operand must be an octal")
     
     def parse_EqualsECADR(self, context, operands):
         self.ignore(context)
@@ -195,18 +195,20 @@ class Directive(Opcode):
                 context.currentRecord.code = [ offset ]
                 context.currentRecord.target = expr.value
                 context.currentRecord.complete = True
-                context.log("ADRES bank:%03o, FB:%03o, EB:%03o" % (bank, context.fbank, context.ebank))
+                context.log("ADRES: bank:%02o FB:%02o EB:%02o" % (bank, context.fbank, context.ebank))
                 if (context.memmap.isSwitched(expr.value) and bank != context.fbank and bank != context.ebank):
-                    context.error("bank (%03o) does not match current F bank (%03o) or E bank (%03o)" % (bank, context.fbank, context.ebank))
+                    context.error("bank (%02o) does not match current FB (%02o) or EB (%02o)" % (bank, context.fbank, context.ebank))
 
     def parse_BANK(self, context, operands):
         if operands:
             expr = Expression(context, operands)
+            context.log("BANK: \"%s\" (%06o)" % (operands, expr.value))
             if expr.complete:
                 context.switchFBank(expr.value)
                 context.currentRecord.target = context.loc
                 context.currentRecord.complete = True
         else:
+            context.log("BANK")
             context.switchFBank()
             context.currentRecord.target = context.loc
             context.currentRecord.complete = True
@@ -246,6 +248,7 @@ class Directive(Opcode):
     def parse_BLOCK(self, context, operands):
         expr = Expression(context, operands)
         if expr.complete:
+            context.log("BLOCK: %02o" % (expr.value))
             bank = expr.value
             if bank == 0:
                 context.switchEBank(bank)
@@ -362,25 +365,27 @@ class Directive(Opcode):
 
     def parse_ERASE(self, context, operands):
         size = 0
+        value = context.loc
         if operands == None:
             size = 1
             op = Number("1")
         else:
             # TODO: Change to use Expression.
-            if '-' in operands[0]:
+            if len(operands) == 3 and operands[1] == "-":
+                size = 0
                 op = Number(operands[0].strip())
                 if op.isValid():
-                    size = op.value
+                    value = op.value
             else:
                 op = Number(operands[0])
                 if op.isValid():
                     size = op.value + 1
         if context.currentRecord.label != None and op.isValid():
             if not context.reparse:
-                context.symtab.add(context.currentRecord.label, operands, context.loc)
+                context.symtab.add(context.currentRecord.label, operands, value)
             else:
-                context.symtab.update(context.currentRecord.label, operands, context.loc)
-        context.currentRecord.target = context.loc
+                context.symtab.update(context.currentRecord.label, operands, value)
+            context.currentRecord.target = value
         context.incrLoc(size)
         context.addSymbol = False
         
