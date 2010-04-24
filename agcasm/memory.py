@@ -137,6 +137,8 @@ class MemoryMap:
         self.arch = arch
         self.memmap = MAPS[arch]
         self.banks = { MemoryType.ERASABLE: {}, MemoryType.FIXED: {} }
+        self.addresses = self.memmap.keys()
+        self.addresses.sort()
         for startaddr in self.memmap:
             if self.memmap[startaddr].memtype == MemoryType.ERASABLE:
                 self.banks[MemoryType.ERASABLE][self.memmap[startaddr].banknum] = self.memmap[startaddr]
@@ -151,12 +153,18 @@ class MemoryMap:
             text += "%s"  % str(bank)
         return text
             
+    def isValid(self, pa):
+        lowest = self.addresses[0]
+        highest = self.addresses[-1] + self.memmap[self.addresses[-1]].size - 1
+        if lowest <= pa <= highest:
+            return True
+        else:
+            return False
+        
     def _findBank(self, pa):
         bank = None
         found = False
-        addrs = self.memmap.keys()
-        addrs.sort()
-        for startaddr in addrs:
+        for startaddr in self.addresses:
             if pa < startaddr + self.memmap[startaddr].size:
                 found = True
                 break
