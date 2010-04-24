@@ -51,7 +51,7 @@ class Assembler:
         return ParserRecord(self.context, srcfile, linenum, srcline, tmpType, label, pseudolabel, opcode, operands, comment, address, code)
 
     def assemble(self, srcfile):
-        self.info("Assembling %s" % srcfile)
+        self.info("Assembling %s" % srcfile, source=False)
         self.context.srcfile = srcfile
         self.context.linenum = 0
         lines = open(srcfile).readlines()
@@ -73,7 +73,7 @@ class Assembler:
             if line.startswith('$'):
                 modname = line[1:].split()[0]
                 if not os.path.isfile(modname):
-                    self.fatal("File \"%s\" does not exist" % modname)
+                    self.fatal("File \"%s\" does not exist" % modname, source=False)
                 record = self._makeNewRecord(srcline, RecordType.INCLUDE, None, None, None, None, comment)
                 self.context.records.append(record)
                 self.assemble(modname)
@@ -165,7 +165,7 @@ class Assembler:
         self.parse(record.label, record.opcode, record.operands)
         self.context.records[recordIndex] = self.context.currentRecord
         self.context.currentRecord = saveRecord
-        self.context.log("updated record %06d: %s" % (recordIndex, self.context.records[recordIndex]))
+        #self.context.log("updated record %06d: %s" % (recordIndex, self.context.records[recordIndex]))
         self.context.reparse = False
         
     def resolve(self, maxPasses=10):
@@ -187,35 +187,43 @@ class Assembler:
                 self.context.log("all parser records complete")
                 break
             if nUndefs == nPrevUndefs:
-                self.context.error("no progress resolving parser records", True)
+                self.context.error("no progress resolving parser records", source=False)
                 break
 
-    def fatal(self, text):
-        self.error(text)
+    def fatal(self, text, source=True):
+        self.error(text, source)
         sys.exit(1)
 
-    def error(self, text, noSource=False):
-        if noSource:
-            msg = "error: %s" % (text) 
-        else:
-            msg = "%s, line %d, error: %s\n" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text) 
-            msg += "%s" % self.context.currentRecord.srcline
+    def error(self, text, source=True):
+        msg = ""
+        if source:
+            msg = "%s, line %d, " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum)
+        msg += "error: %s" % (text) 
+        if source:
+            msg += "\n%s" % self.context.currentRecord.srcline
         print >>sys.stderr, msg
         self.log(msg)
 
-    def syntax(self, text):
-        self.error("syntax error: %s" % text)
+    def syntax(self, text, source=True):
+        self.error("syntax error: %s" % text, source)
 
-    def warn(self, text):
-        msg = "%s, line %d, warning: %s" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text)
+    def warn(self, text, source=True):
+        msg = ""
+        if source:
+            msg = "%s, line %d, " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum)
+        msg += "warning: %s" % (text)
+        if source:
+            msg += "\n%s" % self.context.currentRecord.srcline
         print >>sys.stderr, msg
         self.log(msg)
 
-    def info(self, text):
-        if self.context.currentRecord:
-            msg = "%s, line %d, %s" % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, text)
-        else:
-            msg = "%s" % (text)
+    def info(self, text, source=True):
+        msg = ""
+        if source:
+            msg = "%s, line %d, " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum)
+        msg += "%s" % (text)
+        if source:
+            msg += "\n%s" % self.context.currentRecord.srcline
         if self.context.verbose:
             print msg
         self.log(msg)
