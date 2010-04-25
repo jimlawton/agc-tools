@@ -75,7 +75,7 @@ class Context:
         if not self.memmap.isValid(self.loc + delta):
             self.error("trying to set loc to an invalid address (%06o)" % (self.loc + delta))
         if not self.reparse:
-            self.log("incrementing loc from %06o to %06o (delta=%04o)" % (self.loc, self.loc + delta, delta))
+            #self.log("incrementing loc from %06o to %06o (delta=%04o)" % (self.loc, self.loc + delta, delta))
             self.loc += delta
 
     def setSBank(self, bank):
@@ -88,11 +88,13 @@ class Context:
         self.switchEBankPA(pa)
 
     def saveCurrentBank(self):
-        (bank, offset) = self.memmap.pseudoToSegmented(self.loc)
+        (bank, offset) = self.memmap.pseudoToBankOffset(self.loc)
         if bank!= None and offset != None:
             if self.memmap.isErasable(self.loc):
+                self.log("saving EB %02o: %04o -> %04o" % (bank, self.ebankloc[bank], offset))
                 self.ebankloc[bank] = offset
             else:
+                self.log("saving FB %02o: %04o -> %04o" % (bank, self.fbankloc[bank], offset))
                 self.fbankloc[bank] = offset
         else:
             self.error("invalid address %06o" % self.loc)
