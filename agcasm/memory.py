@@ -207,13 +207,24 @@ class MemoryMap:
                 print >>sys.stderr, "Error, invalid pseudo address %06o" % pa
         return retval
     
-    def pseudoToBankOffset(self, pa):
+    def pseudoToOffset(self, pa):
         retval = None
         if pa != None:
             bank = self._findBank(pa)
             if bank:
                 offset = pa - bank.startaddr
                 retval = offset
+            else:
+                print >>sys.stderr, "Error, invalid pseudo address %06o" % pa
+        return retval
+    
+    def pseudoToBankOffset(self, pa):
+        retval = (None, None)
+        if pa != None:
+            bank = self._findBank(pa)
+            if bank:
+                offset = pa - bank.startaddr
+                retval = (bank.banknum, offset)
             else:
                 print >>sys.stderr, "Error, invalid pseudo address %06o" % pa
         return retval
