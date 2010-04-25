@@ -58,7 +58,7 @@ class Instruction(Opcode):
                     expr = AddressExpression(context, operands)
                     if expr.complete:
                         pa = expr.value
-                        offset = context.memmap.pseudoToBankOffset(pa)
+                        offset = context.memmap.pseudoToOffset(pa)
                         if offset != None:
                             context.currentRecord.code = [ self.opcode + offset ]
                             context.currentRecord.complete = True
