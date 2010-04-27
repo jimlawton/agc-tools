@@ -113,9 +113,13 @@ class Context:
             self.lastEbank = self.ebank
             self.saveCurrentBank()
             self.ebank = self.memmap.pseudoToBank(pa)
-            self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.ebank, self.ebankloc[self.ebank]))
+            if self.memmap.isErasable(self.loc):
+                # Only change LOC if it is currently erasable. This allows us to move LOC up through the various 
+                # erasable banks at the start as symbols are defined. Later, in fixed banks, you do not want an 
+                # EBANK= to affect LOC. 
+                self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.ebank, self.ebankloc[self.ebank]))
             self.lastEbankEquals = True
-            self.log(4, "switched EB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.srcfile, self.linenum))
+            self.log(4, "switched EB to %s" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank])))
 
     def revertEbank(self):
         if not self.reparse:
@@ -123,8 +127,9 @@ class Context:
             if self.lastEbankEquals:
                 self.saveCurrentBank()
                 self.ebank = self.lastEbank
-                self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank]))
-                self.log(4, "reverted EB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.srcfile, self.linenum))
+                if self.memmap.isErasable(self.loc):
+                    self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank]))
+                self.log(4, "reverted EB to %s" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank])))
                 self.lastEbankEquals = False
 
     def switchFBank(self, bank=None):
@@ -134,7 +139,7 @@ class Context:
                 self.saveCurrentBank()
                 self.fbank = bank
             self.setLoc(self.memmap.segmentedToPseudo(MemoryType.FIXED, self.fbank, self.fbankloc[self.fbank]))
-            self.log(4, "switched FB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.loc), self.srcfile, self.linenum))
+            self.log(4, "switched FB to %s" % (self.memmap.pseudoToSegmentedString(self.loc)))
 
     def printBanks(self):
         text = "LOC=%06o EB=%02o FB=%02o " % (self.loc, self.ebank, self.fbank)
