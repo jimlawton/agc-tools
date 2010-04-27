@@ -122,6 +122,7 @@ class Assembler:
 
             self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
             self.parse(label, opcode, operands)
+            self.context.currentRecord.update()
             self.context.records.append(self.context.currentRecord)
 
     def parse(self, label, opcode, operands):
