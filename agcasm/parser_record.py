@@ -37,7 +37,6 @@ class ParserRecord:
         self.address = address              # Address of the first word in the code section.
         self.code = code                    # List of generated code words.
         self.numwords = 0                   # Number of code words generated.
-        self.ebank = None                   # Current E-Bank.
         self.complete = False               # Assembly complete? i.e. all symbols resolved.
         self.target = None                  # Target address, if any, e.g. for = directive.
         self.mode = context.mode            # Mode.
@@ -51,6 +50,14 @@ class ParserRecord:
         
     def isComplete(self):
         return self.complete
+
+    def update(self):
+        self.sbank = self.context.sbank
+        self.ebank = self.context.ebank
+        self.fbank = self.context.fbank
+        self.loc = self.context.loc
+        self.lastEbank = self.context.lastEbank
+        self.lastEbankEquals = self.context.lastEbankEquals
 
     def __str__(self):
         text = ""
