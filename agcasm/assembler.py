@@ -155,6 +155,9 @@ class Assembler:
         self.context.reparse = True
         saveRecord = self.context.currentRecord
         self.context.currentRecord = record
+        self.context.srcfile = record.srcfile
+        self.context.linenum = record.linenum
+        self.context.global_linenum = record.global_linenum
         self.context.mode = record.mode
         self.context.sbank = record.sbank
         self.context.ebank = record.ebank
@@ -230,4 +233,4 @@ class Assembler:
 
     def log(self, level, text):
         if level <= self.context.logLevel:
-            print >>self.context.logfile, "%s" % (text)
+            print >>self.context.logfile, "%s [%s:%d:%d]" % (text, self.context.srcfile, self.context.linenum, self.context.global_linenum)
