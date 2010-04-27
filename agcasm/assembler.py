@@ -165,13 +165,13 @@ class Assembler:
         self.parse(record.label, record.opcode, record.operands)
         self.context.records[recordIndex] = self.context.currentRecord
         self.context.currentRecord = saveRecord
-        #self.context.log("updated record %06d: %s" % (recordIndex, self.context.records[recordIndex]))
+        self.context.log(6, "updated record %06d: %s" % (recordIndex, self.context.records[recordIndex]))
         self.context.reparse = False
         
     def resolve(self, maxPasses=10):
         self.context.symtab.resolve(maxPasses)
         numRecords = len(self.context.records)
-        self.context.log("updating %d parser records..." % (numRecords))
+        self.context.log(3, "updating %d parser records..." % (numRecords))
         nUndefs = nPrevUndefs = 0
         for i in range(maxPasses):
             nPrevUndefs = nUndefs
@@ -182,9 +182,9 @@ class Assembler:
                     nUndefs += 1
                     if RecordType.isReparseable(record.type):
                         self.reparse(j)
-            self.context.log("pass %d: %d incomplete parser records" % (i, nUndefs))
+            self.context.log(3, "pass %d: %d incomplete parser records" % (i, nUndefs))
             if nUndefs == 0:
-                self.context.log("all parser records complete")
+                self.context.log(3, "all parser records complete")
                 break
             if nUndefs == nPrevUndefs:
                 self.context.error("no progress resolving parser records", source=False)
@@ -202,7 +202,7 @@ class Assembler:
         if source:
             msg += "\n%s" % self.context.currentRecord.srcline
         print >>sys.stderr, msg
-        self.log(msg)
+        self.log(1, msg)
 
     def syntax(self, text, source=True):
         self.error("syntax error: %s" % text, source)
@@ -215,7 +215,7 @@ class Assembler:
         if source:
             msg += "\n%s" % self.context.currentRecord.srcline
         print >>sys.stderr, msg
-        self.log(msg)
+        self.log(2, msg)
 
     def info(self, text, source=True):
         msg = ""
@@ -226,8 +226,8 @@ class Assembler:
             msg += "\n%s" % self.context.currentRecord.srcline
         if self.context.verbose:
             print msg
-        self.log(msg)
+        self.log(3, msg)
 
-    def log(self, text):
-        if self.context.logging:
+    def log(self, level, text):
+        if level <= self.context.logLevel:
             print >>self.context.logfile, "%s" % (text)

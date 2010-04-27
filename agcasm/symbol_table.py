@@ -75,10 +75,10 @@ class SymbolTable:
                 if value == None:
                     self.undefs.append(name)
                     self.symbols[name].refType = "FWD"
-                    #self.context.log("[%05d] added undefined symbol %-8s" % (len(self.symbols), name))
+                    self.context.log(6, "[%05d] added undefined symbol %-8s" % (len(self.symbols), name))
                 else:
                     self.symbols[name].refType = "REV"
-                    #self.context.log("[%05d] added   defined symbol %-8s %s" % (len(self.symbols), name, self.context.memmap.pseudoToSegmentedString(value)))
+                    self.context.log(6, "[%05d] added   defined symbol %-8s %s" % (len(self.symbols), name, self.context.memmap.pseudoToSegmentedString(value)))
 
     def update(self, name=None, symbolic=None, value=None):
         if name != None:
@@ -88,15 +88,14 @@ class SymbolTable:
                 entry = self.symbols[name]
                 entry.value = value
                 self.symbols[name] = entry
-                #self.context.log("updated symbol %-8s %s" % (name, self.context.memmap.pseudoToSegmentedString(value)))
+                self.context.log(6, "updated symbol %-8s %s" % (name, self.context.memmap.pseudoToSegmentedString(value)))
 
     def resolve(self, maxPasses=10):
-        self.context.log("resolving symbols...")
         nPrevUndefs = nUndefs = len(self.undefs)
         for i in range(maxPasses):
-            self.context.log("pass %d: %d undefined symbols" % (i, nUndefs))
+            self.context.log(3, "pass %d: %d undefined symbols" % (i, nUndefs))
             if nUndefs == 0:
-                self.context.log("all symbols resolved")
+                self.context.log(3, "all symbols resolved")
                 break
             for symbol in self.undefs:
                 self.context.assembler.reparse(self.symbols[symbol].recordIndex)
@@ -109,14 +108,14 @@ class SymbolTable:
 
     def pruneUndefines(self):
         # Prune the undefs list.
-        self.context.log("[%05d] pruning undefined symbols list" % len(self.undefs))
+        self.context.log(6, "[%05d] pruning undefined symbols list" % len(self.undefs))
         tmpUndefs =[]
         for symbol in self.undefs:
             record = self.context.records[self.symbols[symbol].recordIndex]
             if not record.complete:
                 tmpUndefs.append(symbol)
             else:
-                self.context.log("[%05d] removing %s from undefined symbols list" % (len(self.undefs), symbol))
+                self.context.log(6, "[%05d] removing %s from undefined symbols list" % (len(self.undefs), symbol))
         self.undefs = tmpUndefs
         
     def keys(self):

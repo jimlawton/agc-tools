@@ -51,17 +51,17 @@ class Interpretive(Opcode):
         opcodes = [ self.opcode ]
         
         if oplen == 0:
-            context.log("interpretive: %s (%03o)" % (self.mnemonic, self.opcode))
+            context.log(5, "interpretive: %s (%03o)" % (self.mnemonic, self.opcode))
             # Case 1
             if self.numOperands > 0:
-                context.log("incrementing interpArgs: %d -> %d" % (context.interpArgs, context.interpArgs + self.numOperands))
+                context.log(5, "incrementing interpArgs: %d -> %d" % (context.interpArgs, context.interpArgs + self.numOperands))
                 context.interpArgs += self.numOperands
         elif oplen == 1:
             if operands[0] in context.opcodes[OpcodeType.INTERPRETIVE]:
                 # Case 2
                 mnemonic2 = operands[0]
                 opobj = context.opcodes[OpcodeType.INTERPRETIVE][operands[0]]
-                context.log("interpretive: %s (%03o), %s (%03o)" % (self.mnemonic, self.opcode, opobj.mnemonic, opobj.opcode))
+                context.log(5, "interpretive: %s (%03o), %s (%03o)" % (self.mnemonic, self.opcode, opobj.mnemonic, opobj.opcode))
                 opcodes.append(opobj.opcode)
         elif oplen == 2 or oplen == 3:
             pass
@@ -96,15 +96,15 @@ class Interpretive(Opcode):
         code = opcodes[0] + 1
         if len(opcodes) == 2:
             code += (opcodes[1] + 1) * 0200
-            context.log("interpretive: opcodes %03o %03o" % (opcodes[0], opcodes[1]))
+            context.log(5, "interpretive: opcodes %03o %03o" % (opcodes[0], opcodes[1]))
         else:
-            context.log("interpretive: opcode %03o" % (opcodes[0]))
+            context.log(5, "interpretive: opcode %03o" % (opcodes[0]))
             if gotone:
                 operandcode = context.currentRecord.code[0]
-                context.log("interpretive: operand %05o" % (operandcode))
+                context.log(5, "interpretive: operand %05o" % (operandcode))
                 code += operandcode & 077777
 
-        context.log("interpretive: generated %05o (%03o,%03o)" % (~code & 077777, (code / 0200) & 0177, code & 0177))
+        context.log(5, "interpretive: generated %05o (%03o,%03o)" % (~code & 077777, (code / 0200) & 0177, code & 0177))
         code = ~code & 077777
 
         context.currentRecord.code = [ code ]
@@ -116,7 +116,7 @@ class Interpretive(Opcode):
     @classmethod
     def parseOperand(cls, context, operands):
         if context.interpMode and context.interpArgs > 0:
-            context.log("interpretive: trying to parse operand %s" % operands)
+            context.log(5, "interpretive: trying to parse operand %s" % operands)
             newoperands = []
             indexreg = 0
             if context.indexed:
@@ -141,10 +141,10 @@ class Interpretive(Opcode):
                         code = ~code & 077777
                 context.currentRecord.code = [ code ]
                 context.currentRecord.complete = True
-                context.log("interpretive: generated operand %05o" % code)
+                context.log(5, "interpretive: generated operand %05o" % code)
                 return True
             else:
-                context.log("interpretive: operand undefined")
+                context.log(5, "interpretive: operand undefined")
             context.incrLoc(1)
             context.interpArgs -= 1
             if context.interpArgs == 0:

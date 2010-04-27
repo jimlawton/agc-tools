@@ -24,9 +24,8 @@ from opcodes import OPCODES
 from symbol_table import SymbolTable
 
 class Context:
-    def __init__(self, arch, listfile, binfile, verbose=False, logging=False, logfile=None):
+    def __init__(self, arch, listfile, binfile, verbose=False, logLevel=0, logfile=None):
         self.verbose = verbose
-        self.logging = logging
         self.logfile = logfile
         self.assembler = None
         self.arch = arch
@@ -50,6 +49,16 @@ class Context:
         self.currentRecord = None
         self.addSymbol = True
         self.reparse = False
+        
+        # Log level:
+        #  0 - None.
+        #  1 - Errors.
+        #  2 - Warnings.
+        #  3 - Info messages.
+        #  4 - Bank changes.
+        #  5 - LOC changes, detailed interpretive logging.
+        #  6 - Symbol information.
+        self.logLevel = logLevel
 
         self.loc = 0        # Assembler PC, i.e. current position in erasable or fixed memory.
         self.sbank = 0      # Current S-Bank.
@@ -68,14 +77,14 @@ class Context:
         if not self.memmap.isValid(loc):
             self.error("trying to set loc to an invalid address (%06o)" % loc)
         if not self.reparse:
-            self.log("changing loc from %06o to %06o" % (self.loc, loc))
+            self.log(5, "changing loc from %06o to %06o" % (self.loc, loc))
             self.loc = loc
 
     def incrLoc(self, delta):
         if not self.memmap.isValid(self.loc + delta):
             self.error("trying to set loc to an invalid address (%06o)" % (self.loc + delta))
         if not self.reparse:
-            #self.log("incrementing loc from %06o to %06o (delta=%04o)" % (self.loc, self.loc + delta, delta))
+            self.log(5, "incrementing loc from %06o to %06o (delta=%04o)" % (self.loc, self.loc + delta, delta))
             self.loc += delta
 
     def setSBank(self, bank):
@@ -91,10 +100,10 @@ class Context:
         (bank, offset) = self.memmap.pseudoToBankOffset(self.loc)
         if bank!= None and offset != None:
             if self.memmap.isErasable(self.loc):
-                self.log("saving EB %02o: %04o -> %04o" % (bank, self.ebankloc[bank], offset))
+                self.log(4, "saving EB %02o: %04o -> %04o" % (bank, self.ebankloc[bank], offset))
                 self.ebankloc[bank] = offset
             else:
-                self.log("saving FB %02o: %04o -> %04o" % (bank, self.fbankloc[bank], offset))
+                self.log(4, "saving FB %02o: %04o -> %04o" % (bank, self.fbankloc[bank], offset))
                 self.fbankloc[bank] = offset
         else:
             self.error("invalid address %06o" % self.loc)
@@ -106,7 +115,7 @@ class Context:
             self.ebank = self.memmap.pseudoToBank(pa)
             self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.ebank, self.ebankloc[self.ebank]))
             self.lastEbankEquals = True
-            self.log("switched EB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.srcfile, self.linenum))
+            self.log(4, "switched EB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.srcfile, self.linenum))
 
     def revertEbank(self):
         if not self.reparse:
@@ -115,17 +124,17 @@ class Context:
                 self.saveCurrentBank()
                 self.ebank = self.lastEbank
                 self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank]))
-                self.log("reverted EB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.srcfile, self.linenum))
+                self.log(4, "reverted EB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.srcfile, self.linenum))
                 self.lastEbankEquals = False
 
     def switchFBank(self, bank=None):
         if not self.reparse:
             if bank != None:
-                self.log("switching to bank %02o" % bank)
+                self.log(4, "switching to bank %02o" % bank)
                 self.saveCurrentBank()
                 self.fbank = bank
             self.setLoc(self.memmap.segmentedToPseudo(MemoryType.FIXED, self.fbank, self.fbankloc[self.fbank]))
-            self.log("switched FB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.loc), self.srcfile, self.linenum))
+            self.log(4, "switched FB to %s [%s:%d]" % (self.memmap.pseudoToSegmentedString(self.loc), self.srcfile, self.linenum))
 
     def printBanks(self):
         text = "LOC=%06o EB=%02o FB=%02o " % (self.loc, self.ebank, self.fbank)
@@ -137,5 +146,4 @@ class Context:
         for fb in self.fbankloc.keys():
             if self.fbankloc[fb] > 0:
                 text += "%02o:%04o " % (fb, self.fbankloc[fb])
-        self.log(text)
-        
+        self.log(4, text)

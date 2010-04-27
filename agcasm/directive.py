@@ -68,7 +68,7 @@ class Directive(Opcode):
 
     def ignore(self, context):
         self.type = RecordType.IGNORE
-        context.info("ignoring directive \"%s\"" % self.mnemonic)
+        #context.info("ignoring directive \"%s\"" % self.mnemonic)
 
     def parse_MinusDNADR(self, context, operands):
         self.parse_DNADR(context, operands)
@@ -195,20 +195,20 @@ class Directive(Opcode):
                 context.currentRecord.code = [ offset ]
                 context.currentRecord.target = expr.value
                 context.currentRecord.complete = True
-                context.log("ADRES: bank:%02o FB:%02o EB:%02o" % (bank, context.fbank, context.ebank))
+                context.log(3, "ADRES: bank:%02o FB:%02o EB:%02o" % (bank, context.fbank, context.ebank))
                 if (context.memmap.isSwitched(expr.value) and bank != context.fbank and bank != context.ebank):
                     context.error("bank (%02o) does not match current FB (%02o) or EB (%02o)" % (bank, context.fbank, context.ebank))
 
     def parse_BANK(self, context, operands):
         if operands:
             expr = Expression(context, operands)
-            context.log("BANK: \"%s\" (%06o)" % (operands, expr.value))
+            context.log(3, "BANK: \"%s\" (%06o)" % (operands, expr.value))
             if expr.complete:
                 context.switchFBank(expr.value)
                 context.currentRecord.target = context.loc
                 context.currentRecord.complete = True
         else:
-            context.log("BANK")
+            context.log(3, "BANK")
             context.switchFBank()
             context.currentRecord.target = context.loc
             context.currentRecord.complete = True
@@ -248,7 +248,7 @@ class Directive(Opcode):
     def parse_BLOCK(self, context, operands):
         expr = Expression(context, operands)
         if expr.complete:
-            context.log("BLOCK: %02o" % (expr.value))
+            context.log(3, "BLOCK: %02o" % (expr.value))
             bank = expr.value
             if bank == 0:
                 context.switchEBank(bank)
@@ -463,12 +463,12 @@ class Directive(Opcode):
     
     def parse_SETLOC(self, context, operands):
         expr = AddressExpression(context, operands)
-        context.log("SETLOC: \"%s\" (%06o)" % (operands, expr.value))
+        context.log(3, "SETLOC: \"%s\" (%06o)" % (operands, expr.value))
         if expr.complete:
             pa = expr.value
             context.currentRecord.target = pa
             bank = context.memmap.pseudoToBank(pa)
-            context.log("SETLOC: bank=%02o" % bank)
+            context.log(3, "SETLOC: bank=%02o" % bank)
             if context.memmap.isErasable(pa):
                 context.switchEBank(bank)
             else:
