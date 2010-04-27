@@ -323,6 +323,7 @@ class Directive(Opcode):
         if expr.complete:
             pa = expr.value
             if context.memmap.isErasable(pa):
+                context.log(3, "EBANK= %s" % context.memmap.pseudoToSegmentedString(expr.value))
                 context.switchEBankPA(pa)
                 context.currentRecord.target = pa
                 context.currentRecord.complete = True
