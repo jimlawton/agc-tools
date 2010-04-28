@@ -19,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from record_type import RecordType
+from memory import MemoryType
 
 class ParserRecord:
     """Class storing parser data."""
@@ -47,7 +48,7 @@ class ParserRecord:
         self.lastEbank = context.lastEbank
         self.lastEbankEquals = context.lastEbankEquals
         self.global_linenum = context.global_linenum
-        
+
     def isComplete(self):
         return self.complete
 
@@ -74,6 +75,10 @@ class ParserRecord:
                 text += self.context.memmap.pseudoToSegmentedString(self.target) + ' '
             else:
                 text += 10 * ' '
+            text += self.context.memmap.bankToString(MemoryType.ERASABLE, self.ebank)
+            text += ' '
+            text += self.context.memmap.bankToString(MemoryType.FIXED, self.fbank)
+            text += ' '
             if RecordType.isGenerative(self.type):
                 if self.code != None and len(self.code) > 0:
                     if len(self.code) == 1 and self.code[0] != None:
