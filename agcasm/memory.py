@@ -255,6 +255,14 @@ class MemoryMap:
             text = "(??,????)"
         return text
     
+    def bankToString(self, type, bank):
+        text = ""
+        if type == MemoryType.ERASABLE: 
+            text = "E%1o" % bank
+        else:
+            text = "%02o" % bank
+        return text
+
     def getBankNumber(self, pa):
         banknum = None
         bank = self._findBank(pa)
