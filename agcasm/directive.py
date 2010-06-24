@@ -60,11 +60,11 @@ class Directive(Opcode):
         if method:
             method(context, operands)
 
+        if context.forceReparse:
+            context.currentRecord.complete = False
+
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
-        if self.numwords == 0:
-            if self.methodName != "EQUALS" and self.mnemonic != "CHECK=":
-                context.currentRecord.complete = True
 
     def ignore(self, context):
         self.type = RecordType.IGNORE
@@ -284,6 +284,7 @@ class Directive(Opcode):
                 if lpa != rpa:
                     context.error("CHECK= test failed, \"%s\" (%06o) != \"%s\" (%06o)" % (context.currentRecord.label, lpa, ' '.join(operands), rpa))
                 context.currentRecord.target = lpa
+                context.currentRecord.complete = True
         else:
             context.syntax("CHECK= directive must have a label")
         context.addSymbol = False
@@ -329,6 +330,9 @@ class Directive(Opcode):
                 context.currentRecord.complete = True
             else:
                 context.error("operand must be in erasable memory")
+        else:
+            # Need to reparse subsequent records until next non-one-shot EBANK=. 
+            context.forceReparse = True
 
     def parse_ECADR(self, context, operands):
         pa = None
@@ -387,6 +391,7 @@ class Directive(Opcode):
             else:
                 context.symtab.update(context.currentRecord.label, operands, value)
             context.currentRecord.target = value
+        context.currentRecord.complete = True
         context.incrLoc(size)
         context.addSymbol = False
         
