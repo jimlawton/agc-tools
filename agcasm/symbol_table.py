@@ -102,7 +102,7 @@ class SymbolTable:
             self.pruneUndefines()
             nUndefs = len(self.undefs)
             if nUndefs == nPrevUndefs:
-                self.context.error("aborting, no progress in resolving symbols")
+                self.context.error("aborting, no progress in resolving symbols", source=False)
                 break
             nPrevUndefs = nUndefs
 
