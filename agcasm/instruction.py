@@ -38,7 +38,8 @@ class Instruction(Opcode):
                 context.error("instruction takes no operand")
             else:
                 context.currentRecord.code = [ self.opcode ]
-                context.currentRecord.complete = True
+                if not context.forceReparse:
+                    context.currentRecord.complete = True
         else:
             if operands == None:
                 if self.mnemonic == "TC" or self.mnemonic == "DV":
@@ -46,7 +47,8 @@ class Instruction(Opcode):
                     expr = AddressExpression(context, [ self.mnemonic ])
                     if expr.complete:
                         context.currentRecord.code = [ expr.value ]
-                        context.currentRecord.complete = True
+                        if not context.forceReparse:
+                            context.currentRecord.complete = True
                         context.currentRecord.type = self.type
                         context.incrLoc(self.numwords)
                         return
@@ -61,7 +63,8 @@ class Instruction(Opcode):
                         offset = context.memmap.pseudoToOffset(pa)
                         if offset != None:
                             context.currentRecord.code = [ self.opcode + offset ]
-                            context.currentRecord.complete = True
+                            if not context.forceReparse:
+                                context.currentRecord.complete = True
                 else:
                     context.error("missing operand")
                 
@@ -74,8 +77,6 @@ class Instruction(Opcode):
 
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
-        if self.numwords == 0:
-            context.currentRecord.complete = True
 
         if context.mode == OpcodeType.EXTENDED:
             if self.mnemonic != "EXTEND" and self.mnemonic != "INDEX": 
