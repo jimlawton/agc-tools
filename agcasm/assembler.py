@@ -122,7 +122,7 @@ class Assembler:
 
             self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
             self.parse(label, opcode, operands)
-            self.context.currentRecord.update()
+            #self.context.currentRecord.update()
             self.context.records.append(self.context.currentRecord)
 
     def parse(self, label, opcode, operands):
@@ -182,10 +182,10 @@ class Assembler:
             nUndefs = 0
             for j in range(numRecords):
                 record = self.context.records[j]
-                if not record.isComplete():
-                    nUndefs += 1
-                    if record.isParseable():
-                        self.reparse(j)
+                if record.isParseable():
+                    self.reparse(j)
+                    if not record.isComplete():
+                        nUndefs += 1
             self.context.log(3, "pass %d: %d incomplete parser records" % (i, nUndefs))
             if nUndefs == 0:
                 self.context.log(3, "all parser records complete")
@@ -201,7 +201,7 @@ class Assembler:
     def error(self, text, source=True):
         msg = ""
         if source:
-            msg = "%s, line %d, " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum)
+            msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, self.context.global_linenum)
         msg += "error: %s" % (text) 
         if source:
             msg += "\n%s" % self.context.currentRecord.srcline
@@ -214,7 +214,7 @@ class Assembler:
     def warn(self, text, source=True):
         msg = ""
         if source:
-            msg = "%s, line %d, " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum)
+            msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, self.context.global_linenum)
         msg += "warning: %s" % (text)
         if source:
             msg += "\n%s" % self.context.currentRecord.srcline
@@ -224,7 +224,7 @@ class Assembler:
     def info(self, text, source=True):
         msg = ""
         if source:
-            msg = "%s, line %d, " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum)
+            msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, self.context.global_linenum)
         msg += "%s" % (text)
         if source:
             msg += "\n%s" % self.context.currentRecord.srcline
@@ -234,4 +234,4 @@ class Assembler:
 
     def log(self, level, text):
         if level <= self.context.logLevel:
-            print >>self.context.logfile, "%s [%s:%d:%d]" % (text, self.context.srcfile, self.context.linenum, self.context.global_linenum)
+            print >>self.context.logfile, "%s" % (text)
