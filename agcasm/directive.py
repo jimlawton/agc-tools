@@ -408,18 +408,11 @@ class Directive(Opcode):
 
     def parse_GENADR(self, context, operands):
         bank = None
-        aval = None
-        op = Number(operands[0])
-        if op.isValid():
-            aval = op.value
-        else:
-            entry = context.symtab.lookup(operands[0])
-            if entry != None:
-                (bank, offset) = context.memmap.pseudoToSegmented(entry.value)
-            if bank:
-                aval = offset
-        if aval != None:
-            context.currentRecord.code = [ aval ]
+        expr = AddressExpression(context, operands)
+        if expr.complete:
+            (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
+        if bank != None:
+            context.currentRecord.code = [ offset ]
             context.currentRecord.complete = True
     
     def parse_MEMORY(self, context, operands):
