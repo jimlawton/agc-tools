@@ -75,7 +75,7 @@ class RecordType:
             return False
 
     @classmethod
-    def isReparseable(cls, rectype):
+    def isParseable(cls, rectype):
         """Return True if record type is reparseable."""
         isreparse = { 
             RecordType.NONE:      False, 
