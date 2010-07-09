@@ -112,7 +112,7 @@ class SymbolTable:
         tmpUndefs =[]
         for symbol in self.undefs:
             record = self.context.records[self.symbols[symbol].recordIndex]
-            if not record.complete:
+            if not record.isComplete():
                 tmpUndefs.append(symbol)
             else:
                 self.context.log(6, "[%05d] removing %s from undefined symbols list" % (len(self.undefs), symbol))
@@ -134,8 +134,10 @@ class SymbolTable:
             out = outfile
         symbols = self.symbols.keys()
         symbols.sort()
+        print >>out, "\nDefined symbols:\n"
         for symbol in symbols:
             print >>out, self.symbols[symbol]
 
+        print >>out, "\nUndefined symbols:\n"
         for symbol in self.undefs:
             print >>out, self.symbols[symbol]
