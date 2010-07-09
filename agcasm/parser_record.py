@@ -49,6 +49,9 @@ class ParserRecord:
         self.lastEbankEquals = context.lastEbankEquals
         self.global_linenum = context.global_linenum
 
+    def isParseable(self):
+        return RecordType.isParseable(self.type)
+
     def isComplete(self):
         return self.complete
 
