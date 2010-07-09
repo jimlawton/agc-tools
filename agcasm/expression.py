@@ -19,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from number import Number
+from opcode import OperandType
 
 class Expression:
     """Class that represents an AGC expression."""
@@ -35,15 +36,13 @@ class Expression:
         if operands != None and 1 <= len(operands) <= 3:
             if len(operands) >= 1:
                 operand = operands[0]
-                if len(operands) == 1 and self.addressExpr and (operand.startswith('+') or operand.startswith('-')):
-                    operand = operand[1:]
-                op1 = self._parseOperand(context, operand)
+                (op1, op1type) = self._parseOperand(context, operand)
                 if op1 != None:
                     if len(operands) == 1:
-                        if self.addressExpr:
-                            if operand.startswith('+'): 
+                        if self.addressExpr and op1type == OperandType.DECIMAL:
+                            if operands[0].startswith('+'): 
                                 self.value = context.loc + op1
-                            elif operand.startswith('-'):
+                            elif operands[0].startswith('-'):
                                 self.value = context.loc - op1
                             else:
                                 self.value = op1
@@ -60,7 +59,7 @@ class Expression:
                 if operands[1] != '+' and operands[1] != '-':
                     context.syntax("expression must be either addition (+) or subtraction (-)")
             if len(operands) == 3:
-                op2 = self._parseOperand(context, operands[2])
+                (op2, op2type) = self._parseOperand(context, operands[2])
                 if op1 != None and op2 != None:
                     if operands[1] == '+':
                         self.value = op1 + op2
@@ -70,14 +69,24 @@ class Expression:
 
     def _parseOperand(self, context, operand):
         retval = None
-        op = Number(operand)
-        if op.isValid():
-            retval = op.value
+        rettype = OperandType.NONE
+        
+        # First try symbol lookup.
+        entry = context.symtab.lookup(operand)
+        if entry != None:
+            retval = entry.value
+            rettype = OperandType.SYMBOLIC
         else:
-            entry = context.symtab.lookup(operand)
-            if entry:
-                retval = entry.value
-        return retval
+            tmpop = operand
+            if self.addressExpr and (operand.startswith('+') or operand.startswith('-')):
+                tmpop = operand[1:]
+            # Next try number.
+            op = Number(tmpop)
+            if op.isValid():
+                retval = op.value
+                rettype = OperandType.DECIMAL
+
+        return (retval, rettype)
 
     def __str__(self):
         text = "Expression: complete=%s" % str(self.complete)
