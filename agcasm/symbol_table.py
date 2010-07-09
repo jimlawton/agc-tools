@@ -98,7 +98,10 @@ class SymbolTable:
                 self.context.log(3, "all symbols resolved")
                 break
             for symbol in self.undefs:
-                self.context.assembler.reparse(self.symbols[symbol].recordIndex)
+                if not self.symbols[symbol].isComplete():
+                    self.context.assembler.reparse(self.symbols[symbol].recordIndex)
+                    if self.symbols[symbol].isComplete():
+                        self.context.records[self.symbols[symbol].recordIndex].complete = True
             self.pruneUndefines()
             nUndefs = len(self.undefs)
             if nUndefs == nPrevUndefs:
@@ -108,15 +111,18 @@ class SymbolTable:
 
     def pruneUndefines(self):
         # Prune the undefs list.
-        self.context.log(6, "[%05d] pruning undefined symbols list" % len(self.undefs))
-        tmpUndefs =[]
+        numUndefs = len(self.undefs)
+        self.context.log(3, "pruning undefined symbols list (%d undefs)" % numUndefs)
+        tmpUndefs = []
         for symbol in self.undefs:
-            record = self.context.records[self.symbols[symbol].recordIndex]
-            if not record.isComplete():
+            entry = self.symbols[symbol]
+            if not entry.isComplete():
                 tmpUndefs.append(symbol)
             else:
-                self.context.log(6, "[%05d] removing %s from undefined symbols list" % (len(self.undefs), symbol))
+                self.context.log(6, "removing %s from undefined symbols list" % (symbol))
         self.undefs = tmpUndefs
+        self.context.log(3, "removed %d symbols from undef list" % (numUndefs - len(self.undefs)))
+        self.printUndefs()
         
     def keys(self):
         return self.symbols.keys()
@@ -141,3 +147,15 @@ class SymbolTable:
         print >>out, "\nUndefined symbols:\n"
         for symbol in self.undefs:
             print >>out, self.symbols[symbol]
+
+    def printUndefs(self, outfile=None):
+        if outfile == None:
+            out = sys.stdout
+        else:
+            out = outfile
+        print >>out, "\nUndefined symbols: %d\n" % (len(self.undefs))
+        for symbol in self.undefs:
+            print >>out, self.symbols[symbol]
+        
+    def getNumUndefs(self):
+        return len(self.undefs)
