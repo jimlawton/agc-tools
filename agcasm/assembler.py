@@ -182,9 +182,9 @@ class Assembler:
             nUndefs = 0
             for j in range(numRecords):
                 record = self.context.records[j]
-                if not record.complete:
+                if not record.isComplete():
                     nUndefs += 1
-                    if RecordType.isReparseable(record.type):
+                    if record.isParseable():
                         self.reparse(j)
             self.context.log(3, "pass %d: %d incomplete parser records" % (i, nUndefs))
             if nUndefs == 0:
