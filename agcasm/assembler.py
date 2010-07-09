@@ -182,7 +182,7 @@ class Assembler:
             nUndefs = 0
             for j in range(numRecords):
                 record = self.context.records[j]
-                if record.isParseable():
+                if record.isParseable() and not record.isComplete():
                     self.reparse(j)
                     if not record.isComplete():
                         nUndefs += 1
