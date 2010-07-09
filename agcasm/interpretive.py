@@ -42,6 +42,11 @@ class Interpretive(Opcode):
         # TODO: Handle store opcodes separately.
         # TODO: Handle interpretive operands ending in ,x. What does it mean?
         
+        exitInterp = False
+        
+        if self.mnemonic == "EXIT":
+            exitInterp = True
+            
         mnemonic2 = None
         
         if operands:
@@ -92,6 +97,8 @@ class Interpretive(Opcode):
             if method:
                 operands = operands[1:]
                 method(context, operands)
+            if mnemonic2 == "EXIT":
+                exitInterp = True
 
         code = opcodes[0] + 1
         if len(opcodes) == 2:
@@ -112,7 +119,12 @@ class Interpretive(Opcode):
             context.currentRecord.complete = True
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
-        context.interpMode = True
+        
+        if exitInterp == True:
+            context.interpMode = False
+            context.interpArgs = 0
+        else:
+            context.interpMode = True
 
     @classmethod
     def parseOperand(cls, context, operands):
