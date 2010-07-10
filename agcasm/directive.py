@@ -68,6 +68,7 @@ class Directive(Opcode):
 
     def ignore(self, context):
         self.type = RecordType.IGNORE
+        context.currentRecord.complete = True
         #context.info("ignoring directive \"%s\"" % self.mnemonic)
 
     def parse_MinusDNADR(self, context, operands):
