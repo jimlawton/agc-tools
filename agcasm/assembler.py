@@ -188,7 +188,7 @@ class Assembler:
             nUndefs = 0
             for j in range(numRecords):
                 record = self.context.records[j]
-                if record.isParseable() and not record.isComplete():
+                if not record.isComplete():
                     self.reparse(j)
                     if not record.isComplete():
                         nUndefs += 1
@@ -250,4 +250,4 @@ class Assembler:
 
     def log(self, level, text):
         if level <= self.context.logLevel:
-            print >>self.context.logfile, "[%03d] %s" % (self.context.passnum, text)
+            print >>self.context.logfile, "[Pass %03d] %s" % (self.context.passnum + 1, text)
