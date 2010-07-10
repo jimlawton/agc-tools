@@ -65,9 +65,15 @@ class ParserRecord:
 
     def __str__(self):
         text = ""
+        if self.type == RecordType.INCLUDE:
+            text += "\n\n"
         text += "%06d " % self.linenum
+        if self.complete == True:
+            text += "[C] "
+        else:
+            text += "[?] "
         if RecordType.isIgnored(self.type):
-            text += 38 * ' ' 
+            text += 46 * ' ' 
         else: 
             if RecordType.isAddressValid(self.type):
                 text += self.context.memmap.pseudoToSegmentedString(self.address) + ' '
