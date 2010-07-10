@@ -50,6 +50,7 @@ class Context:
         self.addSymbol = True
         self.reparse = False
         self.forceReparse = False
+        self.passnum = 0
         
         # Log level:
         #  0 - None.
