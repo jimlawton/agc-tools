@@ -35,7 +35,7 @@ class RecordType:
     @classmethod
     def isGenerative(cls, rectype):
         """Return True if record type generates machine code."""
-        isgenerative = { 
+        isGenerative = { 
             None:                 False,
             RecordType.NONE:      False, 
             RecordType.INCLUDE:   False, 
@@ -49,14 +49,14 @@ class RecordType:
             RecordType.IGNORE:    False 
         }
         if rectype:
-            return isgenerative[rectype]
+            return isGenerative[rectype]
         else:
             return False
 
     @classmethod
     def isAddressValid(cls, rectype):
         """Return True if record type is one in which the address field is valid."""
-        isaddress = { 
+        isAddress = { 
             None:                 False,
             RecordType.NONE:      False, 
             RecordType.INCLUDE:   False, 
@@ -70,14 +70,14 @@ class RecordType:
             RecordType.IGNORE:    False 
         }
         if rectype:
-            return isaddress[rectype]
+            return isAddress[rectype]
         else:
             return False
 
     @classmethod
     def isParseable(cls, rectype):
         """Return True if record type is reparseable."""
-        isreparse = { 
+        isParseable = { 
             RecordType.NONE:      False, 
             RecordType.INCLUDE:   False, 
             RecordType.BLANK:     False, 
@@ -90,17 +90,29 @@ class RecordType:
             RecordType.IGNORE:    False 
         }
         if rectype:
-            return isreparse[rectype]
+            return isParseable[rectype]
         else:
             return False
 
     @classmethod
     def isIgnored(cls, rectype):
         """Return True if record type should be ignored."""
-        if rectype == RecordType.NONE or type == RecordType.IGNORE:
-            return True
+        isIgnored = { 
+            RecordType.NONE:      True, 
+            RecordType.INCLUDE:   False, 
+            RecordType.BLANK:     True, 
+            RecordType.COMMENT:   True, 
+            RecordType.LABEL:     False, 
+            RecordType.ASMCONST:  False, 
+            RecordType.CONST:     False, 
+            RecordType.EXEC:      False, 
+            RecordType.INTERP:    False, 
+            RecordType.IGNORE:    True 
+        }
+        if rectype:
+            return isIgnored[rectype]
         else:
-            return False
+            return True
 
     @classmethod
     def isInterpretive(cls, rectype):
@@ -113,16 +125,16 @@ class RecordType:
     @classmethod
     def toString(cls, rectype):
         textdict = { 
-            RecordType.NONE:      "   ", 
-            RecordType.INCLUDE:   " @ ", 
-            RecordType.BLANK:     "   ", 
-            RecordType.COMMENT:   "   ", 
-            RecordType.LABEL:     "-L-", 
-            RecordType.ASMCONST:  "-A-", 
-            RecordType.CONST:     "-C-", 
-            RecordType.EXEC:      "-E-", 
-            RecordType.INTERP:    "-I-", 
-            RecordType.IGNORE:    "   " 
+            RecordType.NONE:      "     ", 
+            RecordType.INCLUDE:   "[INC]", 
+            RecordType.BLANK:     "     ", 
+            RecordType.COMMENT:   "     ", 
+            RecordType.LABEL:     "[LBL]", 
+            RecordType.ASMCONST:  "[ASM]", 
+            RecordType.CONST:     "[CON]", 
+            RecordType.EXEC:      "[EXE]", 
+            RecordType.INTERP:    "[INT]", 
+            RecordType.IGNORE:    "     " 
         }
         return textdict[rectype]
     
