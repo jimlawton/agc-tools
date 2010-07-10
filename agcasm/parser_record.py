@@ -67,7 +67,7 @@ class ParserRecord:
         text = ""
         if self.type == RecordType.INCLUDE:
             text += "\n\n"
-        text += "%06d " % self.linenum
+        text += "%06d,%06d " % (self.global_linenum, self.linenum)
         if self.complete == True:
             text += "[C] "
         else:
