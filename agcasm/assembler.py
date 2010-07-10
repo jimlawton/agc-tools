@@ -75,17 +75,21 @@ class Assembler:
                 if not os.path.isfile(modname):
                     self.fatal("File \"%s\" does not exist" % modname, source=False)
                 record = self._makeNewRecord(srcline, RecordType.INCLUDE, None, None, None, None, comment)
+                record.complete = True
                 self.context.records.append(record)
                 self.assemble(modname)
                 continue
             
             if len(line.strip()) == 0:
-                self.context.records.append(self._makeNewRecord(srcline, RecordType.BLANK, None, None, None, None, None))
+                record = self._makeNewRecord(srcline, RecordType.BLANK, None, None, None, None, None)
+                record.complete = True
+                self.context.records.append(record)
                 continue
             
             if line.strip().startswith('#'):
                 comment = line
                 record = self._makeNewRecord(srcline, RecordType.COMMENT, None, None, None, None, comment)
+                record.complete = True
                 self.context.records.append(record)
                 continue
             
@@ -100,6 +104,7 @@ class Assembler:
                     # Label only.
                     self.context.symtab.add(label, None, self.context.loc)
                     record = self._makeNewRecord(srcline, RecordType.LABEL, label, None, None, None, comment)
+                    record.complete = True
                     self.context.records.append(record)
                     continue
                 fields = fields[1:]
@@ -178,6 +183,7 @@ class Assembler:
         self.context.log(3, "updating %d parser records..." % (numRecords))
         nUndefs = nPrevUndefs = 0
         for i in range(maxPasses):
+            self.context.passnum = i + 1
             nPrevUndefs = nUndefs
             nUndefs = 0
             for j in range(numRecords):
@@ -186,14 +192,24 @@ class Assembler:
                     self.reparse(j)
                     if not record.isComplete():
                         nUndefs += 1
-            self.context.log(3, "pass %d: %d incomplete parser records" % (i, nUndefs))
+            self.context.log(3, "%d incomplete parser records" % (nUndefs))
             if nUndefs == 0:
                 self.context.log(3, "all parser records complete")
                 break
             if nUndefs == nPrevUndefs:
                 self.context.error("no progress resolving parser records", source=False)
                 break
-
+            
+        print "*** INCOMPLETE RECORDS ***"
+        count = 0
+        for i in range(numRecords):
+            record = self.context.records[i]
+            if not record.isComplete():
+                print "%06d: %s" % (i, record)
+                count += 1
+            if count == 50:
+                break
+            
     def fatal(self, text, source=True):
         self.error(text, source)
         sys.exit(1)
@@ -234,4 +250,4 @@ class Assembler:
 
     def log(self, level, text):
         if level <= self.context.logLevel:
-            print >>self.context.logfile, "%s" % (text)
+            print >>self.context.logfile, "[%03d] %s" % (self.context.passnum, text)
