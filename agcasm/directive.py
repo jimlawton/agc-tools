@@ -60,9 +60,6 @@ class Directive(Opcode):
         if method:
             method(context, operands)
 
-        if context.forceReparse:
-            context.currentRecord.complete = False
-
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
 
@@ -325,15 +322,12 @@ class Directive(Opcode):
         if expr.complete:
             pa = expr.value
             if context.memmap.isErasable(pa):
-                context.log(3, "EBANK= %s" % context.memmap.pseudoToSegmentedString(expr.value))
+                context.log(3, "EBANK= %s" % context.memmap.pseudoToSegmentedString(pa))
                 context.switchEBankPA(pa)
                 context.currentRecord.target = pa
                 context.currentRecord.complete = True
             else:
                 context.error("operand must be in erasable memory")
-        else:
-            # Need to reparse subsequent records until next non-one-shot EBANK=. 
-            context.forceReparse = True
 
     def parse_ECADR(self, context, operands):
         pa = None

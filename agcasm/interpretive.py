@@ -115,8 +115,7 @@ class Interpretive(Opcode):
         code = ~code & 077777
 
         context.currentRecord.code = [ code ]
-        if not context.forceReparse:
-            context.currentRecord.complete = True
+        context.currentRecord.complete = True
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
         
@@ -153,8 +152,7 @@ class Interpretive(Opcode):
                     if indexreg == 2:
                         code = ~code & 077777
                 context.currentRecord.code = [ code ]
-                if not context.forceReparse:
-                    context.currentRecord.complete = True
+                context.currentRecord.complete = True
                 context.log(5, "interpretive: generated operand %05o" % code)
                 return True
             else:

@@ -49,7 +49,6 @@ class Context:
         self.currentRecord = None
         self.addSymbol = True
         self.reparse = False
-        self.forceReparse = False
         self.passnum = 0
         
         # Log level:
