@@ -199,17 +199,7 @@ class Assembler:
             if nUndefs == nPrevUndefs:
                 self.context.error("no progress resolving parser records", source=False)
                 break
-            
-        print "*** INCOMPLETE RECORDS ***"
-        count = 0
-        for i in range(numRecords):
-            record = self.context.records[i]
-            if not record.isComplete():
-                print "%06d: %s" % (i, record)
-                count += 1
-            if count == 50:
-                break
-            
+
     def fatal(self, text, source=True):
         self.error(text, source)
         sys.exit(1)
