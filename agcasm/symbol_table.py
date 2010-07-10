@@ -86,9 +86,10 @@ class SymbolTable:
                 self.context.error("symbol \"%s\" not defined!" % (name))
             else:
                 entry = self.symbols[name]
+                oldval = entry.value
                 entry.value = value
                 self.symbols[name] = entry
-                self.context.log(6, "updated symbol %-8s %s" % (name, self.context.memmap.pseudoToSegmentedString(value)))
+                self.context.log(6, "updated symbol %-8s %s -> %s" % (name, self.context.memmap.pseudoToSegmentedString(oldval), self.context.memmap.pseudoToSegmentedString(value)))
 
     def resolve(self, maxPasses=10):
         nPrevUndefs = nUndefs = len(self.undefs)
