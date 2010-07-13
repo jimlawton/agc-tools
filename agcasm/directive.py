@@ -344,17 +344,17 @@ class Directive(Opcode):
         if operands != None:
             expr = Expression(context, operands)
             if expr.complete:
-                if not context.reparse:
+                if not context.reparse and context.passnum == 0:
                     context.symtab.add(context.currentRecord.label, operands, expr.value)
                 else:
                     context.symtab.update(context.currentRecord.label, operands, expr.value)
                 context.currentRecord.target = expr.value
                 context.currentRecord.complete = True
             else:
-                if not context.reparse:
+                if not context.reparse and context.passnum == 0:
                     context.symtab.add(context.currentRecord.label, operands)
         else:
-            if not context.reparse:
+            if not context.reparse and context.passnum == 0:
                 context.symtab.add(context.currentRecord.label, None, context.loc)
             else:
                 context.symtab.update(context.currentRecord.label, None, context.loc)
@@ -381,7 +381,7 @@ class Directive(Opcode):
                 if op.isValid():
                     size = op.value + 1
         if context.currentRecord.label != None and op.isValid():
-            if not context.reparse:
+            if not context.reparse and context.passnum == 0:
                 context.symtab.add(context.currentRecord.label, operands, value)
             else:
                 context.symtab.update(context.currentRecord.label, operands, value)
