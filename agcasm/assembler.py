@@ -146,7 +146,7 @@ class Assembler:
                 self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, operands)
             if opcode in self.context.opcodes[self.context.mode]:
                 self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
-            if label != None and self.context.addSymbol == True:
+            if label != None and self.context.addSymbol == True and self.context.passnum == 0:
                 if not self.context.reparse:
                     self.context.symtab.add(label, operands, self.context.loc)
                 else:
@@ -155,8 +155,8 @@ class Assembler:
             self.error("Exception processing line:")
             raise
 
-    def reparse(self, recordIndex):
-        "Reparse a ParserRecord, without affecting assembler state. Return the generated code words, if any."
+    def parseRecord(self, recordIndex):
+        "Parse a ParserRecord, without affecting assembler state. Return the generated code words, if any."
         record = self.context.records[recordIndex]
         self.context.reparse = True
         saveRecord = self.context.currentRecord
@@ -174,8 +174,8 @@ class Assembler:
         self.parse(record.label, record.opcode, record.operands)
         self.context.records[recordIndex] = self.context.currentRecord
         self.context.currentRecord = saveRecord
-        self.context.log(6, "updated record %06d: %s" % (recordIndex, self.context.records[recordIndex]))
         self.context.reparse = False
+        self.context.log(6, "updated record %06d: %s" % (recordIndex, self.context.records[recordIndex]))
         
     def resolve(self, maxPasses=10):
         self.context.symtab.resolve(maxPasses)
@@ -186,12 +186,23 @@ class Assembler:
             self.context.passnum = i + 1
             nPrevUndefs = nUndefs
             nUndefs = 0
+            self.context.loc = 0        # Assembler PC, i.e. current position in erasable or fixed memory.
+            self.context.sbank = 0      # Current S-Bank.
+            self.context.ebank = 0      # Current E-Bank.
+            self.context.fbank = 0      # Current F-Bank.
+            self.context.mode = OpcodeType.BASIC
+            self.context.lastEbank = 0
+            self.context.lastEbankEquals = False
             for j in range(numRecords):
                 record = self.context.records[j]
+                self.context.currentRecord = record
+                self.context.srcfile = record.srcfile
+                self.context.linenum = record.linenum
+                self.context.global_linenum = record.global_linenum
+                self.parse(record.label, record.opcode, record.operands)
+                self.context.records[j] = self.context.currentRecord
                 if not record.isComplete():
-                    self.reparse(j)
-                    if not record.isComplete():
-                        nUndefs += 1
+                    nUndefs += 1
             self.context.log(3, "%d incomplete parser records" % (nUndefs))
             if nUndefs == 0:
                 self.context.log(3, "all parser records complete")

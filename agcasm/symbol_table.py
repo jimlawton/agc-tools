@@ -100,7 +100,7 @@ class SymbolTable:
                 break
             for symbol in self.undefs:
                 if not self.symbols[symbol].isComplete():
-                    self.context.assembler.reparse(self.symbols[symbol].recordIndex)
+                    self.context.assembler.parseRecord(self.symbols[symbol].recordIndex)
                     if self.symbols[symbol].isComplete():
                         self.context.records[self.symbols[symbol].recordIndex].complete = True
             self.pruneUndefines()
