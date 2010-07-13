@@ -99,7 +99,7 @@ class Context:
 
     def saveCurrentBank(self):
         (bank, offset) = self.memmap.pseudoToBankOffset(self.loc)
-        if bank!= None and offset != None:
+        if bank != None and offset != None:
             if self.memmap.isErasable(self.loc):
                 self.log(4, "saving EB %02o: %04o -> %04o" % (bank, self.ebankloc[bank], offset))
                 self.ebankloc[bank] = offset
@@ -114,13 +114,14 @@ class Context:
             self.lastEbank = self.ebank
             self.saveCurrentBank()
             self.ebank = self.memmap.pseudoToBank(pa)
+            self.log(4, "changed EB: %02o -> %02o" % (self.lastEbank, self.ebank))
             if self.memmap.isErasable(self.loc):
                 # Only change LOC if it is currently erasable. This allows us to move LOC up through the various 
                 # erasable banks at the start as symbols are defined. Later, in fixed banks, you do not want an 
                 # EBANK= to affect LOC. 
                 self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.ebank, self.ebankloc[self.ebank]))
             self.lastEbankEquals = True
-            self.log(4, "switched EB to %s" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank])))
+            self.log(4, "switched EB to %s (%06o)" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.ebankloc[self.ebank]))
 
     def revertEbank(self):
         if not self.reparse:
@@ -130,7 +131,7 @@ class Context:
                 self.ebank = self.lastEbank
                 if self.memmap.isErasable(self.loc):
                     self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank]))
-                self.log(4, "reverted EB to %s" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank])))
+                self.log(4, "reverted EB to %s (%06o)" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.ebankloc[self.ebank]))
                 self.lastEbankEquals = False
 
     def switchFBank(self, bank=None):
