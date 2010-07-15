@@ -73,6 +73,7 @@ def main():
     print >>symtabfile, "------------"
     assembler.context.symtab.printTable(symtabfile)
     
+    assembler.info("%d errors, %d warnings" % (context.errors, context.warnings), source=False)
     assembler.info("Done.", source=False)
     print "Done."
 
