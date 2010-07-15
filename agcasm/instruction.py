@@ -82,3 +82,11 @@ class Instruction(Opcode):
     def parse_EXTEND(self, context, operands):
         context.mode = OpcodeType.EXTENDED
     
+    def parse_MinusCCS(self, context, operands):
+        words = []
+        if context.currentRecord.code != None:
+            for i in range(len(context.currentRecord.code)):
+                words.append(~context.currentRecord.code[i] & 077777)
+            context.currentRecord.code = words
+            context.currentRecord.complete = True
+        
