@@ -49,7 +49,7 @@ class Interpretive(Opcode):
             
         mnemonic2 = None
         
-        if operands:
+        if operands != None:
             oplen = len(operands)
         else:
             oplen = 0
@@ -144,6 +144,8 @@ class Interpretive(Opcode):
                             newoperands.append(operand)
                 else:
                     newoperands = operands
+            else:
+                newoperands = operands
             operand = AddressExpression(context, newoperands)
             if operand.complete:
                 code = operand.value
