@@ -94,7 +94,7 @@ class SymbolTable:
     def resolve(self, maxPasses=10):
         nPrevUndefs = nUndefs = len(self.undefs)
         for i in range(maxPasses):
-            self.context.log(3, "pass %d: %d undefined symbols" % (i, nUndefs))
+            self.context.log(3, "symbol pass %d: %d undefined symbols" % (i, nUndefs))
             if nUndefs == 0:
                 self.context.log(3, "all symbols resolved")
                 break
@@ -123,7 +123,7 @@ class SymbolTable:
                 self.context.log(6, "removing %s from undefined symbols list" % (symbol))
         self.undefs = tmpUndefs
         self.context.log(3, "removed %d symbols from undef list" % (numUndefs - len(self.undefs)))
-        self.printUndefs()
+        #self.printUndefs()
         
     def keys(self):
         return self.symbols.keys()
