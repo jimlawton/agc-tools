@@ -73,6 +73,56 @@ class Context:
             self.ebankloc[bank] = 0
         for bank in range(len(self.memmap.banks[MemoryType.FIXED])):
             self.fbankloc[bank] = 0
+
+        self.errors = 0
+        self.warnings = 0
+        
+    def reset(self):
+        self.linenum = 0
+        self.global_linenum = 0
+        self.mode = OpcodeType.BASIC
+        self.lastEbank = 0
+        self.lastEbankEquals = False
+        self.code = []
+        self.srcline = None
+        self.interpMode = False
+        self.interpArgs = 0
+        self.indexed = False
+        self.currentRecord = None
+        self.addSymbol = True
+        self.reparse = False
+        self.loc = 0
+        self.sbank = 0
+        self.ebank = 0
+        self.fbank = 0
+        
+    def load(self, record):
+        self.linenum = record.linenum
+        self.global_linenum = record.global_linenum
+        self.mode = record.mode
+        self.lastEbank = record.lastEbank
+        self.lastEbankEquals = record.lastEbankEquals
+        self.code = record.code
+        self.srcline = record.srcline
+        self.mode = record.mode
+        self.loc = record.loc
+        self.sbank = record.sbank
+        self.ebank = record.ebank
+        self.fbank = record.fbank
+        
+    def save(self, record):
+        record.linenum = self.linenum
+        record.global_linenum = self.global_linenum
+        record.mode = self.mode
+        record.lastEbank = self.lastEbank
+        record.lastEbankEquals = self.lastEbankEquals
+        record.code = self.code
+        record.srcline = self.srcline
+        record.mode = self.mode
+        record.loc = self.loc
+        record.sbank = self.sbank
+        record.ebank = self.ebank
+        record.fbank = self.fbank
         
     def setLoc(self, loc):
         if not self.memmap.isValid(loc):
@@ -114,14 +164,14 @@ class Context:
             self.lastEbank = self.ebank
             self.saveCurrentBank()
             self.ebank = self.memmap.pseudoToBank(pa)
-            self.log(4, "changed EB: %02o -> %02o" % (self.lastEbank, self.ebank))
+            self.log(4, "switched EB: %02o -> %02o" % (self.lastEbank, self.ebank))
             if self.memmap.isErasable(self.loc):
                 # Only change LOC if it is currently erasable. This allows us to move LOC up through the various 
                 # erasable banks at the start as symbols are defined. Later, in fixed banks, you do not want an 
                 # EBANK= to affect LOC. 
                 self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.ebank, self.ebankloc[self.ebank]))
             self.lastEbankEquals = True
-            self.log(4, "switched EB to %s (%06o)" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.ebankloc[self.ebank]))
+            self.printBanks()
 
     def revertEbank(self):
         if not self.reparse:
@@ -129,17 +179,18 @@ class Context:
             if self.lastEbankEquals:
                 self.saveCurrentBank()
                 self.ebank = self.lastEbank
+                self.log(4, "reverted EB: %02o -> %02o" % (self.lastEbank, self.ebank))
                 if self.memmap.isErasable(self.loc):
                     self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank]))
-                self.log(4, "reverted EB to %s (%06o)" % (self.memmap.pseudoToSegmentedString(self.ebankloc[self.ebank]), self.ebankloc[self.ebank]))
                 self.lastEbankEquals = False
 
     def switchFBank(self, bank=None):
         if not self.reparse:
             if bank != None:
-                self.log(4, "switching to bank %02o" % bank)
                 self.saveCurrentBank()
+                oldbank = self.fbank
                 self.fbank = bank
+                self.log(4, "switched FB: %02o -> %02o" % (oldbank, self.fbank))
             self.setLoc(self.memmap.segmentedToPseudo(MemoryType.FIXED, self.fbank, self.fbankloc[self.fbank]))
             self.log(4, "switched FB to %s" % (self.memmap.pseudoToSegmentedString(self.loc)))
 
