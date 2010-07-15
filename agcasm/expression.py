@@ -30,6 +30,8 @@ class Expression:
         self.value = None                   # If complete, calculated result of the expression.
         self.addressExpr = addressExpr      # Indicates that the expression is an Address Expression.
 
+        context.log(5, "expression: operands=%s addressExpr=%s" % (operands, addressExpr))
+
         op1 = 0
         op2 = 0
         
