@@ -125,27 +125,44 @@ class Assembler:
             else:
                 operands = operands.strip().split()
 
+            if opcode != None:
+                opindex = self.context.srcline.index(opcode)
+            elif operands != None:
+                opindex = self.context.srcline.index(operands[0])
+            else:
+                opindex = None
+
+            if opindex != None:
+                if opindex == 24:
+                    # Handle standalone interpretive operands.
+                    newoperands = [ opcode ]
+                    if operands != None:
+                        newoperands.extend(operands)
+                    operands = newoperands
+                    opcode = None
+
             self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
             self.parse(label, opcode, operands)
             #self.context.currentRecord.update()
             self.context.records.append(self.context.currentRecord)
 
     def parse(self, label, opcode, operands):
+        gotInterpArgs = False
         try:
-            # Check for any outstanding interpretive operands first, i.e. until interpArgs reaches zero.
-            if opcode in self.context.opcodes[OpcodeType.INTERPRETIVE]:
-                self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, operands)
+            self.context.log(7, "parse: label=%s opcode=%s operands=%s" % (label, opcode, operands))
+            
+            if opcode == None:
+                gotInterpArgs = Interpretive.parseOperand(self.context, operands)
             else:
-                newoperands = [ opcode ]
-                if operands:
-                    newoperands.extend(operands)
-                gotone = Interpretive.parseOperand(self.context, newoperands)
-                if gotone:
-                    return
-            if opcode in self.context.opcodes[OpcodeType.DIRECTIVE]:
-                self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, operands)
-            if opcode in self.context.opcodes[self.context.mode]:
-                self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
+                if opcode in self.context.opcodes[OpcodeType.INTERPRETIVE]:
+                    self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, operands)
+                elif opcode in self.context.opcodes[OpcodeType.DIRECTIVE]:
+                    self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, operands)
+                elif opcode in self.context.opcodes[self.context.mode]:
+                    self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
+                else:
+                    self.error("invalid opcode")
+                    
             if label != None and self.context.addSymbol == True and self.context.passnum == 0:
                 if not self.context.reparse:
                     self.context.symtab.add(label, operands, self.context.loc)
@@ -161,16 +178,7 @@ class Assembler:
         self.context.reparse = True
         saveRecord = self.context.currentRecord
         self.context.currentRecord = record
-        self.context.srcfile = record.srcfile
-        self.context.linenum = record.linenum
-        self.context.global_linenum = record.global_linenum
-        self.context.mode = record.mode
-        self.context.sbank = record.sbank
-        self.context.ebank = record.ebank
-        self.context.fbank = record.fbank
-        self.context.loc = record.loc
-        self.context.lastEbank = record.lastEbank
-        self.context.lastEbankEquals = record.lastEbankEquals
+        self.context.load(record)
         self.parse(record.label, record.opcode, record.operands)
         self.context.records[recordIndex] = self.context.currentRecord
         self.context.currentRecord = saveRecord
@@ -184,25 +192,19 @@ class Assembler:
         nUndefs = nPrevUndefs = 0
         for i in range(maxPasses):
             self.context.passnum = i + 1
+            self.context.reset()
             nPrevUndefs = nUndefs
             nUndefs = 0
-            self.context.loc = 0        # Assembler PC, i.e. current position in erasable or fixed memory.
-            self.context.sbank = 0      # Current S-Bank.
-            self.context.ebank = 0      # Current E-Bank.
-            self.context.fbank = 0      # Current F-Bank.
-            self.context.mode = OpcodeType.BASIC
-            self.context.lastEbank = 0
-            self.context.lastEbankEquals = False
             for j in range(numRecords):
                 record = self.context.records[j]
-                self.context.currentRecord = record
-                self.context.srcfile = record.srcfile
-                self.context.linenum = record.linenum
-                self.context.global_linenum = record.global_linenum
-                self.parse(record.label, record.opcode, record.operands)
-                self.context.records[j] = self.context.currentRecord
-                if not record.isComplete():
-                    nUndefs += 1
+                if record.isParseable():
+                    self.context.currentRecord = record
+                    self.context.load(record)
+                    self.context.log(8, "resolve: %s" % (record.srcline))
+                    self.parse(record.label, record.opcode, record.operands)
+                    self.context.records[j] = self.context.currentRecord
+                    if not record.isComplete():
+                        nUndefs += 1
             self.context.log(3, "%d incomplete parser records" % (nUndefs))
             if nUndefs == 0:
                 self.context.log(3, "all parser records complete")
@@ -224,6 +226,7 @@ class Assembler:
             msg += "\n%s" % self.context.currentRecord.srcline
         print >>sys.stderr, msg
         self.log(1, msg)
+        self.context.errors += 1
 
     def syntax(self, text, source=True):
         self.error("syntax error: %s" % text, source)
@@ -237,6 +240,7 @@ class Assembler:
             msg += "\n%s" % self.context.currentRecord.srcline
         print >>sys.stderr, msg
         self.log(2, msg)
+        self.context.warnings += 1
 
     def info(self, text, source=True):
         msg = ""
