@@ -125,14 +125,20 @@ class Assembler:
             else:
                 operands = operands.strip().split()
 
-            if opcode != None:
-                opindex = self.context.srcline.index(opcode)
-            elif operands != None:
-                opindex = self.context.srcline.index(operands[0])
-            else:
-                opindex = None
+            label_len = 0
+            if label != None:
+                label_len = len(label)
 
-            if opindex != None:
+            if opcode != None:
+                opindex = self.context.srcline.find(opcode, label_len)
+            elif operands != None:
+                opindex = self.context.srcline.find(operands[0], label_len)
+            else:
+                opindex = -1
+
+            if opindex != -1:
+                if opindex != 16 and opindex != 24:
+                    self.context.error("bad indentation")
                 if opindex == 24:
                     # Handle standalone interpretive operands.
                     newoperands = [ opcode ]
@@ -141,6 +147,8 @@ class Assembler:
                     operands = newoperands
                     opcode = None
 
+            self.context.log(7, "assemble: label=%s opcode=%s operands=%s [%d]" % (label, opcode, operands, opindex))
+            
             self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
             self.parse(label, opcode, operands)
             #self.context.currentRecord.update()
@@ -162,7 +170,7 @@ class Assembler:
                     self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
                 else:
                     self.error("invalid opcode")
-                    
+
             if label != None and self.context.addSymbol == True and self.context.passnum == 0:
                 if not self.context.reparse:
                     self.context.symtab.add(label, operands, self.context.loc)
