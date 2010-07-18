@@ -155,12 +155,11 @@ class Assembler:
             self.context.records.append(self.context.currentRecord)
 
     def parse(self, label, opcode, operands):
-        gotInterpArgs = False
         try:
             self.context.log(7, "parse: label=%s opcode=%s operands=%s" % (label, opcode, operands))
             
             if opcode == None:
-                gotInterpArgs = Interpretive.parseOperand(self.context, operands)
+                Interpretive.parseOperand(self.context, operands)
             else:
                 if opcode in self.context.opcodes[OpcodeType.INTERPRETIVE]:
                     self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, operands)

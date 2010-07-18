@@ -156,14 +156,14 @@ class Interpretive(Opcode):
                 context.currentRecord.code = [ code ]
                 context.currentRecord.complete = True
                 context.log(5, "interpretive: generated operand %05o" % code)
-                return True
+                return
             else:
                 context.log(5, "interpretive: operand undefined")
             context.incrLoc(1)
             context.interpArgs -= 1
             if context.interpArgs == 0:
                 context.interpMode = False
-        return False
+        return
 
     def parse_EXIT(self, context, operands):
         context.interpMode = False
