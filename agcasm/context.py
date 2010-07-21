@@ -39,7 +39,7 @@ class Context:
         self.mode = OpcodeType.BASIC
         self.memmap = MemoryMap(arch, verbose)
         self.lastEbank = 0
-        self.lastEbankEquals = False
+        self.previousWasEbankEquals = False
         self.code = []
         self.records = []
         self.srcline = None
@@ -82,7 +82,7 @@ class Context:
         self.global_linenum = 0
         self.mode = OpcodeType.BASIC
         self.lastEbank = 0
-        self.lastEbankEquals = False
+        self.previousWasEbankEquals = False
         self.code = []
         self.srcline = None
         self.interpMode = False
@@ -101,7 +101,7 @@ class Context:
         self.global_linenum = record.global_linenum
         self.mode = record.mode
         self.lastEbank = record.lastEbank
-        self.lastEbankEquals = record.lastEbankEquals
+        self.previousWasEbankEquals = record.previousWasEbankEquals
         self.code = record.code
         self.srcline = record.srcline
         self.mode = record.mode
@@ -115,7 +115,7 @@ class Context:
         record.global_linenum = self.global_linenum
         record.mode = self.mode
         record.lastEbank = self.lastEbank
-        record.lastEbankEquals = self.lastEbankEquals
+        record.previousWasEbankEquals = self.previousWasEbankEquals
         record.code = self.code
         record.srcline = self.srcline
         record.mode = self.mode
@@ -170,19 +170,19 @@ class Context:
                 # erasable banks at the start as symbols are defined. Later, in fixed banks, you do not want an 
                 # EBANK= to affect LOC. 
                 self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.ebank, self.ebankloc[self.ebank]))
-            self.lastEbankEquals = True
+            self.previousWasEbankEquals = True
             self.printBanks()
 
     def revertEbank(self):
         if not self.reparse:
             self.printBanks()
-            if self.lastEbankEquals:
+            if self.previousWasEbankEquals == True:
                 self.saveCurrentBank()
                 self.ebank = self.lastEbank
                 self.log(4, "reverted EB: %02o -> %02o" % (self.lastEbank, self.ebank))
                 if self.memmap.isErasable(self.loc):
                     self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank]))
-                self.lastEbankEquals = False
+                self.previousWasEbankEquals = False
 
     def switchFBank(self, bank=None):
         if not self.reparse:

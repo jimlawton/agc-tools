@@ -151,7 +151,7 @@ class Directive(Opcode):
             context.currentRecord.code = [word1, word2]
             context.currentRecord.target = expr.value
             context.currentRecord.complete = True
-        if context.lastEbankEquals:
+        if context.previousWasEbankEquals == True:
             context.revertEbank()
 
     def parse_2DEC(self, context, operands):
@@ -232,13 +232,13 @@ class Directive(Opcode):
             context.currentRecord.code = [ bbval ]
             context.currentRecord.target = expr.value
             context.currentRecord.complete = True
-        if context.lastEbankEquals:
+        if context.previousWasEbankEquals == True:
             context.revertEbank()
     
     def parse_BBCONstar(self, context, operands):
         context.currentRecord.code = [ 066100 ]
         context.currentRecord.complete = True
-        if context.lastEbankEquals:
+        if context.previousWasEbankEquals == True:
             context.revertEbank()
             # TODO: recalculate sbank, based on superbit=1.
         return True

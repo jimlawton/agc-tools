@@ -46,7 +46,7 @@ class ParserRecord:
         self.fbank = context.fbank          # F Bank.
         self.loc = context.loc
         self.lastEbank = context.lastEbank
-        self.lastEbankEquals = context.lastEbankEquals
+        self.previousWasEbankEquals = context.previousWasEbankEquals
         self.global_linenum = context.global_linenum
 
     def isParseable(self):
@@ -61,7 +61,7 @@ class ParserRecord:
         self.fbank = self.context.fbank
         self.loc = self.context.loc
         self.lastEbank = self.context.lastEbank
-        self.lastEbankEquals = self.context.lastEbankEquals
+        self.previousWasEbankEquals = self.context.previousWasEbankEquals
 
     def __str__(self):
         text = ""
