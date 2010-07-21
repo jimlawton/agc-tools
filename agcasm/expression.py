@@ -69,6 +69,11 @@ class Expression:
                         self.value = op1 - op2
                     self.complete = True
 
+        if self.complete == True:
+            context.log(5, "expression: complete, value=%05o" % (self.value))
+        else:
+            context.log(5, "expression: incomplete")
+
     def _parseOperand(self, context, operand):
         retval = None
         rettype = OperandType.NONE
