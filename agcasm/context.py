@@ -96,33 +96,33 @@ class Context:
         self.ebank = 0
         self.fbank = 0
         
-    def load(self, record):
+    def load(self, record, partial=True):
         self.linenum = record.linenum
         self.global_linenum = record.global_linenum
-        self.mode = record.mode
-        self.lastEbank = record.lastEbank
-        self.previousWasEbankEquals = record.previousWasEbankEquals
         self.code = record.code
         self.srcline = record.srcline
-        self.mode = record.mode
-        self.loc = record.loc
-        self.sbank = record.sbank
-        self.ebank = record.ebank
-        self.fbank = record.fbank
+        if partial == False:
+            self.mode = record.mode
+            self.lastEbank = record.lastEbank
+            self.previousWasEbankEquals = record.previousWasEbankEquals
+            self.loc = record.loc
+            self.sbank = record.sbank
+            self.ebank = record.ebank
+            self.fbank = record.fbank
         
-    def save(self, record):
+    def save(self, record, partial=True):
         record.linenum = self.linenum
         record.global_linenum = self.global_linenum
-        record.mode = self.mode
-        record.lastEbank = self.lastEbank
-        record.previousWasEbankEquals = self.previousWasEbankEquals
         record.code = self.code
         record.srcline = self.srcline
-        record.mode = self.mode
-        record.loc = self.loc
-        record.sbank = self.sbank
-        record.ebank = self.ebank
-        record.fbank = self.fbank
+        if partial == False:
+            record.lastEbank = self.lastEbank
+            record.previousWasEbankEquals = self.previousWasEbankEquals
+            record.mode = self.mode
+            record.loc = self.loc
+            record.sbank = self.sbank
+            record.ebank = self.ebank
+            record.fbank = self.fbank
         
     def setLoc(self, loc):
         if not self.memmap.isValid(loc):
