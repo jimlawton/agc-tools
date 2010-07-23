@@ -134,7 +134,7 @@ class Context:
     def incrLoc(self, delta):
         if not self.memmap.isValid(self.loc + delta):
             self.error("trying to set loc to an invalid address (%06o)" % (self.loc + delta))
-        if not self.reparse:
+        if not self.reparse and delta > 0:
             self.log(5, "incrementing loc from %06o to %06o (delta=%04o)" % (self.loc, self.loc + delta, delta))
             self.loc += delta
 
