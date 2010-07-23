@@ -159,6 +159,7 @@ class Assembler:
             
             if opcode == None:
                 Interpretive.parseOperand(self.context, operands)
+                self.context.currentRecord.type = RecordType.INTERP
             else:
                 if opcode in self.context.opcodes[OpcodeType.INTERPRETIVE]:
                     self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, operands)
