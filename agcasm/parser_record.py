@@ -59,7 +59,6 @@ class ParserRecord:
         self.sbank = self.context.sbank
         self.ebank = self.context.ebank
         self.fbank = self.context.fbank
-        self.loc = self.context.loc
         self.lastEbank = self.context.lastEbank
         self.previousWasEbankEquals = self.context.previousWasEbankEquals
 
