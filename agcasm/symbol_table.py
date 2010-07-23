@@ -128,6 +128,9 @@ class SymbolTable:
     def keys(self):
         return self.symbols.keys()
 
+    def getNumSymbols(self):
+        return len(self.symbols.keys())
+
     def lookup(self, name):
         entry = None
         if name in self.symbols:
