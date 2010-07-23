@@ -101,11 +101,11 @@ class Context:
         self.global_linenum = record.global_linenum
         self.code = record.code
         self.srcline = record.srcline
+        self.loc = record.loc
         if partial == False:
             self.mode = record.mode
             self.lastEbank = record.lastEbank
             self.previousWasEbankEquals = record.previousWasEbankEquals
-            self.loc = record.loc
             self.sbank = record.sbank
             self.ebank = record.ebank
             self.fbank = record.fbank
