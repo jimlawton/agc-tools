@@ -127,43 +127,39 @@ class Interpretive(Opcode):
 
     @classmethod
     def parseOperand(cls, context, operands):
-        if context.interpMode and context.interpArgs > 0:
-            context.log(5, "interpretive: trying to parse operand %s" % operands)
-            newoperands = []
-            indexreg = 0
-            if context.indexed:
-                if ',' in operands:
-                    for operand in operands:
-                        if operand.endswith(',1') or operand.endswith(',2'):
-                            if operand.endswith(',1'):
-                                indexreg = 1
-                            else:
-                                indexreg = 2
-                            newoperands.append(operand[:-2])
+        context.log(5, "interpretive: trying to parse operand %s" % operands)
+        newoperands = []
+        indexreg = 0
+        if context.indexed:
+            if ',' in operands:
+                for operand in operands:
+                    if operand.endswith(',1') or operand.endswith(',2'):
+                        if operand.endswith(',1'):
+                            indexreg = 1
                         else:
-                            newoperands.append(operand)
-                else:
-                    newoperands = operands
+                            indexreg = 2
+                        newoperands.append(operand[:-2])
+                    else:
+                        newoperands.append(operand)
             else:
                 newoperands = operands
-            operand = AddressExpression(context, newoperands)
-            if operand.complete:
-                code = operand.value
-                if indexreg > 0:
-                    code += 1
-                    if indexreg == 2:
-                        code = ~code & 077777
-                context.currentRecord.code = [ code ]
-                context.currentRecord.complete = True
-                context.log(5, "interpretive: generated operand %05o" % code)
-                return
-            else:
-                context.log(5, "interpretive: operand undefined")
-            context.incrLoc(1)
-            context.interpArgs -= 1
-            if context.interpArgs == 0:
-                context.interpMode = False
-        return
+        else:
+            newoperands = operands
+        operand = AddressExpression(context, newoperands)
+        if operand.complete:
+            code = operand.value
+            if indexreg > 0:
+                code += 1
+                if indexreg == 2:
+                    code = ~code & 077777
+            context.currentRecord.code = [ code ]
+            context.currentRecord.complete = True
+            context.log(5, "interpretive: generated operand %05o" % code)
+            return
+        else:
+            context.log(5, "interpretive: operand undefined")
+        context.incrLoc(1)
+        context.interpArgs -= 1
 
     def parse_EXIT(self, context, operands):
         context.interpMode = False
