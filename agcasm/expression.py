@@ -87,11 +87,15 @@ class Expression:
             tmpop = operand
             if self.addressExpr and (operand.startswith('+') or operand.startswith('-')):
                 tmpop = operand[1:]
-            # Next try number.
-            op = Number(tmpop)
-            if op.isValid():
-                retval = op.value
-                rettype = OperandType.DECIMAL
+            try:
+                # Next try number.
+                op = Number(tmpop)
+                if op.isValid():
+                    retval = op.value
+                    rettype = OperandType.DECIMAL
+            except:
+                # Assume it is a symbol as yet undefined.
+                pass
 
         return (retval, rettype)
 
