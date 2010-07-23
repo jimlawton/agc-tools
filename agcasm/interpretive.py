@@ -130,21 +130,16 @@ class Interpretive(Opcode):
         context.log(5, "interpretive: trying to parse operand %s" % operands)
         newoperands = []
         indexreg = 0
-        if context.indexed:
-            if ',' in operands:
-                for operand in operands:
-                    if operand.endswith(',1') or operand.endswith(',2'):
-                        if operand.endswith(',1'):
-                            indexreg = 1
-                        else:
-                            indexreg = 2
-                        newoperands.append(operand[:-2])
-                    else:
-                        newoperands.append(operand)
+        for operand in operands:
+            if operand.endswith(',1') or operand.endswith(',2'):
+                context.log(5, "interpretive: indexed operand %s" % operand)
+                if operand.endswith(',1'):
+                    indexreg = 1
+                else:
+                    indexreg = 2
+                newoperands.append(operand[:-2])
             else:
-                newoperands = operands
-        else:
-            newoperands = operands
+                newoperands.append(operand)
         operand = AddressExpression(context, newoperands)
         if operand.complete:
             code = operand.value
