@@ -185,7 +185,7 @@ class Assembler:
         self.context.reparse = True
         saveRecord = self.context.currentRecord
         self.context.currentRecord = record
-        self.context.load(record)
+        self.context.load(record, partial=False)
         self.parse(record.label, record.opcode, record.operands)
         self.context.records[recordIndex] = self.context.currentRecord
         self.context.currentRecord = saveRecord
