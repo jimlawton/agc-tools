@@ -152,6 +152,7 @@ class Directive(Opcode):
             context.currentRecord.target = expr.value
             context.currentRecord.complete = True
         if context.previousWasEbankEquals == True:
+            context.currentRecord.update()
             context.revertEbank()
 
     def parse_2DEC(self, context, operands):
@@ -233,12 +234,14 @@ class Directive(Opcode):
             context.currentRecord.target = expr.value
             context.currentRecord.complete = True
         if context.previousWasEbankEquals == True:
+            context.currentRecord.update()
             context.revertEbank()
     
     def parse_BBCONstar(self, context, operands):
         context.currentRecord.code = [ 066100 ]
         context.currentRecord.complete = True
         if context.previousWasEbankEquals == True:
+            context.currentRecord.update()
             context.revertEbank()
             # TODO: recalculate sbank, based on superbit=1.
         return True
@@ -328,6 +331,7 @@ class Directive(Opcode):
                 context.currentRecord.complete = True
             else:
                 context.error("operand must be in erasable memory")
+            context.currentRecord.update()
 
     def parse_ECADR(self, context, operands):
         pa = None
