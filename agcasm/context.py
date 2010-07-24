@@ -151,11 +151,13 @@ class Context:
         (bank, offset) = self.memmap.pseudoToBankOffset(self.loc)
         if bank != None and offset != None:
             if self.memmap.isErasable(self.loc):
-                self.log(4, "saving EB %02o: %04o -> %04o" % (bank, self.ebankloc[bank], offset))
-                self.ebankloc[bank] = offset
+                if offset > self.ebankloc[bank]:
+                    self.log(4, "saving EB %02o: %04o -> %04o" % (bank, self.ebankloc[bank], offset))
+                    self.ebankloc[bank] = offset
             else:
-                self.log(4, "saving FB %02o: %04o -> %04o" % (bank, self.fbankloc[bank], offset))
-                self.fbankloc[bank] = offset
+                if offset > self.fbankloc[bank]:
+                    self.log(4, "saving FB %02o: %04o -> %04o" % (bank, self.fbankloc[bank], offset))
+                    self.fbankloc[bank] = offset
         else:
             self.error("invalid address %06o" % self.loc)
             
