@@ -82,13 +82,11 @@ def main():
         
         assembler.info("Checking symbol table against yaYUL version...", source=False)
         from artemis072_symbols import ARTEMIS_SYMBOLS
-        from memory import MemoryType, MemoryMap
+        from memory import MemoryType
         
         nsyms = assembler.context.symtab.getNumSymbols()
         check_nsyms = len(ARTEMIS_SYMBOLS.keys())
         assembler.info("Number of symbols: yaYUL=%d pyagc=%d" % (check_nsyms, nsyms), source=False)
-        if nsyms != check_nsyms:
-            assembler.error("incorrect number of symbols, expected %d, got %d" % (check_nsyms, nsyms), source=False)
     
         my_syms = []
         other_syms = []
@@ -98,11 +96,16 @@ def main():
             if sym in ARTEMIS_SYMBOLS.keys():
                 common_syms.append(sym)
             else:
-                my_syms.append(sym)
+                if sym != "FIXED":
+                    my_syms.append(sym)
                 
         for sym in ARTEMIS_SYMBOLS.keys():
             if sym not in assembler.context.symtab.keys():
-                other_syms.append(sym)
+                if not sym.startswith('$') and sym != "'":
+                    other_syms.append(sym)
+
+        if len(my_syms) != 0 or len(other_syms) != 0:
+            assembler.error("incorrect number of symbols, expected %d, got %d" % (check_nsyms, nsyms), source=False)
     
         if len(my_syms) > 0:
             assembler.error("symbols defined that should not be defined: %s" % my_syms, source=False)
@@ -144,6 +147,8 @@ def main():
             assembler.error("%d/%d symbols incorrectly defined" % (errcount, len(common_syms)), source=False)
         
         # FIXME: End of temporary hack
+    
+    assembler.info("Writing binary output...", source=False)
     
     assembler.info("Done.", source=False)
     print "Done."
