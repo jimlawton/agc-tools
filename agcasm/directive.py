@@ -41,6 +41,7 @@ class Directive(Opcode):
         else:
             if operands == None:
                 if not self.operandOptional:
+                    # FIXME: Remove this?
                     if self.mnemonic == "MM" or self.mnemonic == "VN":
                         # HACK: VN and MM are also used as labels in interpretive code.
                         expr = AddressExpression(context, [ self.mnemonic ])
