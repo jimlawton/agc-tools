@@ -180,10 +180,21 @@ class Directive(Opcode):
         self.ignore(context)
     
     def parse_EqualsMINUS(self, context, operands):
-        self.parse_EQUALS(context, operands)
-        if context.currentRecord.target != None:
-            context.currentRecord.target = ~context.currentRecord.target & 077777
+        expr = Expression(context, operands)
+        if expr.complete:
+            # =MINUS is equivalent to EQUALS symbol - loc. It is used to generate the number of elements in a table.  
+            expr.value -= context.loc 
+            if not context.reparse and context.passnum == 0:
+                context.symtab.add(context.currentRecord.label, operands, expr.value)
+            else:
+                context.symtab.update(context.currentRecord.label, operands, expr.value)
+            context.currentRecord.target = expr.value
             context.currentRecord.complete = True
+        else:
+            if not context.reparse and context.passnum == 0:
+                context.symtab.add(context.currentRecord.label, operands)
+        context.currentRecord.type = RecordType.ASMCONST
+        context.addSymbol = False
     
     def parse_ADRES(self, context, operands):
         expr = AddressExpression(context, operands)
