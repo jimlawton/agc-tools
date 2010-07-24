@@ -109,10 +109,12 @@ def main():
         assembler.error("symbols not defined that should be defined: %s" % other_syms, source=False)
 
     errcount = 0
+    bad_syms = {}
+    
     for sym in common_syms:
         entry = assembler.context.symtab.lookup(sym)
         if entry == None:
-            assembler.error("symbol \"%s\" not defined" % entry, source=False)
+            assembler.error("symbol %-8s not defined" % entry, source=False)
         pa = entry.value
         aval = ARTEMIS_SYMBOLS[sym]
         if ',' in aval:
@@ -123,14 +125,20 @@ def main():
                 type = MemoryType.ERASABLE
             bank = int(bank, 8)
             offset = int(aval.split(',')[1], 8)
-            check_pa = context.memmap.segmentedToPseudo(type, bank, offset)
+            check_pa = context.memmap.segmentedToPseudo(type, bank, offset, absolute=True)
         else:
             check_pa = int(aval, 8)
         if pa != check_pa:
-            assembler.error("symbol \"%s\" defined as %05o %s, expected %05o %s" % (sym, pa, context.memmap.pseudoToSegmentedString(pa), check_pa, context.memmap.pseudoToSegmentedString(check_pa)), source=False)
             errcount += 1
+            bad_syms[pa] = (sym, check_pa)
 
     if errcount > 0:
+        bad_addrs = bad_syms.keys()
+        bad_addrs.sort()
+        for pa in bad_addrs:
+            sym = bad_syms[pa][0]
+            check_pa = bad_syms[pa][1]
+            assembler.error("symbol %-8s defined as %06o %s, expected %06o %s" % (sym, pa, context.memmap.pseudoToSegmentedString(pa), check_pa, context.memmap.pseudoToSegmentedString(check_pa)), source=False)
         assembler.error("%d/%d symbols incorrectly defined" % (errcount, len(common_syms)), source=False)
     
     # FIXME: End of temporary hack
