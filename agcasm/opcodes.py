@@ -101,7 +101,7 @@ OPCODES = {
         OpcodeType.DIRECTIVE: {
             # Name                Method            Mnemonic    Operand Type            Optional?   Words
             "-1DNADR":  Directive("MinusDNADR",     "-1DNADR",  OperandType.EXPRESSION, False,      1),
-            "-2CADR":   Directive("Minus2CADR",     "-2CADR",   OperandType.EXPRESSION, False,      1),
+            "-2CADR":   Directive("Minus2CADR",     "-2CADR",   OperandType.EXPRESSION, False,      2),
             "-2DNADR":  Directive("MinusDNADR",     "-2DNADR",  OperandType.EXPRESSION, False,      1),
             "-3DNADR":  Directive("MinusDNADR",     "-3DNADR",  OperandType.EXPRESSION, False,      1),
             "-4DNADR":  Directive("MinusDNADR",     "-4DNADR",  OperandType.EXPRESSION, False,      1),
