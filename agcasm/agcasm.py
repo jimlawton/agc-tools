@@ -24,6 +24,7 @@ from optparse import OptionParser
 from architecture import Architecture
 from assembler import Assembler
 from context import Context
+from binary import ObjectCode
 
 def main():
     parser = OptionParser("usage: %prog [options] src_file [src_file...]")
@@ -67,12 +68,14 @@ def main():
     print >>listfile, "-------"
     for record in assembler.context.records:
         print >>listfile, record
-
+    listfile.close()
+    
     assembler.info("Writing symbol table...", source=False)
     print >>symtabfile 
     print >>symtabfile, "Symbol Table"
     print >>symtabfile, "------------"
     assembler.context.symtab.printTable(symtabfile)
+    symtabfile.close()
     
     assembler.info("%d errors, %d warnings" % (context.errors, context.warnings), source=False)
     
@@ -149,8 +152,13 @@ def main():
         # FIXME: End of temporary hack
     
     assembler.info("Writing binary output...", source=False)
+    ocode = ObjectCode(context)
+    ocode.write(binfile)
+    binfile.close()
     
     assembler.info("Done.", source=False)
+    logfile.close()
+    
     print "Done."
 
 if __name__=="__main__":
