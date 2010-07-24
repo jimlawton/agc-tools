@@ -117,7 +117,10 @@ class Interpretive(Opcode):
         context.currentRecord.code = [ code ]
         context.currentRecord.complete = True
         context.currentRecord.type = self.type
-        context.incrLoc(self.numwords)
+        
+        if oplen != 2 and oplen != 3:
+            # If any operands found, parseOperand will already have done this. 
+            context.incrLoc(self.numwords)
         
         if exitInterp == True:
             context.interpMode = False
