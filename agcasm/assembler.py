@@ -54,7 +54,9 @@ class Assembler:
         self.info("Assembling %s" % srcfile, source=False)
         self.context.srcfile = srcfile
         self.context.linenum = 0
-        lines = open(srcfile).readlines()
+        sfile = open(srcfile)
+        lines = sfile.readlines()
+        sfile.close()
         for line in lines:
             if line.endswith('\n'):
                 line = line[:-1]
