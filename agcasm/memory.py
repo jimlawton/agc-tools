@@ -172,8 +172,17 @@ class MemoryMap:
             bank = self.memmap[startaddr]
         return bank
         
-    def segmentedToPseudo(self, banktype, bank, offset=0):
-        pa = self.banks[banktype][bank].startaddr + offset
+    def segmentedToPseudo(self, banktype, bank, offset=0, absolute=False):
+        if absolute:
+            if self.banks[banktype][bank].isSwitched():
+                if banktype == MemoryType.ERASABLE:
+                    pa = self.banks[banktype][bank].startaddr + offset - 01400
+                else:
+                    pa = self.banks[banktype][bank].startaddr + offset - 02000
+            else:
+                pa = offset
+        else:
+            pa = self.banks[banktype][bank].startaddr + offset
         return pa
     
     def segmentedToString(self, bank, offset=0):
