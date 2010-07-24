@@ -150,7 +150,6 @@ class Interpretive(Opcode):
             context.currentRecord.code = [ code ]
             context.currentRecord.complete = True
             context.log(5, "interpretive: generated operand %05o" % code)
-            return
         else:
             context.log(5, "interpretive: operand undefined")
         context.incrLoc(1)
