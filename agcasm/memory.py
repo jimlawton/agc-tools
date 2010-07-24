@@ -275,7 +275,7 @@ class MemoryMap:
     def getBanks(self, memtype):
         banks = []
         for bank in self.banks[memtype]:
-            banks.append(bank.banknum)
+            banks.append(bank)
         return banks
     
     def getNumBanks(self, memtype):
