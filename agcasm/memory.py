@@ -272,6 +272,15 @@ class MemoryMap:
             text = "%02o" % bank
         return text
 
+    def getBanks(self, memtype):
+        banks = []
+        for bank in self.banks[memtype]:
+            banks.append(bank.banknum)
+        return banks
+    
+    def getNumBanks(self, memtype):
+        return len(self.banks[memtype])
+    
     def getBankNumber(self, pa):
         banknum = None
         bank = self._findBank(pa)
