@@ -157,6 +157,8 @@ class Assembler:
         try:
             self.context.log(7, "parse: label=%s opcode=%s operands=%s" % (label, opcode, operands))
             
+            preloc = self.context.loc
+            
             if opcode == None:
                 Interpretive.parseOperand(self.context, operands)
                 self.context.currentRecord.type = RecordType.INTERP
@@ -172,9 +174,9 @@ class Assembler:
 
             if label != None and self.context.addSymbol == True and self.context.passnum == 0:
                 if not self.context.reparse:
-                    self.context.symtab.add(label, operands, self.context.loc)
+                    self.context.symtab.add(label, operands, preloc)
                 else:
-                    self.context.symtab.update(label, operands, self.context.loc)
+                    self.context.symtab.update(label, operands, preloc)
         except:
             self.error("Exception processing line:")
             raise
