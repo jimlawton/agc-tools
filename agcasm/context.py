@@ -56,9 +56,11 @@ class Context:
         #  1 - Errors.
         #  2 - Warnings.
         #  3 - Info messages.
-        #  4 - Bank changes.
+        #  4 - Bank changes, binary generation.
         #  5 - LOC changes, detailed interpretive logging.
         #  6 - Symbol information.
+        #  7 - Parser operation.
+        #  8 - Symbol resolution.
         self.logLevel = logLevel
 
         self.loc = 0        # Assembler PC, i.e. current position in erasable or fixed memory.
@@ -195,6 +197,15 @@ class Context:
                 self.log(4, "switched FB: %02o -> %02o" % (oldbank, self.fbank))
             self.setLoc(self.memmap.segmentedToPseudo(MemoryType.FIXED, self.fbank, self.fbankloc[self.fbank]))
             self.log(4, "switched FB to %s" % (self.memmap.pseudoToSegmentedString(self.loc)))
+
+    def getBankCount(self, memtype, bank):
+        if memtype == MemoryType.ERASABLE:
+            return self.ebankloc[bank]
+        else:
+            return self.fbankloc[bank]
+
+    def getBankSize(self, memtype, bank):
+        return self.memmap.banks[memtype][bank].size
 
     def printBanks(self):
         text = "LOC=%06o EB=%02o FB=%02o " % (self.loc, self.ebank, self.fbank)
