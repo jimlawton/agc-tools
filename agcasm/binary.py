@@ -26,6 +26,10 @@ class ObjectCode:
     def __init__(self, context):
         self.context = context              # Assembler context.
         self.objectCode = {}
+        for bank in self.context.memmap.getBanks(MemoryType.FIXED):
+            self.objectCode[bank] = {}
+            for offset in range(self.context.getBankSize(MemoryType.FIXED, bank)):
+                self.objectCode[bank][offset] = 0 
 
         for i in range(len(self.context.records)):
             record = self.context.records[i]
@@ -41,6 +45,7 @@ class ObjectCode:
                     context.error("missing object code at address %06s" % (pa), source=False)
                     return 
 
+    def generateBuggers(self):
         for bank in context.memmap.getBanks(MemoryType.FIXED):
             # Add bugger info to the bank.
             if bank == 2:
@@ -62,26 +67,26 @@ class ObjectCode:
                 bugger = 0
                 offset = 0
                 for offset in range(count):
-                    bugger = self.add(bugger, self.objectCode[bank][offset])
+                    bugger = self._add(bugger, self.objectCode[bank][offset])
                 if (bugger & 040000) == 0:
-                    guess = self.add(bank, 077777 & ~bugger)
+                    guess = self._add(bank, 077777 & ~bugger)
                 else:
-                    guess = self.add(077777 & ~bank, 077777 & ~bugger)
+                    guess = self._add(077777 & ~bank, 077777 & ~bugger)
                 self.objectCode[bank][count] = guess
                 context.log(4, "Bugger word %05o at %02o,%04o" % (guess, bank, count + 02000))
             
     # Convert AGC number to native format.
-    def convertToNative(self, n):
+    def _convertToNative(self, n):
         i = n
         if (n & 040000) != 0:
             i = -(077777 & ~i)
         return i
     
     # Add two AGC numbers.
-    def add(self, n1, n2):
+    def _add(self, n1, n2):
         # Convert from AGC 1's-complement format to the native integer.
-        i1 = self.convertToNative(n1)
-        i2 = self.convertToNative(n2)
+        i1 = self._convertToNative(n1)
+        i2 = self._convertToNative(n2)
         sum = i1 + i2
     
         if sum > 16383:
@@ -98,7 +103,6 @@ class ObjectCode:
             sum = (077777 & ~(-sum))
             
         return sum
-    
     
     def getBugger(self, data):
         """Return the bugger word in the supplied bank data. The bugger word is the last non-zero word."""
@@ -119,7 +123,7 @@ class ObjectCode:
 
     def write(self, outputfile):
         for bank in self.context.memmap.getBanks(MemoryType.FIXED):
-            for offset in range(self.context.memmap.getBankSize(MemoryType.FIXED, bank)):
+            for offset in range(self.context.getBankSize(MemoryType.FIXED, bank)):
                 value = self.objectCode[bank][offset] 
                 value = value << 1
                 print >>outputfile, ((value >> 8) & 0xff)
