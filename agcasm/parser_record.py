@@ -49,6 +49,9 @@ class ParserRecord:
         self.previousWasEbankEquals = context.previousWasEbankEquals
         self.global_linenum = context.global_linenum
 
+    def isGenerative(self):
+        return RecordType.isGenerative(self.type)
+
     def isParseable(self):
         return RecordType.isParseable(self.type)
 
@@ -87,7 +90,7 @@ class ParserRecord:
             text += ' '
             text += self.context.memmap.bankToString(MemoryType.FIXED, self.fbank)
             text += ' '
-            if RecordType.isGenerative(self.type):
+            if self.isGenerative():
                 if self.code != None and len(self.code) > 0:
                     if len(self.code) == 1 and self.code[0] != None:
                         text += " %05o %s " % (self.code[0] & 077777, 5 * ' ')
