@@ -153,6 +153,7 @@ def main():
     
     assembler.info("Writing binary output...", source=False)
     ocode = ObjectCode(context)
+    ocode.generateBuggers()
     ocode.write(binfile)
     binfile.close()
     
