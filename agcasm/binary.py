@@ -18,6 +18,7 @@
 # along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import struct
 from memory import MemoryType
 
 class ObjectCode:
@@ -39,14 +40,16 @@ class ObjectCode:
                 if record.code != None and len(record.code) > 0:
                     if len(record.code) >= 1:
                         self.objectCode[bank][offset] = record.code[0] & 077777
+                        context.log(4, "code for %06o (%02o,%04o): %05o" % (pa, bank, offset, record.code[0]))
                     if len(record.code) == 2:
                         self.objectCode[bank][offset+1] = record.code[1] & 077777
+                        context.log(4, "code for %06o (%02o,%04o): %05o" % (pa, bank, offset+1, record.code[1]))
                 else:
                     context.error("missing object code at address %06s" % (pa), source=False)
                     return 
 
     def generateBuggers(self):
-        for bank in context.memmap.getBanks(MemoryType.FIXED):
+        for bank in self.context.memmap.getBanks(MemoryType.FIXED):
             # Add bugger info to the bank.
             if bank == 2:
                 offset = 04000
@@ -55,7 +58,7 @@ class ObjectCode:
             else:
                 offset = 02000
             
-            count = context.getBankCount(MemoryType.FIXED, bank)
+            count = self.context.getBankCount(MemoryType.FIXED, bank)
             
             if count < 01776:
                 self.objectCode[bank][count] = count + offset
@@ -73,7 +76,7 @@ class ObjectCode:
                 else:
                     guess = self._add(077777 & ~bank, 077777 & ~bugger)
                 self.objectCode[bank][count] = guess
-                context.log(4, "Bugger word %05o at %02o,%04o" % (guess, bank, count + 02000))
+                self.context.log(4, "bugger word %05o at (%02o,%04o)" % (guess, bank, count + 02000))
             
     # Convert AGC number to native format.
     def _convertToNative(self, n):
@@ -122,9 +125,13 @@ class ObjectCode:
         return data[index]
 
     def write(self, outputfile):
-        for bank in self.context.memmap.getBanks(MemoryType.FIXED):
+        count = 0
+        for bank in self.context.memmap.getBanks(MemoryType.FIXED, sorted=True):
+            self.context.log(4, "writing output for bank %02o (%d words)" % (bank, self.context.getBankSize(MemoryType.FIXED, bank)))
+            count += self.context.getBankSize(MemoryType.FIXED, bank)
             for offset in range(self.context.getBankSize(MemoryType.FIXED, bank)):
                 value = self.objectCode[bank][offset] 
                 value = value << 1
-                print >>outputfile, ((value >> 8) & 0xff)
-                print >>outputfile, (value & 0xff)
+                wordval = struct.pack("H", value)
+                outputfile.write(wordval)
+        self.context.log(4, "wrote %d words" % (count))
