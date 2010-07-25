@@ -272,10 +272,13 @@ class MemoryMap:
             text = "%02o" % bank
         return text
 
-    def getBanks(self, memtype):
+    def getBanks(self, memtype, sorted=False):
         banks = []
-        for bank in self.banks[memtype]:
-            banks.append(bank)
+        for startaddr in self.addresses:
+            if self.memmap[startaddr].memtype == MemoryType.FIXED:
+                banks.append(self.memmap[startaddr].banknum)
+        if sorted:
+            banks.sort()
         return banks
     
     def getNumBanks(self, memtype):
