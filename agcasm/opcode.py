@@ -47,5 +47,4 @@ class Opcode(object):
         self.operandOptional = operandOptional      # Operand is optional?
         self.addressType = addressType              # Operand address type, if applicable.
         self.numwords = numwords                    # Number of code words generated.
-        self.words = []                             # List of code words.
         self.type = None                            # Parser record type for this opcode.
