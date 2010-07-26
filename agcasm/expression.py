@@ -29,8 +29,9 @@ class Expression:
         self.operands = operands            # List of operand fields.
         self.value = None                   # If complete, calculated result of the expression.
         self.addressExpr = addressExpr      # Indicates that the expression is an Address Expression.
-
-        context.log(5, "expression: operands=%s addressExpr=%s" % (operands, addressExpr))
+        self.context = context
+        
+        self.context.log(5, "expression: operands=%s addressExpr=%s" % (operands, addressExpr))
 
         op1 = 0
         op2 = 0
@@ -38,14 +39,14 @@ class Expression:
         if operands != None and 1 <= len(operands) <= 3:
             if len(operands) >= 1:
                 operand = operands[0]
-                (op1, op1type) = self._parseOperand(context, operand)
+                (op1, op1type) = self._parseOperand(operand)
                 if op1 != None:
                     if len(operands) == 1:
                         if self.addressExpr and op1type == OperandType.DECIMAL:
                             if operands[0].startswith('+'): 
-                                self.value = context.loc + op1
+                                self.value = self.context.loc + op1
                             elif operands[0].startswith('-'):
-                                self.value = context.loc - op1
+                                self.value = self.context.loc - op1
                             else:
                                 self.value = op1
                         else:
@@ -57,11 +58,11 @@ class Expression:
                         # Split a +N or -N operand.
                         operands = [ operands[0], operands[1][0], operands[1][1:] ]
                     else:
-                        context.syntax("second operand must be +number or -number")
+                        self.context.syntax("second operand must be +number or -number")
                 if operands[1] != '+' and operands[1] != '-':
-                    context.syntax("expression must be either addition (+) or subtraction (-)")
+                    self.context.syntax("expression must be either addition (+) or subtraction (-)")
             if len(operands) == 3:
-                (op2, op2type) = self._parseOperand(context, operands[2])
+                (op2, op2type) = self._parseOperand(operands[2])
                 if op1 != None and op2 != None:
                     if operands[1] == '+':
                         self.value = op1 + op2
@@ -70,16 +71,16 @@ class Expression:
                     self.complete = True
 
         if self.complete == True:
-            context.log(5, "expression: complete, value=%05o" % (self.value))
+            self.context.log(5, "expression: complete, value=%05o" % (self.value))
         else:
-            context.log(5, "expression: incomplete")
+            self.context.log(5, "expression: incomplete")
 
-    def _parseOperand(self, context, operand):
+    def _parseOperand(self, operand):
         retval = None
         rettype = OperandType.NONE
         
         # First try symbol lookup.
-        entry = context.symtab.lookup(operand)
+        entry = self.context.symtab.lookup(operand)
         if entry != None:
             retval = entry.value
             rettype = OperandType.SYMBOLIC
