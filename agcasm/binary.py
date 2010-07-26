@@ -40,10 +40,10 @@ class ObjectCode:
                 if record.code != None and len(record.code) > 0:
                     if len(record.code) >= 1:
                         self.objectCode[bank][offset] = record.code[0] & 077777
-                        context.log(4, "code for %06o (%02o,%04o): %05o" % (pa, bank, offset, record.code[0]))
+                        #context.log(4, "code for %06o (%02o,%04o): %05o" % (pa, bank, offset, self.objectCode[bank][offset]))
                     if len(record.code) == 2:
                         self.objectCode[bank][offset+1] = record.code[1] & 077777
-                        context.log(4, "code for %06o (%02o,%04o): %05o" % (pa, bank, offset+1, record.code[1]))
+                        #context.log(4, "code for %06o (%02o,%04o): %05o" % (pa, bank, offset+1, self.objectCode[bank][offset+1]))
                 else:
                     context.error("missing object code at address %06s" % (pa), source=False)
                     return 
@@ -126,12 +126,12 @@ class ObjectCode:
 
     def write(self, outputfile):
         count = 0
-        for bank in self.context.memmap.getBanks(MemoryType.FIXED, sorted=True):
+        for bank in self.context.memmap.getBanks(MemoryType.FIXED):
             self.context.log(4, "writing output for bank %02o (%d words)" % (bank, self.context.getBankSize(MemoryType.FIXED, bank)))
             count += self.context.getBankSize(MemoryType.FIXED, bank)
             for offset in range(self.context.getBankSize(MemoryType.FIXED, bank)):
                 value = self.objectCode[bank][offset] 
                 value = value << 1
-                wordval = struct.pack("H", value)
+                wordval = struct.pack(">H", value)
                 outputfile.write(wordval)
         self.context.log(4, "wrote %d words" % (count))
