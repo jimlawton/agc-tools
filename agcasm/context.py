@@ -58,7 +58,7 @@ class Context:
         #  3 - Info messages.
         #  4 - Bank changes, binary generation.
         #  5 - LOC changes, detailed interpretive logging.
-        #  6 - Symbol information.
+        #  6 - Symbol information, address conversion.
         #  7 - Parser operation.
         #  8 - Symbol resolution.
         self.logLevel = logLevel
