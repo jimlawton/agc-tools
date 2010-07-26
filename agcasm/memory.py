@@ -205,7 +205,23 @@ class MemoryMap:
             else:
                 print >>sys.stderr, "Error, invalid pseudo address %06o" % pa
         return retval
-    
+
+    def pseudoToAddress(self, pa):
+        # Convert pseudo address to encoded form.
+        if self.isErasable(pa):
+            # Set bits 11,10 to 00.
+            retval = pa & 001777
+            if self.isSwitched(pa):
+                # Set bits 9,8 to 11.
+                retval |= 001400
+        else:
+            retval = pa & 007777
+            if self.isSwitched(pa):
+                # Set bits 11,10 to 01.
+                retval &= 073777
+                retval |= 002000
+        return retval
+
     def pseudoToBank(self, pa):
         retval = None
         if pa != None:
