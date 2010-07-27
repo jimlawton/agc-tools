@@ -125,7 +125,7 @@ class Directive(Opcode):
         if expr.complete:
             pa = expr.value
             if context.memmap.isErasable(pa):
-                context.currentRecord.code = [ pa + dnadrConstants[opnum] ]
+                context.currentRecord.code = [ context.memmap.pseudoToAddress(pa + dnadrConstants[opnum]) ]
                 context.currentRecord.complete = True
             else:
                 context.error("operand must be in erasable memory")
@@ -180,7 +180,7 @@ class Directive(Opcode):
         self.ignore(context)
     
     def parse_EqualsMINUS(self, context, operands):
-        expr = Expression(context, operands)
+        expr = AddressExpression(context, operands)
         if expr.complete:
             # =MINUS is equivalent to EQUALS symbol - loc. It is used to generate the number of elements in a table.  
             expr.value -= context.loc 
@@ -203,7 +203,7 @@ class Directive(Opcode):
             if bank == None or offset == None:
                 context.error("invalid address %06o" % expr.value)
             else:
-                context.currentRecord.code = [ offset ]
+                context.currentRecord.code = [ context.memmap.pseudoToAddress(expr.value) ]
                 context.currentRecord.target = expr.value
                 context.currentRecord.complete = True
                 context.log(3, "ADRES: bank:%02o FB:%02o EB:%02o" % (bank, context.fbank, context.ebank))
@@ -327,8 +327,7 @@ class Directive(Opcode):
         if expr.complete:
             (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
             if bank and (bank == context.fbank or bank == context.ebank):
-                aval = offset
-                context.currentRecord.code = [ aval ]
+                context.currentRecord.code = [ context.memmap.pseudoToAddress(expr.value) ]
                 context.currentRecord.complete = True
     
     def parse_EBANKEquals(self, context, operands):
@@ -351,7 +350,7 @@ class Directive(Opcode):
         if expr.complete:
             pa = expr.value
             if context.memmap.isErasable(pa):
-                context.currentRecord.code = [ pa ]
+                context.currentRecord.code = [ context.memmap.pseudoToAddress(pa) ]
                 context.currentRecord.complete = True
             else:
                 context.error("operand must be in erasable memory")
@@ -412,7 +411,7 @@ class Directive(Opcode):
         if expr.complete:
             pa = expr.value
             if context.memmap.isFixed(pa):
-                context.currentRecord.code = [ pa ]
+                context.currentRecord.code = [ context.memmap.pseudoToAddress(pa) ]
                 context.currentRecord.complete = True
             else:
                 context.error("FCADR operand must be in fixed memory")
@@ -423,7 +422,7 @@ class Directive(Opcode):
         if expr.complete:
             (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
         if bank != None:
-            context.currentRecord.code = [ offset ]
+            context.currentRecord.code = [ context.memmap.pseudoToAddress(expr.value) ]
             context.currentRecord.complete = True
     
     def parse_MEMORY(self, context, operands):
