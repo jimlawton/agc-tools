@@ -325,7 +325,7 @@ class Directive(Opcode):
     def parse_DNPTR(self, context, operands):
         expr = AddressExpression(context, operands)
         if expr.complete:
-            (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
+            bank = context.memmap.pseudoToBank(expr.value)
             if bank and (bank == context.fbank or bank == context.ebank):
                 context.currentRecord.code = [ context.memmap.pseudoToAddress(expr.value) ]
                 context.currentRecord.complete = True
@@ -420,10 +420,10 @@ class Directive(Opcode):
         bank = None
         expr = AddressExpression(context, operands)
         if expr.complete:
-            (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
-        if bank != None:
-            context.currentRecord.code = [ context.memmap.pseudoToAddress(expr.value) ]
-            context.currentRecord.complete = True
+            bank = context.memmap.pseudoToBank(expr.value)
+            if bank != None:
+                context.currentRecord.code = [ context.memmap.pseudoToAddress(expr.value) ]
+                context.currentRecord.complete = True
     
     def parse_MEMORY(self, context, operands):
         #if '-' in operands:
