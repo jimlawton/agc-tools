@@ -71,16 +71,16 @@ class ParserRecord:
             text += "\n\n"
         text += "%06d,%06d " % (self.global_linenum, self.linenum)
         if RecordType.isIgnored(self.type):
-            text += 33 * ' ' 
+            text += 29 * ' ' 
         else: 
             if RecordType.isAddressValid(self.type):
                 text += self.context.memmap.pseudoToSegmentedString(self.address) + ' '
             else:
-                text += 10 * ' '
+                text += 8 * ' '
             if self.target: 
                 text += self.context.memmap.pseudoToSegmentedString(self.target) + ' '
             else:
-                text += 10 * ' '
+                text += 8 * ' '
             if self.isGenerative():
                 if self.code != None and len(self.code) > 0:
                     if len(self.code) == 1 and self.code[0] != None:

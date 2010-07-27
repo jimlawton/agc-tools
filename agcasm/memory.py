@@ -258,7 +258,7 @@ class MemoryMap:
         if pa != None:
             return "%06o" % (pa)
         else:
-            return "undef "
+            return "??????"
     
     def pseudoToSegmentedString(self, pa):
         text = ""
@@ -271,13 +271,13 @@ class MemoryMap:
                 else:
                     if bankdesc.memtype == MemoryType.ERASABLE: 
                         bankstr = "E%1o" % bankdesc.banknum
-                        text = "(%-2s,%04o)" % (bankstr, offset)
+                        text = "%-2s,%04o" % (bankstr, offset)
                     else:
-                        text = "(%02o,%04o)" % (bank, offset)
+                        text = "%02o,%04o" % (bank, offset)
             else:
-                text = "(??,????)"
+                text = "??,????"
         else:
-            text = "(??,????)"
+            text = "??,????"
         return text
     
     def bankToString(self, type, bank):

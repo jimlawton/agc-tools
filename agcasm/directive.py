@@ -303,7 +303,8 @@ class Directive(Opcode):
         context.addSymbol = False
     
     def parse_COUNT(self, context, operands):
-        self.ignore(context)
+        context.currentRecord.target = context.loc
+        context.currentRecord.complete = True
     
     def parse_DEC(self, context, operands):
         if operands:
