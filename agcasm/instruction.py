@@ -43,7 +43,6 @@ class Instruction(Opcode):
             if operands == None:
                 context.error("missing operand")
             else:
-                pa = None
                 if operands:
                     expr = AddressExpression(context, operands)
                     if expr.complete:
