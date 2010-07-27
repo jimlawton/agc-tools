@@ -70,26 +70,17 @@ class ParserRecord:
         if self.type == RecordType.INCLUDE:
             text += "\n\n"
         text += "%06d,%06d " % (self.global_linenum, self.linenum)
-        if self.complete == True:
-            text += "[C] "
-        else:
-            text += "[?] "
         if RecordType.isIgnored(self.type):
-            text += 46 * ' ' 
+            text += 33 * ' ' 
         else: 
             if RecordType.isAddressValid(self.type):
                 text += self.context.memmap.pseudoToSegmentedString(self.address) + ' '
             else:
                 text += 10 * ' '
-            text += RecordType.toString(self.type) + "  "
             if self.target: 
                 text += self.context.memmap.pseudoToSegmentedString(self.target) + ' '
             else:
                 text += 10 * ' '
-            text += self.context.memmap.bankToString(MemoryType.ERASABLE, self.ebank)
-            text += ' '
-            text += self.context.memmap.bankToString(MemoryType.FIXED, self.fbank)
-            text += ' '
             if self.isGenerative():
                 if self.code != None and len(self.code) > 0:
                     if len(self.code) == 1 and self.code[0] != None:
