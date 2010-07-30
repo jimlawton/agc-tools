@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ from record_type import RecordType
 
 # NOTE: Must be a new-style class.
 class Instruction(Opcode):
-    
+
     def __init__(self, methodName, opcode, operandType=OperandType.NONE, addressType=None, numwords=1):
         Opcode.__init__(self, methodName, methodName, opcode, operandType, False, addressType, numwords)
         self.type = RecordType.EXEC
@@ -46,13 +46,18 @@ class Instruction(Opcode):
                 if operands:
                     expr = AddressExpression(context, operands)
                     if expr.complete:
-                        address = context.memmap.pseudoToAddress(expr.value)
-                        context.log(6, "converted pa %06o to address %05o" % (expr.value, address))
-                        context.currentRecord.code = [ self.opcode + address ]
+                        pa = expr.value
+                        if pa < 0:
+                            # Relative address.
+                            context.currentRecord.code = [ (self.opcode + pa) & 077777 ]
+                        else:
+                            address = context.memmap.pseudoToAddress(pa)
+                            context.log(6, "converted pa %06o to address %05o" % (pa, address))
+                            context.currentRecord.code = [ (self.opcode + address) & 077777 ]
                         context.currentRecord.complete = True
                 else:
                     context.error("missing operand")
-                
+
         try:
             method = self.__getattribute__("parse_" + self.methodName)
         except:
@@ -64,12 +69,12 @@ class Instruction(Opcode):
         context.incrLoc(self.numwords)
 
         if context.mode == OpcodeType.EXTENDED:
-            if self.mnemonic != "EXTEND" and self.mnemonic != "INDEX": 
+            if self.mnemonic != "EXTEND" and self.mnemonic != "INDEX":
                 context.mode = OpcodeType.BASIC
-    
+
     def parse_EXTEND(self, context, operands):
         context.mode = OpcodeType.EXTENDED
-    
+
     def parse_MinusCCS(self, context, operands):
         words = []
         if context.currentRecord.code != None:
@@ -77,4 +82,13 @@ class Instruction(Opcode):
                 words.append(~context.currentRecord.code[i] & 077777)
             context.currentRecord.code = words
             context.currentRecord.complete = True
-        
+
+    def parse_NOOP(self, context, operands):
+        if context.memmap.isErasable(context.loc):
+            # Equivalent to "CA A".
+            word = context.opcodes[OpcodeType.BASIC]["CA"].opcode
+        else:
+            # Equivalent to "TCF +1".
+            word = context.memmap.pseudoToAddress(context.loc + 1)
+        context.currentRecord.code = [ self.opcode + word ]
+        context.currentRecord.complete = True
