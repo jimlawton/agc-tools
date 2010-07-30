@@ -94,14 +94,14 @@ class ObjectCode:
         i2 = cls.convertToNative(n2)
         sum = i1 + i2
 
-        if sum > 16383:
-            sum -= 16384
+        if sum > 037777:
+            sum -= 040000
             sum += 1
-        elif sum < -16383:
-            sum += 16384
+        elif sum < -037777:
+            sum += 040000
             sum -= 1
 
-        if sum > 16383 or sum < -16383:
+        if sum > 037777 or sum < -037777:
             print "Arithmetic overflow."
 
         if sum < 0:
