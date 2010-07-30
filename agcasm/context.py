@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ class Context:
         self.addSymbol = True
         self.reparse = False
         self.passnum = 0
-        
+
         # Log level:
         #  0 - None.
         #  1 - Errors.
@@ -64,9 +64,9 @@ class Context:
         self.logLevel = logLevel
 
         self.loc = 0        # Assembler PC, i.e. current position in erasable or fixed memory.
-        self.sbank = 0      # Current S-Bank.
         self.ebank = 0      # Current E-Bank.
         self.fbank = 0      # Current F-Bank.
+        self.super = 0      # Superbank bit (0/1).
 
         self.ebankloc = {}  # Saved current location for each erasable bank.
         self.fbankloc = {}  # Saved current location for each fixed bank.
@@ -78,7 +78,7 @@ class Context:
 
         self.errors = 0
         self.warnings = 0
-        
+
     def reset(self):
         self.linenum = 0
         self.global_linenum = 0
@@ -94,10 +94,10 @@ class Context:
         self.addSymbol = True
         self.reparse = False
         self.loc = 0
-        self.sbank = 0
+        self.super = 0
         self.ebank = 0
         self.fbank = 0
-        
+
     def load(self, record, partial=True):
         self.linenum = record.linenum
         self.global_linenum = record.global_linenum
@@ -108,10 +108,10 @@ class Context:
             self.mode = record.mode
             self.lastEbank = record.lastEbank
             self.previousWasEbankEquals = record.previousWasEbankEquals
-            self.sbank = record.sbank
+            self.super = record.super
             self.ebank = record.ebank
             self.fbank = record.fbank
-        
+
     def save(self, record, partial=True):
         record.linenum = self.linenum
         record.global_linenum = self.global_linenum
@@ -122,10 +122,10 @@ class Context:
             record.previousWasEbankEquals = self.previousWasEbankEquals
             record.mode = self.mode
             record.loc = self.loc
-            record.sbank = self.sbank
+            record.super = self.super
             record.ebank = self.ebank
             record.fbank = self.fbank
-        
+
     def setLoc(self, loc):
         if not self.memmap.isValid(loc):
             self.error("trying to set loc to an invalid address (%06o)" % loc)
@@ -139,10 +139,6 @@ class Context:
         if not self.reparse:
             self.log(5, "incrementing loc from %06o to %06o (delta=%04o)" % (self.loc, self.loc + delta, delta))
             self.loc += delta
-
-    def setSBank(self, bank):
-        if not self.reparse:
-            self.sbank = bank
 
     def switchEBank(self, bank):
         pa = self.ebankloc[bank]
@@ -162,7 +158,7 @@ class Context:
                     self.fbankloc[bank] = offset
         else:
             self.error("invalid address %06o" % self.loc)
-            
+
     def switchEBankPA(self, pa):
         if not self.reparse:
             self.lastEbank = self.ebank
@@ -170,9 +166,9 @@ class Context:
             self.ebank = self.memmap.pseudoToBank(pa)
             self.log(4, "switched EB: %02o -> %02o" % (self.lastEbank, self.ebank))
             if self.memmap.isErasable(self.loc):
-                # Only change LOC if it is currently erasable. This allows us to move LOC up through the various 
-                # erasable banks at the start as symbols are defined. Later, in fixed banks, you do not want an 
-                # EBANK= to affect LOC. 
+                # Only change LOC if it is currently erasable. This allows us to move LOC up through the various
+                # erasable banks at the start as symbols are defined. Later, in fixed banks, you do not want an
+                # EBANK= to affect LOC.
                 self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.ebank, self.ebankloc[self.ebank]))
             self.previousWasEbankEquals = True
             self.printBanks()

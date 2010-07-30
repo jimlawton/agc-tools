@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ from memory import MemoryType
 
 class ParserRecord:
     """Class storing parser data."""
-    
+
     def __init__(self, context, srcfile, linenum, srcline, type, label, pseudolabel, opcode, operands, comment, address, code):
         self.context = context              # Assembler context.
         self.srcfile = srcfile              # Source filename.
@@ -41,7 +41,7 @@ class ParserRecord:
         self.complete = False               # Assembly complete? i.e. all symbols resolved.
         self.target = None                  # Target address, if any, e.g. for = directive.
         self.mode = context.mode            # Mode.
-        self.sbank = context.sbank          # S Bank.
+        self.super = context.super          # Superbank bit (0/1).
         self.ebank = context.ebank          # E Bank.
         self.fbank = context.fbank          # F Bank.
         self.loc = context.loc
@@ -59,7 +59,7 @@ class ParserRecord:
         return self.complete
 
     def update(self):
-        self.sbank = self.context.sbank
+        self.super = self.context.super
         self.ebank = self.context.ebank
         self.fbank = self.context.fbank
         self.lastEbank = self.context.lastEbank
@@ -77,7 +77,7 @@ class ParserRecord:
                 text += self.context.memmap.pseudoToSegmentedString(self.address) + ' '
             else:
                 text += 8 * ' '
-            if self.target: 
+            if self.target:
                 text += self.context.memmap.pseudoToSegmentedString(self.target) + ' '
             else:
                 text += 8 * ' '
@@ -90,7 +90,7 @@ class ParserRecord:
                     else:
                         text += " ????? " + 6 * ' '
                 else:
-                    text += " ????? " + 6 * ' ' 
+                    text += " ????? " + 6 * ' '
             else:
                 text += 13 * ' '
         text += "   %s" % self.srcline
