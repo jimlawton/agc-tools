@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,15 +25,15 @@ from instruction import Instruction
 from directive import Directive
 from interpretive import Interpretive
 
-OPCODES = { 
+OPCODES = {
     Architecture.AGC4_B2 : {
         # In AGC4 architecture, all instructions are single-word.
         OpcodeType.BASIC: {
-            # Name                Method        Opcode   Operand Type               Address Type 
+            # Name                Method        Opcode   Operand Type               Address Type
             "0":      Instruction("TC",         000000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "3":      Instruction("TC",         000003,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "7":      Instruction("TC",         000007,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
-            "AD":     Instruction("AD",         060000,  OperandType.EXPRESSION,    AddressType.ERASABLE_12), 
+            "AD":     Instruction("AD",         060000,  OperandType.EXPRESSION,    AddressType.ERASABLE_12),
             "ADS":    Instruction("ADS",        026000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
             "CA":     Instruction("CA",         030000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "CAE":    Instruction("CAE",        030000,  OperandType.EXPRESSION,    AddressType.ERASABLE_12),
@@ -73,8 +73,8 @@ OPCODES = {
         },
         OpcodeType.EXTENDED: {
             # Name                Method        Opcode   Operand
-            "AUG":    Instruction("AUG",        024000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10), 
-            "BZF":    Instruction("BZF",        010000,  OperandType.EXPRESSION,    AddressType.FIXED_12),  
+            "AUG":    Instruction("AUG",        024000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
+            "BZF":    Instruction("BZF",        010000,  OperandType.EXPRESSION,    AddressType.FIXED_12),
             "BZMF":   Instruction("BZMF",       060000,  OperandType.EXPRESSION,    AddressType.FIXED_12),
             "DCA":    Instruction("DCA",        030001,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "DCOM":   Instruction("DCOM",       040001),
@@ -116,7 +116,7 @@ OPCODES = {
             "2DEC":     Directive("2DEC",           None,       OperandType.DECIMAL,    False,      2),
             "2DEC*":    Directive("2DEC",           "2DEC*",    OperandType.DECIMAL,    False,      2),
             "2DNADR":   Directive("DNADR",          "2DNADR",   OperandType.EXPRESSION, False,      1),
-            "2FCADR":   Directive("2FCADR",         None,       OperandType.EXPRESSION, False,      2), 
+            "2FCADR":   Directive("2FCADR",         None,       OperandType.EXPRESSION, False,      2),
             "2OCT":     Directive("2OCT",           None,       OperandType.OCTAL,      False,      2),
             "3DNADR":   Directive("DNADR",          "3DNADR",   OperandType.EXPRESSION, False,      1),
             "4DNADR":   Directive("DNADR",          "4DNADR",   OperandType.EXPRESSION, False,      1),
@@ -131,7 +131,7 @@ OPCODES = {
             "BBCON*":   Directive("BBCONstar",      "BBCON*",   OperandType.NONE,       False,      1),
             "BLOCK":    Directive("BLOCK",          None,       OperandType.OCTAL,      False,      0),
             "BNKSUM":   Directive("BNKSUM",         None,       OperandType.OCTAL,      True,       0),
-            "CADR":     Directive("CADR",           None,       OperandType.EXPRESSION, False,      1),
+            "CADR":     Directive("FCADR",          "CADR",     OperandType.EXPRESSION, False,      1),
             "CHECK=":   Directive("CHECKEquals",    "CHECK=",   OperandType.EXPRESSION, False,      0),
             "COUNT":    Directive("COUNT",          None,       OperandType.EXPRESSION, False,      0),
             "COUNT*":   Directive("COUNT",          "COUNT*",   OperandType.EXPRESSION, False,      0),
