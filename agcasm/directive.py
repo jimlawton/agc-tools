@@ -134,21 +134,34 @@ class Directive(Opcode):
         word1 = word2 = None
         expr = AddressExpression(context, operands)
         if expr.complete:
-            word1 = expr.value
-            if context.memmap.isFixed(word1):
+            pa = expr.value
+            word1 = context.memmap.pseudoToAddress(pa)
+            if context.memmap.isFixed(pa):
+                fbank = context.memmap.getBankNumber(pa)
                 word2 = 0
-                # Bits 15-11 of the 2nd generated word contain the bank number.
-                word2 |= ((context.fbank & 037) << 10)
-                # Bits 10-8 and 4 are zero.
-                # Bits 7-5 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
-                if 030 <= context.fbank <= 037:
-                    word2 |= (3 << 4)
-                elif 040 <= context.fbank <= 043:
-                    word2 |= (4 << 4)
-                # Bits 3-1 equals the current EBANK= code.
+                # Bits 14:10 of the generated word contain the bank number.
+                bank = fbank
+                super = False
+                if fbank >= 040:
+                    super = True
+                    bank = fbank - 010
+                word2 |= ((bank) << 10)
+                # Bits 9:7 are zero.
+                # Bits 6:4 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
+                if bank < 030:
+                    if context.super:
+                        word2 |= 0100
+                    else:
+                        word2 |= 0060
+                elif 030 <= bank <= 033 and super:
+                    word2 |= 0100
+                else:
+                    word2 |= 0060
+                # Bit 3 is zero.
+                # Bits 2:0 equals the current EBANK= code.
                 word2 |= (context.ebank & 07)
             else:
-                word2 = context.memmap.getBankNumber(word1)
+                word2 = context.memmap.getBankNumber(pa)
             context.currentRecord.code = [word1, word2]
             context.currentRecord.target = expr.value
             context.currentRecord.complete = True
@@ -230,8 +243,6 @@ class Directive(Opcode):
         expr = AddressExpression(context, operands)
         if expr.complete:
             fbank = context.memmap.getBankNumber(expr.value)
-        if fbank != None:
-            context.log(3, "BBCON: fbank=%02o" % fbank)
             bbval = 0
             # Bits 14:10 of the generated word contain the bank number.
             bank = fbank
@@ -243,7 +254,7 @@ class Directive(Opcode):
             # Bits 9:7 are zero.
             # Bits 6:4 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
             if bank < 030:
-                if super:
+                if context.super == 1:
                     bbval |= 0100
                 else:
                     bbval |= 0060
@@ -436,9 +447,10 @@ class Directive(Opcode):
         bank = None
         expr = AddressExpression(context, operands)
         if expr.complete:
-            bank = context.memmap.pseudoToBank(expr.value)
+            pa = expr.value
+            bank = context.memmap.pseudoToBank(pa)
             if bank != None:
-                context.currentRecord.code = [ context.memmap.pseudoToAddress(expr.value) ]
+                context.currentRecord.code = [ context.memmap.pseudoToAddress(pa) ]
                 context.currentRecord.complete = True
 
     def parse_MEMORY(self, context, operands):
