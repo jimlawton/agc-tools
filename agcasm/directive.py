@@ -300,19 +300,6 @@ class Directive(Opcode):
     def parse_BNKSUM(self, context, operands):
         self.ignore(context)
 
-    def parse_CADR(self, context, operands):
-        if operands:
-            expr = AddressExpression(context, operands)
-            if expr.complete:
-                pa = expr.value
-                (bank, offset) = context.memmap.pseudoToBankOffset(pa)
-                if bank >= 040:
-                    bank -= 010
-                word = ((bank) << 10) | offset
-                context.currentRecord.code = [ word ]
-                context.currentRecord.target = word
-                context.currentRecord.complete = True
-
     def parse_CHECKEquals(self, context, operands):
         if context.currentRecord.label != None:
             lhs = AddressExpression(context, [ context.currentRecord.label ])
@@ -438,7 +425,12 @@ class Directive(Opcode):
         if expr.complete:
             pa = expr.value
             if context.memmap.isFixed(pa):
-                context.currentRecord.code = [ context.memmap.pseudoToAddress(pa) ]
+                (bank, offset) = context.memmap.pseudoToBankOffset(pa)
+                if bank >= 040:
+                    bank -= 010
+                word = ((bank) << 10) | offset
+                context.currentRecord.code = [ word ]
+                context.currentRecord.target = word
                 context.currentRecord.complete = True
             else:
                 context.error("FCADR operand must be in fixed memory")
