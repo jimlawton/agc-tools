@@ -31,8 +31,8 @@ OPCODES = {
         OpcodeType.BASIC: {
             # Name                Method        Opcode   Operand Type               Address Type
             "0":      Instruction("TC",         000000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
-            "3":      Instruction("TC",         000003,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
-            "7":      Instruction("TC",         000007,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
+            "3":      Instruction("TC",         030000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
+            "7":      Instruction("TC",         070000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "AD":     Instruction("AD",         060000,  OperandType.EXPRESSION,    AddressType.ERASABLE_12),
             "ADS":    Instruction("ADS",        026000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
             "CA":     Instruction("CA",         030000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
