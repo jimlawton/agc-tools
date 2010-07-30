@@ -125,7 +125,7 @@ class Directive(Opcode):
         if expr.complete:
             pa = expr.value
             if context.memmap.isErasable(pa):
-                context.currentRecord.code = [ context.memmap.pseudoToAddress(pa + dnadrConstants[opnum]) ]
+                context.currentRecord.code = [ pa + dnadrConstants[opnum] ]
                 context.currentRecord.complete = True
             else:
                 context.error("operand must be in erasable memory")
@@ -212,16 +212,17 @@ class Directive(Opcode):
     def parse_ADRES(self, context, operands):
         expr = AddressExpression(context, operands)
         if expr.complete:
-            (bank, offset) = context.memmap.pseudoToSegmented(expr.value)
+            pa = expr.value
+            (bank, offset) = context.memmap.pseudoToSegmented(pa)
             if bank == None or offset == None:
-                context.error("invalid address %06o" % expr.value)
+                context.error("invalid address %06o" % pa)
             else:
-                context.currentRecord.code = [ context.memmap.pseudoToAddress(expr.value) ]
-                context.currentRecord.target = expr.value
-                context.currentRecord.complete = True
-                context.log(3, "ADRES: bank:%02o FB:%02o EB:%02o" % (bank, context.fbank, context.ebank))
-                if (context.memmap.isSwitched(expr.value) and bank != context.fbank and bank != context.ebank):
+                if (context.memmap.isSwitched(pa) and bank != context.fbank and bank != context.ebank):
                     context.error("bank (%02o) does not match current FB (%02o) or EB (%02o)" % (bank, context.fbank, context.ebank))
+                else:
+                    context.currentRecord.code = [ context.memmap.pseudoToAddress(pa) ]
+                    context.currentRecord.target = pa
+                    context.currentRecord.complete = True
 
     def parse_BANK(self, context, operands):
         if operands:
@@ -339,10 +340,18 @@ class Directive(Opcode):
     def parse_DNPTR(self, context, operands):
         expr = AddressExpression(context, operands)
         if expr.complete:
-            bank = context.memmap.pseudoToBank(expr.value)
-            if bank and (bank == context.fbank or bank == context.ebank):
-                context.currentRecord.code = [ context.memmap.pseudoToAddress(expr.value) ]
-                context.currentRecord.complete = True
+            pa = expr.value
+            (bank, offset) = context.memmap.pseudoToSegmented(pa)
+            if bank == None or offset == None:
+                context.error("invalid address %06o" % pa)
+            else:
+                if (context.memmap.isSwitched(pa) and bank != context.fbank and bank != context.ebank):
+                    context.error("bank (%02o) does not match current FB (%02o) or EB (%02o)" % (bank, context.fbank, context.ebank))
+                else:
+                    context.currentRecord.code = [ 030000 + context.memmap.pseudoToAddress(pa) ]
+                    context.currentRecord.target = pa
+                    context.currentRecord.complete = True
+
 
     def parse_EBANKEquals(self, context, operands):
         pa = None
