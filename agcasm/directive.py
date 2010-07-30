@@ -363,8 +363,9 @@ class Directive(Opcode):
         expr = AddressExpression(context, operands)
         if expr.complete:
             pa = expr.value
+            context.log(3, "ECADR %s" % context.memmap.pseudoToSegmentedString(pa))
             if context.memmap.isErasable(pa):
-                context.currentRecord.code = [ context.memmap.pseudoToAddress(pa) ]
+                context.currentRecord.code = [ pa ]
                 context.currentRecord.complete = True
             else:
                 context.error("operand must be in erasable memory")
