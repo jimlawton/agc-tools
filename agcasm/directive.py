@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,14 +26,14 @@ from record_type import RecordType
 
 # NOTE: Must be a new-style class.
 class Directive(Opcode):
-    
+
     def __init__(self, methodName, mnemonic=None, operandType=OperandType.NONE, operandOptional=False, numwords=0):
         Opcode.__init__(self, methodName, mnemonic, None, operandType, operandOptional, None, numwords)
         if numwords == 0:
             self.type = RecordType.ASMCONST
         else:
             self.type = RecordType.CONST
-        
+
     def parse(self, context, operands):
         if self.operandType == OperandType.NONE:
             if operands != None:
@@ -77,7 +77,7 @@ class Directive(Opcode):
                 words.append(~context.currentRecord.code[i] & 077777)
             context.currentRecord.code = words
             context.currentRecord.complete = True
-    
+
     def parse_Minus2CADR(self, context, operands):
         self.parse_2CADR(context, operands)
         words = []
@@ -86,7 +86,7 @@ class Directive(Opcode):
                 words.append(~context.currentRecord.code[i] & 077777)
             context.currentRecord.code = words
             context.currentRecord.complete = True
-    
+
     def parse_MinusDNCHAN(self, context, operands):
         self.parse_DNCHAN(context, operands)
         words = []
@@ -95,7 +95,7 @@ class Directive(Opcode):
                 words.append(~context.currentRecord.code[i] & 077777)
             context.currentRecord.code = words
             context.currentRecord.complete = True
-    
+
     def parse_MinusDNPTR(self, context, operands):
         self.parse_DNPTR(context, operands)
         words = []
@@ -104,7 +104,7 @@ class Directive(Opcode):
                 words.append(~context.currentRecord.code[i] & 077777)
             context.currentRecord.code = words
             context.currentRecord.complete = True
-    
+
     def parse_MinusGENADR(self, context, operands):
         self.parse_GENADR(context, operands)
         words = []
@@ -113,7 +113,7 @@ class Directive(Opcode):
                 words.append(~context.currentRecord.code[i] & 077777)
             context.currentRecord.code = words
             context.currentRecord.complete = True
-    
+
     def parse_DNADR(self, context, operands):
         pa = None
         if self.mnemonic.startswith('-'):
@@ -129,7 +129,7 @@ class Directive(Opcode):
                 context.currentRecord.complete = True
             else:
                 context.error("operand must be in erasable memory")
-    
+
     def parse_2CADR(self, context, operands):
         word1 = word2 = None
         expr = AddressExpression(context, operands)
@@ -138,8 +138,8 @@ class Directive(Opcode):
             if context.memmap.isFixed(word1):
                 word2 = 0
                 # Bits 15-11 of the 2nd generated word contain the bank number.
-                word2 |= ((context.fbank & 037) << 10) 
-                # Bits 10-8 and 4 are zero. 
+                word2 |= ((context.fbank & 037) << 10)
+                # Bits 10-8 and 4 are zero.
                 # Bits 7-5 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
                 if 030 <= context.fbank <= 037:
                     word2 |= (3 << 4)
@@ -167,7 +167,7 @@ class Directive(Opcode):
     def parse_2FCADR(self, context, operands):
         context.error("unsupported directive: %s %s" % (self.mnemonic, operands))
         sys.exit()
-    
+
     def parse_2OCT(self, context, operands):
         op = DoubleOctal(" ".join(operands))
         if op.isValid():
@@ -175,15 +175,15 @@ class Directive(Opcode):
             context.currentRecord.complete = True
         else:
             context.syntax("operand must be an octal")
-    
+
     def parse_EqualsECADR(self, context, operands):
         self.ignore(context)
-    
+
     def parse_EqualsMINUS(self, context, operands):
         expr = AddressExpression(context, operands)
         if expr.complete:
-            # =MINUS is equivalent to EQUALS symbol - loc. It is used to generate the number of elements in a table.  
-            expr.value -= context.loc 
+            # =MINUS is equivalent to EQUALS symbol - loc. It is used to generate the number of elements in a table.
+            expr.value -= context.loc
             if not context.reparse and context.passnum == 0:
                 context.symtab.add(context.currentRecord.label, operands, expr.value)
             else:
@@ -195,7 +195,7 @@ class Directive(Opcode):
                 context.symtab.add(context.currentRecord.label, operands)
         context.currentRecord.type = RecordType.ASMCONST
         context.addSymbol = False
-    
+
     def parse_ADRES(self, context, operands):
         expr = AddressExpression(context, operands)
         if expr.complete:
@@ -231,16 +231,28 @@ class Directive(Opcode):
         if expr.complete:
             fbank = context.memmap.getBankNumber(expr.value)
         if fbank != None:
+            context.log(3, "BBCON: fbank=%02o" % fbank)
             bbval = 0
-            # Bits 15-11 of the generated word contain the bank number.
-            bbval |= ((fbank & 037) << 10) 
-            # Bits 10-8 and 4 are zero. 
-            # Bits 7-5 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
-            if 030 <= fbank <= 037:
-                bbval |= (3 << 4)
-            elif 040 <= fbank <= 043:
-                bbval |= (4 << 4)
-            # Bits 3-1 equals the current EBANK= code.
+            # Bits 14:10 of the generated word contain the bank number.
+            bank = fbank
+            super = False
+            if fbank >= 040:
+                super = True
+                bank = fbank - 010
+            bbval |= ((bank) << 10)
+            # Bits 9:7 are zero.
+            # Bits 6:4 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
+            if bank < 030:
+                if super:
+                    bbval |= 0100
+                else:
+                    bbval |= 0060
+            elif 030 <= bank <= 033 and super:
+                bbval |= 0100
+            else:
+                bbval |= 0060
+            # Bit 3 is zero.
+            # Bits 2:0 equals the current EBANK= code.
             bbval |= (context.ebank & 07)
             context.currentRecord.code = [ bbval ]
             context.currentRecord.target = expr.value
@@ -248,7 +260,7 @@ class Directive(Opcode):
         if context.previousWasEbankEquals == True:
             context.currentRecord.update()
             context.revertEbank()
-    
+
     def parse_BBCONstar(self, context, operands):
         context.currentRecord.code = [ 066100 ]
         context.currentRecord.complete = True
@@ -257,7 +269,7 @@ class Directive(Opcode):
             context.revertEbank()
             # TODO: recalculate sbank, based on superbit=1.
         return True
-    
+
     def parse_BLOCK(self, context, operands):
         expr = Expression(context, operands)
         if expr.complete:
@@ -276,7 +288,7 @@ class Directive(Opcode):
 
     def parse_BNKSUM(self, context, operands):
         self.ignore(context)
-    
+
     def parse_CADR(self, context, operands):
         word = None
         if operands:
@@ -286,7 +298,7 @@ class Directive(Opcode):
                 context.currentRecord.code = [ word - 010000 ]
                 context.currentRecord.target = word
                 context.currentRecord.complete = True
-    
+
     def parse_CHECKEquals(self, context, operands):
         if context.currentRecord.label != None:
             lhs = AddressExpression(context, [ context.currentRecord.label ])
@@ -301,11 +313,11 @@ class Directive(Opcode):
         else:
             context.syntax("CHECK= directive must have a label")
         context.addSymbol = False
-    
+
     def parse_COUNT(self, context, operands):
         context.currentRecord.target = context.loc
         context.currentRecord.complete = True
-    
+
     def parse_DEC(self, context, operands):
         if operands:
             op = Decimal(" ".join(operands))
@@ -314,7 +326,7 @@ class Directive(Opcode):
                 context.currentRecord.complete = True
             else:
                 context.syntax("DEC operand must be a decimal number")
-    
+
     def parse_DNCHAN(self, context, operands):
         op = Octal(" ".join(operands))
         if op.isValid():
@@ -322,7 +334,7 @@ class Directive(Opcode):
             context.currentRecord.complete = True
         else:
             context.syntax("operand must be an octal number")
-    
+
     def parse_DNPTR(self, context, operands):
         expr = AddressExpression(context, operands)
         if expr.complete:
@@ -330,7 +342,7 @@ class Directive(Opcode):
             if bank and (bank == context.fbank or bank == context.ebank):
                 context.currentRecord.code = [ context.memmap.pseudoToAddress(expr.value) ]
                 context.currentRecord.complete = True
-    
+
     def parse_EBANKEquals(self, context, operands):
         pa = None
         expr = AddressExpression(context, operands)
@@ -405,7 +417,7 @@ class Directive(Opcode):
         context.currentRecord.complete = True
         context.incrLoc(size)
         context.addSymbol = False
-        
+
     def parse_FCADR(self, context, operands):
         pa = None
         expr = AddressExpression(context, operands)
@@ -425,7 +437,7 @@ class Directive(Opcode):
             if bank != None:
                 context.currentRecord.code = [ context.memmap.pseudoToAddress(expr.value) ]
                 context.currentRecord.complete = True
-    
+
     def parse_MEMORY(self, context, operands):
         #if '-' in operands:
         #    op1 = int(operands[0], 8)
@@ -434,7 +446,7 @@ class Directive(Opcode):
         #else:
         #    context.syntax()
         self.ignore(context)
-    
+
     def parse_OCT(self, context, operands):
         op = Octal(operands[0])
         if op.isValid():
@@ -467,10 +479,14 @@ class Directive(Opcode):
             if context.memmap.isFixed(pa):
                 context.currentRecord.target = pa
                 context.currentRecord.complete = True
-                context.sbank = pa
+                bank = context.memmap.pseudoToBank(pa)
+                if 030 <= bank <= 037:
+                    context.super = 0
+                else:
+                    context.super = 1
             else:
                 context.error("operand must be in fixed memory")
-    
+
     def parse_SETLOC(self, context, operands):
         expr = AddressExpression(context, operands)
         context.log(3, "SETLOC: \"%s\" (%06o)" % (operands, expr.value))
@@ -488,7 +504,7 @@ class Directive(Opcode):
 
     def parse_SUBRO(self, context, operands):
         self.ignore(context)
-    
+
     def parse_VN(self, context, operands):
         if operands:
             op = Decimal(operands[0])
