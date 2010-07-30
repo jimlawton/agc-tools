@@ -290,12 +290,15 @@ class Directive(Opcode):
         self.ignore(context)
 
     def parse_CADR(self, context, operands):
-        word = None
         if operands:
             expr = AddressExpression(context, operands)
             if expr.complete:
-                word = expr.value
-                context.currentRecord.code = [ word - 010000 ]
+                pa = expr.value
+                (bank, offset) = context.memmap.pseudoToBankOffset(pa)
+                if bank >= 040:
+                    bank -= 010
+                word = ((bank) << 10) | offset
+                context.currentRecord.code = [ word ]
                 context.currentRecord.target = word
                 context.currentRecord.complete = True
 
