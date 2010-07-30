@@ -52,7 +52,6 @@ class Instruction(Opcode):
                             context.currentRecord.code = [ (self.opcode + pa) & 077777 ]
                         else:
                             address = context.memmap.pseudoToAddress(pa)
-                            context.log(6, "converted pa %06o to address %05o" % (pa, address))
                             context.currentRecord.code = [ (self.opcode + address) & 077777 ]
                         context.currentRecord.complete = True
                 else:
