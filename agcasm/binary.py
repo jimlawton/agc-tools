@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,14 +23,14 @@ from memory import MemoryType
 
 class ObjectCode:
     """Class storing object code."""
-    
+
     def __init__(self, context):
         self.context = context              # Assembler context.
         self.objectCode = {}
         for bank in self.context.memmap.getBanks(MemoryType.FIXED):
             self.objectCode[bank] = {}
             for offset in range(self.context.getBankSize(MemoryType.FIXED, bank)):
-                self.objectCode[bank][offset] = 0 
+                self.objectCode[bank][offset] = 0
 
         for i in range(len(self.context.records)):
             record = self.context.records[i]
@@ -46,7 +46,7 @@ class ObjectCode:
                         #context.log(4, "code for %06o (%02o,%04o): %05o" % (pa, bank, offset+1, self.objectCode[bank][offset+1]))
                 else:
                     context.error("missing object code at address %06s" % (pa), source=False)
-                    return 
+                    return
 
     def generateBuggers(self):
         for bank in self.context.memmap.getBanks(MemoryType.FIXED):
@@ -57,9 +57,9 @@ class ObjectCode:
                 offset = 06000
             else:
                 offset = 02000
-            
+
             count = self.context.getBankCount(MemoryType.FIXED, bank)
-            
+
             if count < 01776:
                 self.objectCode[bank][count] = count + offset
                 count += 1
@@ -70,53 +70,55 @@ class ObjectCode:
                 bugger = 0
                 offset = 0
                 for offset in range(count):
-                    bugger = self._add(bugger, self.objectCode[bank][offset])
+                    bugger = self.add(bugger, self.objectCode[bank][offset])
                 if (bugger & 040000) == 0:
-                    guess = self._add(bank, 077777 & ~bugger)
+                    guess = self.add(bank, 077777 & ~bugger)
                 else:
-                    guess = self._add(077777 & ~bank, 077777 & ~bugger)
+                    guess = self.add(077777 & ~bank, 077777 & ~bugger)
                 self.objectCode[bank][count] = guess
                 self.context.log(4, "bugger word %05o at (%02o,%04o)" % (guess, bank, count + 02000))
-            
+
     # Convert AGC number to native format.
-    def _convertToNative(self, n):
+    @classmethod
+    def convertToNative(cls, n):
         i = n
         if (n & 040000) != 0:
             i = -(077777 & ~i)
         return i
-    
+
     # Add two AGC numbers.
-    def _add(self, n1, n2):
+    @classmethod
+    def add(cls, n1, n2):
         # Convert from AGC 1's-complement format to the native integer.
-        i1 = self._convertToNative(n1)
-        i2 = self._convertToNative(n2)
+        i1 = cls.convertToNative(n1)
+        i2 = cls.convertToNative(n2)
         sum = i1 + i2
-    
+
         if sum > 16383:
             sum -= 16384
             sum += 1
         elif sum < -16383:
             sum += 16384
             sum -= 1
-    
+
         if sum > 16383 or sum < -16383:
             print "Arithmetic overflow."
-        
+
         if sum < 0:
             sum = (077777 & ~(-sum))
-            
+
         return sum
-    
+
     def getBugger(self, data):
         """Return the bugger word in the supplied bank data. The bugger word is the last non-zero word."""
-        
+
         index = 0
         for i in range(len(data)-1, -1, -1):
             if data[i] != 0:
                 index = i
                 if i == len(data)-1:
                     if data[i-1] == 0:
-                        # Search farther back for bugger word. 
+                        # Search farther back for bugger word.
                         for j in range(len(data)-2, -1, -1):
                             if data[j] != 0:
                                 index = j
@@ -130,7 +132,7 @@ class ObjectCode:
             self.context.log(4, "writing output for bank %02o (%d words)" % (bank, self.context.getBankSize(MemoryType.FIXED, bank)))
             count += self.context.getBankSize(MemoryType.FIXED, bank)
             for offset in range(self.context.getBankSize(MemoryType.FIXED, bank)):
-                value = self.objectCode[bank][offset] 
+                value = self.objectCode[bank][offset]
                 value = value << 1
                 wordval = struct.pack(">H", value)
                 outputfile.write(wordval)
