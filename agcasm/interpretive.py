@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ from expression import AddressExpression
 
 # NOTE: Must be a new-style class.
 class Interpretive(Opcode):
-    
+
     def __init__(self, methodName, mnemonic, opcode, numOperands=1, switchcode=None):
         Opcode.__init__(self, methodName, mnemonic, opcode, None, False, None, 1)
         self.numOperands = numOperands
@@ -37,24 +37,24 @@ class Interpretive(Opcode):
         # Case 3: Interpretive opcode, simple operand.
         # Case 4: Interpretive opcode, operand expression with 2 components (e.g. ['A', '+1']).
         # Case 5: Interpretive opcode, operand expression with 3 components (e.g. ['A', '-', '1']).
-        
+
         # TODO: Handle interpretive operands.
         # TODO: Handle store opcodes separately.
         # TODO: Handle interpretive operands ending in ,x. What does it mean?
-        
+
         exitInterp = False
-        
+
         if self.mnemonic == "EXIT":
             exitInterp = True
-            
+
         mnemonic2 = None
-        
+
         if operands != None:
             oplen = len(operands)
         else:
             oplen = 0
         opcodes = [ self.opcode ]
-        
+
         if oplen == 0:
             context.log(5, "interpretive: %s (%03o)" % (self.mnemonic, self.opcode))
             # Case 1
@@ -117,11 +117,11 @@ class Interpretive(Opcode):
         context.currentRecord.code = [ code ]
         context.currentRecord.complete = True
         context.currentRecord.type = self.type
-        
+
         if oplen != 2 and oplen != 3:
-            # If any operands found, parseOperand will already have done this. 
+            # If any operands found, parseOperand will already have done this.
             context.incrLoc(self.numwords)
-        
+
         if exitInterp == True:
             context.interpMode = False
             context.interpArgs = 0
@@ -145,7 +145,7 @@ class Interpretive(Opcode):
                 newoperands.append(operand)
         operand = AddressExpression(context, newoperands)
         if operand.complete:
-            code = operand.value
+            code = context.memmap.pseudoToInterpretiveAddress(operand.value)
             if indexreg > 0:
                 code += 1
                 if indexreg == 2:
