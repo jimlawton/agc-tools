@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ class BankDescriptor:
 
     def __str__(self):
         return "%06o %d %d %02o %04o" % (self.startaddr, self.memtype, self.banktype, self.banknum, self.size)
-        
+
     def isErasable(self):
         if self.memtype == MemoryType.ERASABLE:
             return True
@@ -71,7 +71,7 @@ class BankDescriptor:
             return True
         else:
             return False
-        
+
     def isUnswitched(self):
         return (not self.isSwitched())
 
@@ -79,7 +79,7 @@ class BankDescriptor:
 MAPS = {
     # Each entry contains (start_address, size, number)
     Architecture.AGC4_B1: {
-    }, 
+    },
     Architecture.AGC4_B2: {
         0000000: BankDescriptor(0000000, MemoryType.ERASABLE, BankType.UNSWITCHED, 00,  0400, "E0"),
         0000400: BankDescriptor(0000400, MemoryType.ERASABLE, BankType.UNSWITCHED, 01,  0400, "E1"),
@@ -93,8 +93,8 @@ MAPS = {
         0006000: BankDescriptor(0006000, MemoryType.FIXED,    BankType.UNSWITCHED, 003, 02000),
         0010000: BankDescriptor(0010000, MemoryType.FIXED,    BankType.SWITCHED,   000, 02000),
         0012000: BankDescriptor(0012000, MemoryType.FIXED,    BankType.SWITCHED,   001, 02000),
-        0014000: BankDescriptor(0014000, MemoryType.NONEXISTENT),        
-        0016000: BankDescriptor(0016000, MemoryType.NONEXISTENT),        
+        0014000: BankDescriptor(0014000, MemoryType.NONEXISTENT),
+        0016000: BankDescriptor(0016000, MemoryType.NONEXISTENT),
         0020000: BankDescriptor(0020000, MemoryType.FIXED,    BankType.SWITCHED,   004, 02000),
         0022000: BankDescriptor(0022000, MemoryType.FIXED,    BankType.SWITCHED,   005, 02000),
         0024000: BankDescriptor(0024000, MemoryType.FIXED,    BankType.SWITCHED,   006, 02000),
@@ -127,7 +127,7 @@ MAPS = {
         0112000: BankDescriptor(0112000, MemoryType.FIXED,    BankType.SWITCHED,   041, 02000, 1),
         0114000: BankDescriptor(0114000, MemoryType.FIXED,    BankType.SWITCHED,   042, 02000, 1),
         0116000: BankDescriptor(0116000, MemoryType.FIXED,    BankType.SWITCHED,   043, 02000, 1)
-    } 
+    }
 }
 
 
@@ -152,7 +152,7 @@ class MemoryMap:
                 continue
             text += "%s"  % str(bank)
         return text
-            
+
     def isValid(self, pa):
         lowest = self.addresses[0]
         highest = self.addresses[-1] + self.memmap[self.addresses[-1]].size - 1
@@ -160,7 +160,7 @@ class MemoryMap:
             return True
         else:
             return False
-        
+
     def _findBank(self, pa):
         bank = None
         found = False
@@ -171,7 +171,7 @@ class MemoryMap:
         if found:
             bank = self.memmap[startaddr]
         return bank
-        
+
     def segmentedToPseudo(self, banktype, bank, offset=0, absolute=False):
         if absolute:
             if self.banks[banktype][bank].isSwitched():
@@ -184,10 +184,10 @@ class MemoryMap:
         else:
             pa = self.banks[banktype][bank].startaddr + offset
         return pa
-    
+
     def segmentedToString(self, bank, offset=0):
         return "%02o,%04o" % (bank, offset)
-        
+
     def pseudoToSegmented(self, pa):
         retval = (None, None)
         if pa != None:
@@ -222,6 +222,15 @@ class MemoryMap:
                 retval |= 002000
         return retval
 
+    def pseudoToInterpretiveAddress(self, pa):
+        # Convert pseudo address to interpretive encoded form.
+        (bank, offset) = self.pseudoToBankOffset(pa)
+        if self.isErasable(pa):
+            retval = 0400 * bank + offset
+        else:
+            retval = 02000 * bank + offset
+        return retval
+
     def pseudoToBank(self, pa):
         retval = None
         if pa != None:
@@ -231,7 +240,7 @@ class MemoryMap:
             else:
                 print >>sys.stderr, "Error, invalid pseudo address %06o" % pa
         return retval
-    
+
     def pseudoToOffset(self, pa):
         retval = None
         if pa != None:
@@ -242,7 +251,7 @@ class MemoryMap:
             else:
                 print >>sys.stderr, "Error, invalid pseudo address %06o" % pa
         return retval
-    
+
     def pseudoToBankOffset(self, pa):
         retval = (None, None)
         if pa != None:
@@ -253,13 +262,13 @@ class MemoryMap:
             else:
                 print >>sys.stderr, "Error, invalid pseudo address %06o" % pa
         return retval
-    
+
     def pseudoToString(self, pa):
         if pa != None:
             return "%06o" % (pa)
         else:
             return "??????"
-    
+
     def pseudoToSegmentedString(self, pa):
         text = ""
         if pa != None:
@@ -269,7 +278,7 @@ class MemoryMap:
                 if bank == None or offset == None:
                     text = "??????   "
                 else:
-                    if bankdesc.memtype == MemoryType.ERASABLE: 
+                    if bankdesc.memtype == MemoryType.ERASABLE:
                         bankstr = "E%1o" % bankdesc.banknum
                         text = "%-2s,%04o" % (bankstr, offset)
                     else:
@@ -279,10 +288,10 @@ class MemoryMap:
         else:
             text = "??,????"
         return text
-    
+
     def bankToString(self, type, bank):
         text = ""
-        if type == MemoryType.ERASABLE: 
+        if type == MemoryType.ERASABLE:
             text = "E%1o" % bank
         else:
             text = "%02o" % bank
@@ -296,24 +305,24 @@ class MemoryMap:
         if sorted:
             banks.sort()
         return banks
-    
+
     def getNumBanks(self, memtype):
         return len(self.banks[memtype])
-    
+
     def getBankNumber(self, pa):
         banknum = None
         bank = self._findBank(pa)
         if bank:
             banknum = bank.banknum
         return banknum
-    
+
     def getBankType(self, pa):
         memtype = None
         bank = self._findBank(pa)
         if bank:
             memtype = bank.memtype
         return memtype
-    
+
     def getBankSize(self, pa):
         size = None
         bank = self._findBank(pa)
@@ -327,28 +336,28 @@ class MemoryMap:
         if bank:
             memtype = bank.memtype
         return (memtype == MemoryType.FIXED)
-    
+
     def isErasable(self, pa):
         memtype = None
         bank = self._findBank(pa)
         if bank:
             memtype = bank.memtype
         return (memtype == MemoryType.ERASABLE)
-    
+
     def isSwitched(self, pa):
         banktype = None
         bank = self._findBank(pa)
         if bank:
             banktype = bank.banktype
         return (banktype == BankType.SWITCHED)
-        
+
     def isUnswitched(self, pa):
         banktype = None
         bank = self._findBank(pa)
         if bank:
             banktype = bank.banktype
         return (banktype == BankType.UNSWITCHED)
-        
+
     def isChannel(self, pa):
         retval = False
         if 0 <= pa <= 0777:
