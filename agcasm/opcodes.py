@@ -276,12 +276,12 @@ OPCODES = {
             "SSP":    Interpretive("SSP",           "SSP",      0045,   2,  		000000),
             "SSP*":   Interpretive("SSP",           "SSP*",     0047,   1,  		000000),
             "STADR":  Interpretive("STADR",         "STADR",    0150,   0),
-            "STCALL": Interpretive("Store",         "STCALL",   034001),                      # FIXME: opcode
-            "STODL":  Interpretive("Store",         "STODL",    014001),                      # FIXME: opcode
-            "STODL*": Interpretive("Store",         "STODL*",   014001),                      # FIXME: opcode
-            "STORE":  Interpretive("Store",         "STORE",    000001),                      # FIXME: opcode
-            "STOVL":  Interpretive("Store",         "STOVL",    024001),                      # FIXME: opcode
-            "STOVL*": Interpretive("Store",         "STOVL*",   024001),                      # FIXME: opcode
+            "STCALL": Interpretive("Store",         "STCALL",   034001),
+            "STODL":  Interpretive("Store",         "STODL",    014001),
+            "STODL*": Interpretive("Store",         "STODL*",   014001),
+            "STORE":  Interpretive("Store",         "STORE",    000001),
+            "STOVL":  Interpretive("Store",         "STOVL",    024001),
+            "STOVL*": Interpretive("Store",         "STOVL*",   024001),
             "STQ":    Interpretive("STQ",           "STQ",      0156,   1),
             "SXA,1":  Interpretive("SXA",           "SXA,1",    0046,   1),
             "SXA,2":  Interpretive("SXA",           "SXA,2",    0042,   1),
