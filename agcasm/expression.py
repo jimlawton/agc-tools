@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,19 +23,20 @@ from opcode import OperandType
 
 class Expression:
     """Class that represents an AGC expression."""
-    
+
     def __init__(self, context, operands, addressExpr=False):
         self.complete = False               # Expression complete, all references resolved.
         self.operands = operands            # List of operand fields.
         self.value = None                   # If complete, calculated result of the expression.
         self.addressExpr = addressExpr      # Indicates that the expression is an Address Expression.
         self.context = context
-        
+        self.double = False
+
         self.context.log(5, "expression: operands=%s addressExpr=%s" % (operands, addressExpr))
 
         op1 = 0
         op2 = 0
-        
+
         if operands != None and 1 <= len(operands) <= 3:
             if len(operands) >= 1:
                 operand = operands[0]
@@ -43,7 +44,7 @@ class Expression:
                 if op1 != None:
                     if len(operands) == 1:
                         if self.addressExpr and op1type == OperandType.DECIMAL:
-                            if operands[0].startswith('+'): 
+                            if operands[0].startswith('+'):
                                 self.value = self.context.loc + op1
                             elif operands[0].startswith('-'):
                                 self.value = self.context.loc - op1
@@ -78,7 +79,7 @@ class Expression:
     def _parseOperand(self, operand):
         retval = None
         rettype = OperandType.NONE
-        
+
         # First try symbol lookup.
         entry = self.context.symtab.lookup(operand)
         if entry != None:
@@ -111,6 +112,6 @@ class Expression:
 
 class AddressExpression(Expression):
     "Class that represents an address expression."
-    
+
     def __init__(self, context, operands):
         Expression.__init__(self, context, operands, True)

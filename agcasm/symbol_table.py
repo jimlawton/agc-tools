@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 import sys
 
 class SymbolTableEntry:
-    
+
     def __init__(self, context, name, symbolic=None, value=None):
         self.context = context              # Assembler context.
         self.name = name                    # Symbol name.
@@ -45,7 +45,7 @@ class SymbolTableEntry:
         if self.refType != None:
             text += "%-4s " % self.refType
         else:
-            text += 4 * ' ' 
+            text += 4 * ' '
         if self.value == None:
             text += "%-20s" % "******"
         else:
@@ -70,7 +70,7 @@ class SymbolTable:
             if name in self.symbols.keys():
                 self.context.error("symbol \"%s\" already defined!" % (name))
             else:
-                self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value) 
+                self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value)
                 self.symbols[name].recordIndex = self.context.global_linenum - 1
                 if value == None:
                     self.undefs.append(name)
@@ -124,7 +124,7 @@ class SymbolTable:
         self.undefs = tmpUndefs
         self.context.log(3, "removed %d symbols from undef list" % (numUndefs - len(self.undefs)))
         #self.printUndefs()
-        
+
     def keys(self):
         return self.symbols.keys()
 
@@ -160,6 +160,6 @@ class SymbolTable:
         print >>out, "\nUndefined symbols: %d\n" % (len(self.undefs))
         for symbol in self.undefs:
             print >>out, self.symbols[symbol]
-        
+
     def getNumUndefs(self):
         return len(self.undefs)

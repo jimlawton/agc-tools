@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -81,20 +81,20 @@ class Assembler:
                 self.context.records.append(record)
                 self.assemble(modname)
                 continue
-            
+
             if len(line.strip()) == 0:
                 record = self._makeNewRecord(srcline, RecordType.BLANK, None, None, None, None, None)
                 record.complete = True
                 self.context.records.append(record)
                 continue
-            
+
             if line.strip().startswith('#'):
                 comment = line
                 record = self._makeNewRecord(srcline, RecordType.COMMENT, None, None, None, None, comment)
                 record.complete = True
                 self.context.records.append(record)
                 continue
-            
+
             # Real parsing starts here.
             if '#' in line:
                 comment = line[line.index('#'):]
@@ -150,7 +150,7 @@ class Assembler:
                     opcode = None
 
             self.context.log(7, "assemble: label=%s opcode=%s operands=%s [%d]" % (label, opcode, operands, opindex))
-            
+
             self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
             self.parse(label, opcode, operands)
             self.context.records.append(self.context.currentRecord)
@@ -158,9 +158,9 @@ class Assembler:
     def parse(self, label, opcode, operands):
         try:
             self.context.log(7, "parse: label=%s opcode=%s operands=%s" % (label, opcode, operands))
-            
+
             preloc = self.context.loc
-            
+
             if opcode == None:
                 Interpretive.parseOperand(self.context, operands)
                 self.context.currentRecord.type = RecordType.INTERP
@@ -195,7 +195,7 @@ class Assembler:
         self.context.currentRecord = saveRecord
         self.context.reparse = False
         self.context.log(6, "updated record %06d: %s" % (recordIndex, self.context.records[recordIndex]))
-        
+
     def resolve(self, maxPasses=10):
         self.context.symtab.resolve(maxPasses)
         numRecords = len(self.context.records)
@@ -232,7 +232,7 @@ class Assembler:
         msg = ""
         if source:
             msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, self.context.global_linenum)
-        msg += "error: %s" % (text) 
+        msg += "error: %s" % (text)
         if source:
             msg += "\n%s" % self.context.currentRecord.srcline
         print >>sys.stderr, msg
