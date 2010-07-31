@@ -30,6 +30,7 @@ class Interpretive(Opcode):
         self.numOperands = numOperands
         self.switchcode = switchcode
         self.type = RecordType.INTERP
+        self.complement = True          # Default is to complement the generated code.
 
     def parse(self, context, operands):
         # Case 1: One interpretive opcode.
@@ -112,7 +113,9 @@ class Interpretive(Opcode):
                 code += operandcode & 077777
 
         context.log(5, "interpretive: generated %05o (%03o,%03o)" % (~code & 077777, (code / 0200) & 0177, code & 0177))
-        code = ~code & 077777
+
+        if self.complement:
+            code = ~code & 077777
 
         context.currentRecord.code = [ code ]
         context.currentRecord.complete = True
@@ -160,3 +163,6 @@ class Interpretive(Opcode):
 
     def parse_EXIT(self, context, operands):
         context.interpMode = False
+
+    def parse_Store(self, context, operands):
+        self.complement = False
