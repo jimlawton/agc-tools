@@ -50,6 +50,7 @@ class Context:
         self.addSymbol = True
         self.reparse = False
         self.passnum = 0
+        self.complementNext = False     # STADR complements the following instruction(s).
 
         # Log level:
         #  0 - None.
@@ -97,6 +98,7 @@ class Context:
         self.super = 0
         self.ebank = 0
         self.fbank = 0
+        self.complementNext = False
 
     def load(self, record, partial=True):
         self.linenum = record.linenum
