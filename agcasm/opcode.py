@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@ from memory import AddressType
 class OpcodeType:
     BASIC        = 0
     EXTENDED     = 1
-    DIRECTIVE    = 3
-    INTERPRETIVE = 4
+    DIRECTIVE    = 2
+    INTERPRETIVE = 3
 
 class OperandType:
     NONE         = 0    # No operand.
@@ -35,7 +35,7 @@ class OperandType:
 
 # NOTE: Must be a new-style class.
 class Opcode(object):
-    
+
     def __init__(self, methodName=None, mnemonic=None, opcode=0, operandType=None, operandOptional=False, addressType=AddressType.GENERAL_12, numwords=1):
         if mnemonic == None:
             self.mnemonic = methodName
