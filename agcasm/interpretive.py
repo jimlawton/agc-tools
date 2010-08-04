@@ -39,10 +39,6 @@ class Interpretive(Opcode):
         # Case 4: Interpretive opcode, operand expression with 2 components (e.g. ['A', '+1']).
         # Case 5: Interpretive opcode, operand expression with 3 components (e.g. ['A', '-', '1']).
 
-        # TODO: Handle interpretive operands.
-        # TODO: Handle store opcodes separately.
-        # TODO: Handle interpretive operands ending in ,x. What does it mean?
-
         exitInterp = False
 
         if self.mnemonic == "EXIT":
@@ -116,9 +112,11 @@ class Interpretive(Opcode):
 
         context.log(5, "interpretive: generated %05o (%03o,%03o)" % (code & 077777, (code / 0200) & 0177, code & 0177))
 
-        if self.complement:
+        if self.complement or (context.complementNext and checkForOperand):
             code = ~code & 077777
             context.log(5, "interpretive: complemented to %05o " % (code))
+            if (context.complementNext and checkForOperand):
+                context.complementNext = False
 
         context.currentRecord.code = [ code ]
         context.currentRecord.complete = True
@@ -156,9 +154,10 @@ class Interpretive(Opcode):
                 code += 1
             if operand.length > 1:
                 code += operand.length - 1
-            if indexreg > 0:
-                if indexreg == 2:
-                    code = ~code & 077777
+            if indexreg == 2 or (context.complementNext and not store):
+                code = ~code & 077777
+                if (context.complementNext and not store):
+                    context.complementNext = False
             context.currentRecord.code = [ code ]
             context.currentRecord.complete = True
             context.log(5, "interpretive: generated operand %05o" % code)
@@ -173,3 +172,6 @@ class Interpretive(Opcode):
 
     def parse_Store(self, context, operands):
         self.complement = False
+
+    def parse_STADR(self, context, operands):
+        context.complementNext = True
