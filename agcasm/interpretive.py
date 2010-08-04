@@ -152,8 +152,11 @@ class Interpretive(Opcode):
         operand = AddressExpression(context, newoperands)
         if operand.complete:
             code = context.memmap.pseudoToInterpretiveAddress(operand.value)
-            if indexreg > 0:
+            if context.memmap.isErasable(operand.value):
                 code += 1
+            if operand.length > 1:
+                code += operand.length - 1
+            if indexreg > 0:
                 if indexreg == 2:
                     code = ~code & 077777
             context.currentRecord.code = [ code ]
