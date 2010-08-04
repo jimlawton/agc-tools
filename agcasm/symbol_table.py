@@ -22,14 +22,15 @@ import sys
 
 class SymbolTableEntry:
 
-    def __init__(self, context, name, symbolic=None, value=None):
+    def __init__(self, context, name, symbolic=None, value=None, length=1):
         self.context = context              # Assembler context.
         self.name = name                    # Symbol name.
         self.symbolic = symbolic            # Symbolic value (expression).
         self.value = value                  # Actual value.
         self.recordIndex = None             # Index of the parser record containing the definition of this symbol.
         self.references = []                # TODO: List of references.
-        self.refType = None                 # Reference type: None, forward or reverse 
+        self.refType = None                 # Reference type: None, forward or reverse
+        self.length = length                # Length of the addressed quantity (default is 1 word).
 
     def isComplete(self):
         return (self.value != None)
@@ -64,13 +65,13 @@ class SymbolTable:
         self.symbols = {}
         self.undefs = []
         self.context = context
-        
-    def add(self, name=None, symbolic=None, value=None):
+
+    def add(self, name=None, symbolic=None, value=None, length=1):
         if name != None:
             if name in self.symbols.keys():
                 self.context.error("symbol \"%s\" already defined!" % (name))
             else:
-                self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value)
+                self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value, length)
                 self.symbols[name].recordIndex = self.context.global_linenum - 1
                 if value == None:
                     self.undefs.append(name)
