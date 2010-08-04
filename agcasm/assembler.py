@@ -176,7 +176,8 @@ class Assembler:
 
             if label != None and self.context.addSymbol == True and self.context.passnum == 0:
                 if not self.context.reparse:
-                    self.context.symtab.add(label, operands, preloc)
+                    numWords = self.context.loc - preloc
+                    self.context.symtab.add(label, operands, preloc, length=numWords)
                 else:
                     self.context.symtab.update(label, operands, preloc)
         except:
