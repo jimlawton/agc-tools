@@ -21,6 +21,11 @@
 from number import Number
 from opcode import OperandType
 
+class ExpressionType:
+    NONE         = 0    # No expression.
+    CONSTANT     = 1    # Octal or decimal constant.
+    SYMBOLIC     = 2    # Symbolic expression.
+
 class Expression:
     """Class that represents an AGC expression."""
 
@@ -30,12 +35,15 @@ class Expression:
         self.value = None                   # If complete, calculated result of the expression.
         self.addressExpr = addressExpr      # Indicates that the expression is an Address Expression.
         self.context = context
-        self.double = False
+        self.type = ExpressionType.NONE     # The type of the expression.
+        self.length = 1                     # Length of the addressed quantity in words.
 
         self.context.log(5, "expression: operands=%s addressExpr=%s" % (operands, addressExpr))
 
         op1 = 0
         op2 = 0
+        op1type = None
+        op2type = None
 
         if operands != None and 1 <= len(operands) <= 3:
             if len(operands) >= 1:
@@ -49,9 +57,11 @@ class Expression:
                             elif operands[0].startswith('-'):
                                 self.value = self.context.loc - op1
                             else:
+                                self.type = ExpressionType.CONSTANT
                                 self.value = op1
                         else:
                             self.value = op1
+                            self.type = ExpressionType.SYMBOLIC
                         self.complete = True
             if len(operands) >= 2:
                 if len(operands) == 2:
@@ -85,6 +95,7 @@ class Expression:
         if entry != None:
             retval = entry.value
             rettype = OperandType.SYMBOLIC
+            self.length = entry.length
         else:
             tmpop = operand
             if self.addressExpr and (operand.startswith('+') or operand.startswith('-')):
