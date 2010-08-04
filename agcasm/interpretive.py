@@ -22,14 +22,20 @@ from opcode import Opcode, OpcodeType
 from record_type import RecordType
 from expression import AddressExpression
 
+class InterpretiveType:
+    NORMAL = 0
+    SWITCH = 1
+    SHIFT  = 2
+
 # NOTE: Must be a new-style class.
 class Interpretive(Opcode):
 
-    def __init__(self, methodName, mnemonic, opcode, numOperands=1, switchcode=None):
+    def __init__(self, methodName, mnemonic, opcode, numOperands=1, interpType=InterpretiveType.NORMAL, switchcode=None):
         Opcode.__init__(self, methodName, mnemonic, opcode, None, False, None, 1)
         self.numOperands = numOperands
         self.switchcode = switchcode
         self.type = RecordType.INTERP
+        self.interpType = interpType
         self.complement = True          # Default is to complement the generated code.
 
     def parse(self, context, operands):
