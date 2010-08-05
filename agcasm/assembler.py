@@ -151,8 +151,10 @@ class Assembler:
 
             self.context.log(7, "assemble: label=%s opcode=%s operands=%s [%d]" % (label, opcode, operands, opindex))
 
+            self.context.previousRecord = self.context.currentRecord
             self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
             self.parse(label, opcode, operands)
+            self.context.currentRecord.update()
             self.context.records.append(self.context.currentRecord)
 
     def parse(self, label, opcode, operands):
@@ -163,14 +165,22 @@ class Assembler:
 
             if opcode == None:
                 Interpretive.parseOperand(self.context, operands)
+                self.context.previousWasInterpOperand = True
                 self.context.currentRecord.type = RecordType.INTERP
             else:
                 if opcode in self.context.opcodes[OpcodeType.INTERPRETIVE]:
                     self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, operands)
                 elif opcode in self.context.opcodes[OpcodeType.DIRECTIVE]:
                     self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, operands)
+                    self.context.previousWasInterpOperand = False
                 elif opcode in self.context.opcodes[self.context.mode]:
+                    if self.context.interpArgs > 0:
+                        self.context.log(5, "parse: resetting interpArgs, %d -> %d" % (self.context.interpArgs, 0))
+                        self.context.interpArgs = 0
+                        self.context.interpArgTypes = [ None, None, None, None ]
+                        self.context.interpArgCodes = [ 0, 0, 0, 0 ]
                     self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
+                    self.context.previousWasInterpOperand = False
                 else:
                     self.error("invalid opcode")
 
