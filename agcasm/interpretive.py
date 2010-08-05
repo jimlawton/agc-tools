@@ -46,6 +46,12 @@ class Interpretive(Opcode):
         # Case 5: Interpretive opcode, operand expression with 3 components (e.g. ['A', '-', '1']).
 
         exitInterp = False
+        numArgs = self.numOperands
+
+        if context.previousWasInterpOperand:
+            if context.interpArgs > 0:
+                context.log(5, "interpretive: resetting interpArgs, %d -> %d" % (context.interpArgs, 0))
+                context.interpArgs = 0
 
         if self.mnemonic == "EXIT":
             exitInterp = True
@@ -60,18 +66,26 @@ class Interpretive(Opcode):
 
         checkForOperand = False
         if oplen == 0:
-            context.log(5, "interpretive: %s (%03o)" % (self.mnemonic, self.opcode))
             # Case 1
-            if self.numOperands > 0:
-                context.log(5, "incrementing interpArgs: %d -> %d" % (context.interpArgs, context.interpArgs + self.numOperands))
-                context.interpArgs += self.numOperands
+            context.log(5, "interpretive: %s (%03o)" % (self.mnemonic, self.opcode))
+            if context.previousRecord and context.previousRecord.opcode:
+                if context.previousRecord.opcode == "DLOAD" or context.previousRecord.opcode == "TLOAD" or context.previousRecord.opcode == "VLOAD":
+                    # Load with no right-hand operand or opcode means implied push-down.
+                    context.log(5, "interpretive: decrementing interpArgs, %d -> %d" % (context.interpArgs, context.interpArgs - 1))
+                    context.interpArgs -= 1
         elif oplen == 1:
             if operands[0] in context.opcodes[OpcodeType.INTERPRETIVE]:
+                if context.previousRecord and context.previousRecord.opcode:
+                    if context.previousRecord.opcode == "DLOAD" or context.previousRecord.opcode == "TLOAD" or context.previousRecord.opcode == "VLOAD":
+                        # Load with no right-hand operand or opcode means implied push-down.
+                        context.log(5, "interpretive: decrementing interpArgs, %d -> %d" % (context.interpArgs, context.interpArgs - 1))
+                        context.interpArgs -= 1
                 # Case 2
                 mnemonic2 = operands[0]
                 opobj = context.opcodes[OpcodeType.INTERPRETIVE][operands[0]]
                 context.log(5, "interpretive: %s (%03o), %s (%03o)" % (self.mnemonic, self.opcode, opobj.mnemonic, opobj.opcode))
                 opcodes.append(opobj.opcode)
+                numArgs += opobj.numOperands
             else:
                 checkForOperand = True
         elif oplen == 2 or oplen == 3:
@@ -84,8 +98,20 @@ class Interpretive(Opcode):
 
         context.currentRecord.code = None
 
+        if numArgs > 0:
+            if context.interpArgs < 4:
+                if (context.interpArgs + numArgs) <= 4:
+                    context.log(5, "interpretive: incrementing interpArgs, %d -> %d" % (context.interpArgs, context.interpArgs + numArgs))
+                    context.interpArgs += numArgs
+                else:
+                    context.log(5, "interpretive: incrementing interpArgs, %d -> %d" % (context.interpArgs, 4))
+                    context.interpArgs = 4
+
         if oplen == 2 or oplen == 3 or checkForOperand == True:
             Interpretive.parseOperand(context, operands, checkForOperand)
+            context.previousWasInterpOperand = True
+        else:
+            context.previousWasInterpOperand = False
 
         try:
             method = self.__getattribute__("parse_" + self.methodName)
@@ -134,7 +160,6 @@ class Interpretive(Opcode):
 
         if exitInterp == True:
             context.interpMode = False
-            context.interpArgs = 0
         else:
             context.interpMode = True
 
@@ -171,6 +196,7 @@ class Interpretive(Opcode):
             context.log(5, "interpretive: operand undefined")
         if not store:
             context.incrLoc(1)
+        context.log(5, "interpretive: decrementing interpArgs, %d -> %d" % (context.interpArgs, context.interpArgs - 1))
         context.interpArgs -= 1
 
     def parse_EXIT(self, context, operands):
@@ -181,3 +207,5 @@ class Interpretive(Opcode):
 
     def parse_STADR(self, context, operands):
         context.complementNext = True
+        context.log(5, "interpretive: decrementing interpArgs, %d -> %d" % (context.interpArgs, context.interpArgs - 1))
+        context.interpArgs -= 1
