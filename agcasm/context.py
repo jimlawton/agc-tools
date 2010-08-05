@@ -45,8 +45,12 @@ class Context:
         self.srcline = None
         self.interpMode = False
         self.interpArgs = 0
+        self.interpArgTypes = [ None, None, None, None ]
+        self.interpArgCodes = [ 0, 0, 0, 0 ]
+        self.previousWasInterpOperand = False
         self.indexed = False
         self.currentRecord = None
+        self.previousRecord = None
         self.addSymbol = True
         self.reparse = False
         self.passnum = 0
@@ -90,8 +94,12 @@ class Context:
         self.srcline = None
         self.interpMode = False
         self.interpArgs = 0
+        self.interpArgTypes = [ None, None, None, None ]
+        self.interpArgCodes = [ 0, 0, 0, 0 ]
+        self.previousWasInterpOperand = False
         self.indexed = False
         self.currentRecord = None
+        self.previousRecord = None
         self.addSymbol = True
         self.reparse = False
         self.loc = 0
