@@ -64,6 +64,7 @@ class ParserRecord:
         self.fbank = self.context.fbank
         self.lastEbank = self.context.lastEbank
         self.previousWasEbankEquals = self.context.previousWasEbankEquals
+        self.interpArgs = self.context.interpArgs
 
     def __str__(self):
         text = ""
@@ -71,8 +72,8 @@ class ParserRecord:
             text += "\n\n"
         text += "%06d,%06d " % (self.global_linenum, self.linenum)
         if RecordType.isIgnored(self.type):
-            text += 29 * ' ' 
-        else: 
+            text += 34 * ' '
+        else:
             if RecordType.isAddressValid(self.type):
                 text += self.context.memmap.pseudoToSegmentedString(self.address) + ' '
             else:
@@ -82,6 +83,10 @@ class ParserRecord:
             else:
                 text += 8 * ' '
             if self.isGenerative():
+                if self.interpArgs > 0:
+                    text += "(%02d) " % self.interpArgs
+                else:
+                    text += "     "
                 if self.code != None and len(self.code) > 0:
                     if len(self.code) == 1 and self.code[0] != None:
                         text += " %05o %s " % (self.code[0] & 077777, 5 * ' ')
@@ -92,6 +97,6 @@ class ParserRecord:
                 else:
                     text += " ????? " + 6 * ' '
             else:
-                text += 13 * ' '
+                text += 18 * ' '
         text += "   %s" % self.srcline
         return text
