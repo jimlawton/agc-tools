@@ -49,9 +49,10 @@ class Interpretive(Opcode):
         numArgs = self.numOperands
 
         if context.previousWasInterpOperand:
-            if context.interpArgs > 0:
+            if context.interpArgs > 0 or context.interpArgCount > 0:
                 context.log(5, "interpretive: resetting interpArgs, %d -> %d" % (context.interpArgs, 0))
                 context.interpArgs = 0
+                context.interpArgCount = 0
 
         if self.mnemonic == "EXIT":
             exitInterp = True
@@ -111,6 +112,13 @@ class Interpretive(Opcode):
             Interpretive.parseOperand(context, operands, checkForOperand)
             context.previousWasInterpOperand = True
         else:
+            if not checkForOperand:
+                # Either 2 packed opcodes or 1 opcode with no args.
+                if context.previousWasInterpOperand:
+                    # Clear argcodes array.
+                    context.log(5, "interpretive: resetting argcodes array")
+                    context.interpArgTypes = [ None, None, None, None ]
+                    context.interpArgCodes = [ 0, 0, 0, 0 ]
             context.previousWasInterpOperand = False
 
         try:
@@ -122,7 +130,7 @@ class Interpretive(Opcode):
 
         if mnemonic2 != None:
             try:
-                method = self.__getattribute__("parse_" + opobj.methodName)
+                method = opobj.__getattribute__("parse_" + opobj.methodName)
             except:
                 method = None
             if method:
@@ -180,15 +188,35 @@ class Interpretive(Opcode):
                 newoperands.append(operand)
         operand = AddressExpression(context, newoperands)
         if operand.complete:
+            context.currentRecord.target = operand.value
             code = context.memmap.pseudoToInterpretiveAddress(operand.value)
-            if context.memmap.isErasable(operand.value):
-                code += 1
-            if operand.length > 1:
-                code += operand.length - 1
-            if indexreg == 2 or (context.complementNext and not store):
-                code = ~code & 077777
-                if (context.complementNext and not store):
-                    context.complementNext = False
+            acindex = context.interpArgCount
+            if context.interpArgTypes[acindex] != None:
+                # Switch or shift operand.
+                if context.interpArgTypes[acindex] == InterpretiveType.SWITCH:
+                    context.log(5, "interpretive: switch operand value=%05o [%d] %05o" % (code, acindex, context.interpArgCodes[acindex]))
+                    context.currentRecord.argcode = context.interpArgCodes[acindex]
+                    # Switch operands use the encoding 0WWWWWWNNNNBBBB, where:
+                    #  WWWWWW (6 bits) is the quotient when the constant value is divided by 15.
+                    #  BBBB (4 bits) is the remainder when the constant value is divided by 15.
+                    #  NNNN is an operation-specific value (all switch operations share the same opcode).
+                    flag = (code / 15) & 077
+                    bit = (code % 15)
+                    code = (flag << 8) | bit | (context.currentRecord.argcode << 4)
+                    context.log(5, "interpretive: switch operand flag=%03o bit=%02o code=%05o" % (flag, bit, code))
+                else:
+                    context.log(5, "interpretive: shift operand value=%05o [%d] %05o" % (code, acindex, context.interpArgCodes[acindex]))
+                    context.currentRecord.argcode = context.interpArgCodes[acindex]
+                    code |= (context.interpArgCodes[acindex] << 2)
+            else:
+                if context.memmap.isErasable(operand.value):
+                    code += 1
+                if operand.length > 1:
+                    code += operand.length - 1
+                if indexreg == 2 or (context.complementNext and not store):
+                    code = ~code & 077777
+                    if (context.complementNext and not store):
+                        context.complementNext = False
             context.currentRecord.code = [ code ]
             context.currentRecord.complete = True
             context.log(5, "interpretive: generated operand %05o" % code)
@@ -196,8 +224,14 @@ class Interpretive(Opcode):
             context.log(5, "interpretive: operand undefined")
         if not store:
             context.incrLoc(1)
-        context.log(5, "interpretive: decrementing interpArgs, %d -> %d" % (context.interpArgs, context.interpArgs - 1))
-        context.interpArgs -= 1
+
+        if context.interpArgCount < 4:
+            context.log(5, "interpretive: incrementing interpArgCount, %d -> %d" % (context.interpArgCount, context.interpArgCount + 1))
+            context.interpArgCount += 1
+        if context.interpArgCount == context.interpArgs:
+            context.log(5, "interpretive: all args found, resetting interpArgs, %d -> %d" % (context.interpArgs, 0))
+            context.interpArgs = 0
+            context.interpArgCount = 0
 
     def parse_EXIT(self, context, operands):
         context.interpMode = False
@@ -207,5 +241,23 @@ class Interpretive(Opcode):
 
     def parse_STADR(self, context, operands):
         context.complementNext = True
-        context.log(5, "interpretive: decrementing interpArgs, %d -> %d" % (context.interpArgs, context.interpArgs - 1))
+        context.log(5, "interpretive: STADR, decrementing interpArgs, %d -> %d" % (context.interpArgs, context.interpArgs - 1))
         context.interpArgs -= 1
+
+    def parse_Switch(self, context, operands):
+        # Store argcode in appropriate slot in context.interpArgCodes.
+        if self.numOperands == 2:
+            acindex = context.interpArgs - 2
+        else:
+            acindex = context.interpArgs - 1
+        context.interpArgCodes[acindex] = self.switchcode
+        context.interpArgTypes[acindex] = InterpretiveType.SWITCH
+        context.log(5, "interpretive: switch detected, [%d]=%05o" % (acindex, context.interpArgCodes[acindex]))
+
+    def parse_Shift(self, context, operands):
+        # Store argcode in appropriate slot in context.interpArgCodes.
+        acindex = context.interpArgs - 1
+        context.interpArgCodes[acindex] = self.switchcode
+        context.interpArgTypes[acindex] = InterpretiveType.SHIFT
+        context.log(5, "interpretive: shift detected, [%d]=%05o" % (acindex, context.interpArgCodes[acindex]))
+
