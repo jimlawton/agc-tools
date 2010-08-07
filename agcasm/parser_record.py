@@ -48,6 +48,9 @@ class ParserRecord:
         self.lastEbank = context.lastEbank
         self.previousWasEbankEquals = context.previousWasEbankEquals
         self.global_linenum = context.global_linenum
+        self.argcode = None
+        self.interpArgs = 0
+        self.interpArgCount = 0
 
     def isGenerative(self):
         return RecordType.isGenerative(self.type)
@@ -65,6 +68,7 @@ class ParserRecord:
         self.lastEbank = self.context.lastEbank
         self.previousWasEbankEquals = self.context.previousWasEbankEquals
         self.interpArgs = self.context.interpArgs
+        self.interpArgCount = self.context.interpArgCount
 
     def __str__(self):
         text = ""
@@ -72,7 +76,10 @@ class ParserRecord:
             text += "\n\n"
         text += "%06d,%06d " % (self.global_linenum, self.linenum)
         if RecordType.isIgnored(self.type):
-            text += 34 * ' '
+            if self.context.debug:
+                text += 49 * ' '
+            else:
+                text += 29 * ' '
         else:
             if RecordType.isAddressValid(self.type):
                 text += self.context.memmap.pseudoToSegmentedString(self.address) + ' '
@@ -83,10 +90,16 @@ class ParserRecord:
             else:
                 text += 8 * ' '
             if self.isGenerative():
-                if self.interpArgs > 0:
-                    text += "(%02d) " % self.interpArgs
-                else:
-                    text += "     "
+                if self.context.debug:
+                    text += self.context.memmap.bankToString(MemoryType.ERASABLE, self.context.ebank)
+                    text += ' '
+                    text += self.context.memmap.bankToString(MemoryType.FIXED, self.context.fbank)
+                    text += ' '
+                    text += "(%02d,%02d) " % (self.interpArgs, self.interpArgCount)
+                    if self.argcode != None and self.argcode > 0:
+                        text += "%05o " % (self.argcode)
+                    else:
+                        text += 6 * ' '
                 if self.code != None and len(self.code) > 0:
                     if len(self.code) == 1 and self.code[0] != None:
                         text += " %05o %s " % (self.code[0] & 077777, 5 * ' ')
@@ -97,6 +110,9 @@ class ParserRecord:
                 else:
                     text += " ????? " + 6 * ' '
             else:
-                text += 18 * ' '
+                if self.context.debug:
+                    text += 33 * ' '
+                else:
+                    text += 13 * ' '
         text += "   %s" % self.srcline
         return text
