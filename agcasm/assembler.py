@@ -174,9 +174,10 @@ class Assembler:
                     self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, operands)
                     self.context.previousWasInterpOperand = False
                 elif opcode in self.context.opcodes[self.context.mode]:
-                    if self.context.interpArgs > 0:
+                    if self.context.interpArgs > 0 or self.context.interpArgCount > 0:
                         self.context.log(5, "parse: resetting interpArgs, %d -> %d" % (self.context.interpArgs, 0))
                         self.context.interpArgs = 0
+                        self.context.interpArgCount = 0
                         self.context.interpArgTypes = [ None, None, None, None ]
                         self.context.interpArgCodes = [ 0, 0, 0, 0 ]
                     self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
