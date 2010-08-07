@@ -24,8 +24,9 @@ from opcodes import OPCODES
 from symbol_table import SymbolTable
 
 class Context:
-    def __init__(self, arch, listfile, binfile, verbose=False, logLevel=0, logfile=None):
+    def __init__(self, arch, listfile, binfile, verbose=False, debug=False, logLevel=0, logfile=None):
         self.verbose = verbose
+        self.debug = debug
         self.logfile = logfile
         self.assembler = None
         self.arch = arch
@@ -45,6 +46,7 @@ class Context:
         self.srcline = None
         self.interpMode = False
         self.interpArgs = 0
+        self.interpArgCount = 0
         self.interpArgTypes = [ None, None, None, None ]
         self.interpArgCodes = [ 0, 0, 0, 0 ]
         self.previousWasInterpOperand = False
@@ -94,6 +96,7 @@ class Context:
         self.srcline = None
         self.interpMode = False
         self.interpArgs = 0
+        self.interpArgCount = 0
         self.interpArgTypes = [ None, None, None, None ]
         self.interpArgCodes = [ 0, 0, 0, 0 ]
         self.previousWasInterpOperand = False
