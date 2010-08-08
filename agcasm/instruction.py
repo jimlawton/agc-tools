@@ -51,7 +51,7 @@ class Instruction(Opcode):
                             # Relative address.
                             context.currentRecord.code = [ (self.opcode + pa) & 077777 ]
                         else:
-                            if context.options.debug:
+                            if context.debug:
                                 context.currentRecord.target = expr.value
                             address = context.memmap.pseudoToAddress(pa)
                             context.currentRecord.code = [ (self.opcode + address) & 077777 ]
