@@ -67,7 +67,6 @@ class Directive(Opcode):
             context.log(5, "decrementing interpArgs: %d -> %d" % (context.interpArgs, context.interpArgs - 1))
             context.interpArgs -= 1
 
-
     def ignore(self, context):
         self.type = RecordType.IGNORE
         context.currentRecord.complete = True
