@@ -142,7 +142,7 @@ class Assembler:
                 if opindex != 16 and opindex != 24:
                     self.context.error("bad indentation")
                 if opindex == 24:
-                    # Handle standalone interpretive operands.
+                    # Handle stand-alone interpretive operands.
                     newoperands = [ opcode ]
                     if operands != None:
                         newoperands.extend(operands)
@@ -165,14 +165,11 @@ class Assembler:
 
             if opcode == None:
                 Interpretive.parseOperand(self.context, operands)
-                self.context.previousWasInterpOperand = True
-                self.context.currentRecord.type = RecordType.INTERP
             else:
                 if opcode in self.context.opcodes[OpcodeType.INTERPRETIVE]:
                     self.context.opcodes[OpcodeType.INTERPRETIVE][opcode].parse(self.context, operands)
                 elif opcode in self.context.opcodes[OpcodeType.DIRECTIVE]:
                     self.context.opcodes[OpcodeType.DIRECTIVE][opcode].parse(self.context, operands)
-                    self.context.previousWasInterpOperand = False
                 elif opcode in self.context.opcodes[self.context.mode]:
                     if self.context.interpArgs > 0 or self.context.interpArgCount > 0:
                         self.context.log(5, "parse: resetting interpArgs, %d -> %d" % (self.context.interpArgs, 0))
@@ -222,6 +219,7 @@ class Assembler:
                 record = self.context.records[j]
                 if record.isParseable():
                     self.context.currentRecord = record
+                    self.context.previousRecord = self.context.records[j-1]
                     self.context.load(record)
                     self.context.log(8, "resolve: %s" % (record.srcline))
                     self.parse(record.label, record.opcode, record.operands)
