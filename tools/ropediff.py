@@ -290,7 +290,7 @@ def main():
                     baddr = baddr[:-1]
                 if address == baddr:
                     diff.setloc(0, "Bugger", bugger)
-                    log("found bugger at address %s" % address)
+                    #log("found bugger at address %s" % address)
                     foundBugger = True
                     break
             if not foundBugger:
@@ -303,8 +303,8 @@ def main():
     log("")
 
     if difftotal > 0:
-        log("Core address       Left    Right   Page   Module")
-        log("----------------   -----   -----   ----   ------------------------------------------------")
+        log("Core address       Left    Right   Page   Module                                             Line Number    Address           Source")
+        log("----------------   -----   -----   ----   ------------------------------------------------   -------------- -------           -------------------------------------------------------------------------------------------------------")
         log("")
         for diff in diffs:
             log(diff.__str__())
