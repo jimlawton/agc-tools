@@ -51,6 +51,7 @@ class ParserRecord:
         self.argcode = None
         self.interpArgs = 0
         self.interpArgCount = 0
+        self.packingType = None
 
     def isGenerative(self):
         return RecordType.isGenerative(self.type)
