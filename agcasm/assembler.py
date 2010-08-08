@@ -178,7 +178,6 @@ class Assembler:
                         self.context.interpArgTypes = [ None, None, None, None ]
                         self.context.interpArgCodes = [ 0, 0, 0, 0 ]
                     self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
-                    self.context.previousWasInterpOperand = False
                 else:
                     self.error("invalid opcode")
 

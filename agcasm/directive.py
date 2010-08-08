@@ -66,7 +66,6 @@ class Directive(Opcode):
         if self.numwords > 0 and context.interpArgs > 0:
             context.log(5, "directive: incrementing interpArgCount: %d -> %d" % (context.interpArgCount, context.interpArgCount + 1))
             context.interpArgCount += 1
-            context.previousWasInterpOperand = True
 
     def ignore(self, context):
         self.type = RecordType.IGNORE
