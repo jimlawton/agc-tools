@@ -48,11 +48,12 @@ class Interpretive(Opcode):
         exitInterp = False
         numArgs = self.numOperands
 
+        context.interpArgCount = 0
+
         if context.previousWasInterpOperand:
             if context.interpArgs > 0 or context.interpArgCount > 0:
                 context.log(5, "interpretive: resetting interpArgs, %d -> %d" % (context.interpArgs, 0))
                 context.interpArgs = 0
-                context.interpArgCount = 0
 
         if self.mnemonic == "EXIT":
             exitInterp = True
@@ -86,7 +87,7 @@ class Interpretive(Opcode):
                 opobj = context.opcodes[OpcodeType.INTERPRETIVE][operands[0]]
                 context.log(5, "interpretive: %s (%03o), %s (%03o)" % (self.mnemonic, self.opcode, opobj.mnemonic, opobj.opcode))
                 opcodes.append(opobj.opcode)
-                numArgs += opobj.numOperands
+                numArgs2 = opobj.numOperands
             else:
                 checkForOperand = True
         elif oplen == 2 or oplen == 3:
@@ -129,6 +130,14 @@ class Interpretive(Opcode):
             method(context, operands)
 
         if mnemonic2 != None:
+            if numArgs2 > 0:
+                if context.interpArgs < 4:
+                    if (context.interpArgs + numArgs2) <= 4:
+                        context.log(5, "interpretive: incrementing interpArgs, %d -> %d" % (context.interpArgs, context.interpArgs + numArgs2))
+                        context.interpArgs += numArgs2
+                    else:
+                        context.log(5, "interpretive: incrementing interpArgs, %d -> %d" % (context.interpArgs, 4))
+                        context.interpArgs = 4
             try:
                 method = opobj.__getattribute__("parse_" + opobj.methodName)
             except:
@@ -173,7 +182,7 @@ class Interpretive(Opcode):
 
     @classmethod
     def parseOperand(cls, context, operands, store=False):
-        context.log(5, "interpretive: trying to parse operand %s" % operands)
+        context.log(5, "interpretive: trying to parse operand %d %s" % (context.interpArgCount, operands))
         newoperands = []
         indexreg = 0
         for operand in operands:
@@ -246,6 +255,7 @@ class Interpretive(Opcode):
 
     def parse_Switch(self, context, operands):
         # Store argcode in appropriate slot in context.interpArgCodes.
+        context.log(5, "interpretive: switch, %d operands" % (self.numOperands))
         if self.numOperands == 2:
             acindex = context.interpArgs - 2
         else:
