@@ -27,6 +27,13 @@ class InterpretiveType:
     SWITCH = 1
     SHIFT  = 2
 
+class PackingType:
+    "Specifies the packing type of a line of interpretive code, i.e. whether a left word only, right word only, or a packed pair (2 opcodes, or opcode/operand)."
+    OPCODE_ONLY    = 0  # Left.
+    OPERAND_ONLY   = 1  # Right.
+    OPCODE_PAIR    = 2  # Pair.
+    OPCODE_OPERAND = 3  # Pair.
+
 # NOTE: Must be a new-style class.
 class Interpretive(Opcode):
 
@@ -51,6 +58,7 @@ class Interpretive(Opcode):
         context.interpArgCount = 0
 
         if context.previousWasInterpOperand:
+            context.interpInstCount = 0
             if context.interpArgs > 0 or context.interpArgCount > 0:
                 context.log(5, "interpretive: resetting interpArgs, %d -> %d" % (context.interpArgs, 0))
                 context.interpArgs = 0
@@ -69,31 +77,44 @@ class Interpretive(Opcode):
         checkForOperand = False
         if oplen == 0:
             # Case 1
+            context.currentRecord.packingType = PackingType.OPCODE_ONLY
+            context.interpInstCount += 1
             context.log(5, "interpretive: %s (%03o)" % (self.mnemonic, self.opcode))
-            if context.previousRecord and context.previousRecord.opcode:
-                if context.previousRecord.opcode == "DLOAD" or context.previousRecord.opcode == "TLOAD" or context.previousRecord.opcode == "VLOAD":
+            if context.previousRecord:
+                if context.previousRecord.packingType == PackingType.OPCODE_ONLY:
                     # Load with no right-hand operand or opcode means implied push-down.
-                    context.log(5, "interpretive: decrementing interpArgs, %d -> %d" % (context.interpArgs, context.interpArgs - 1))
-                    context.interpArgs -= 1
+                    context.log(5, "interpretive: resetting interpArgs, %d -> %d" % (context.interpArgs, 0))
+                    context.interpArgs = 0
         elif oplen == 1:
             if operands[0] in context.opcodes[OpcodeType.INTERPRETIVE]:
-                if context.previousRecord and context.previousRecord.opcode:
-                    if context.previousRecord.opcode == "DLOAD" or context.previousRecord.opcode == "TLOAD" or context.previousRecord.opcode == "VLOAD":
-                        # Load with no right-hand operand or opcode means implied push-down.
-                        context.log(5, "interpretive: decrementing interpArgs, %d -> %d" % (context.interpArgs, context.interpArgs - 1))
-                        context.interpArgs -= 1
                 # Case 2
+                context.currentRecord.packingType = PackingType.OPCODE_PAIR
+                context.interpInstCount += 2
+                if context.previousRecord:
+                    if context.previousRecord.packingType == PackingType.OPCODE_ONLY:
+                        # Load with no right-hand operand or opcode means implied push-down.
+                        context.log(5, "interpretive: resetting interpArgs, %d -> %d" % (context.interpArgs, 0))
+                        context.interpArgs = 0
                 mnemonic2 = operands[0]
                 opobj = context.opcodes[OpcodeType.INTERPRETIVE][operands[0]]
                 context.log(5, "interpretive: %s (%03o), %s (%03o)" % (self.mnemonic, self.opcode, opobj.mnemonic, opobj.opcode))
                 opcodes.append(opobj.opcode)
                 numArgs2 = opobj.numOperands
             else:
+                context.currentRecord.packingType = PackingType.OPCODE_OPERAND
                 checkForOperand = True
         elif oplen == 2 or oplen == 3:
+            context.currentRecord.packingType = PackingType.OPCODE_OPERAND
+            context.interpInstCount += 1
             pass
         else:
             context.syntax("invalid operand expression")
+
+        if context.interpInstCount > 4:
+            # HACK: If a sequence goes over 4 opcodes, reset inst count, and reset interpArgs.
+            context.interpInstCount = 0
+            context.log(5, "interpretive: more than 4 opcodes in sequence, resetting interpArgs, %d -> %d" % (context.interpArgs, 0))
+            context.interpArgs = 0
 
         if self.methodName.endswith('*'):
             context.indexed = True
@@ -110,7 +131,7 @@ class Interpretive(Opcode):
                     context.interpArgs = 4
 
         if oplen == 2 or oplen == 3 or checkForOperand == True:
-            Interpretive.parseOperand(context, operands, checkForOperand)
+            Interpretive._parseOperand(context, operands, checkForOperand)
             context.previousWasInterpOperand = True
         else:
             if not checkForOperand:
@@ -181,7 +202,7 @@ class Interpretive(Opcode):
             context.interpMode = True
 
     @classmethod
-    def parseOperand(cls, context, operands, store=False):
+    def _parseOperand(cls, context, operands, store=False):
         context.log(5, "interpretive: trying to parse operand %d %s" % (context.interpArgCount, operands))
         newoperands = []
         indexreg = 0
@@ -242,6 +263,13 @@ class Interpretive(Opcode):
             context.interpArgs = 0
             context.interpArgCount = 0
 
+    @classmethod
+    def parseOperand(cls, context, operands, store=False):
+        context.currentRecord.packingType = PackingType.OPERAND_ONLY
+        cls._parseOperand(context, operands, store)
+        context.previousWasInterpOperand = True
+        context.currentRecord.type = RecordType.INTERP
+
     def parse_EXIT(self, context, operands):
         context.interpMode = False
 
@@ -251,7 +279,8 @@ class Interpretive(Opcode):
     def parse_STADR(self, context, operands):
         context.complementNext = True
         context.log(5, "interpretive: STADR, decrementing interpArgs, %d -> %d" % (context.interpArgs, context.interpArgs - 1))
-        context.interpArgs -= 1
+        if context.interpArgs > 0:
+            context.interpArgs -= 1
 
     def parse_Switch(self, context, operands):
         # Store argcode in appropriate slot in context.interpArgCodes.
