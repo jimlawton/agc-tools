@@ -45,6 +45,7 @@ class Context:
         self.records = []
         self.srcline = None
         self.interpMode = False
+        self.interpInstCount = 0
         self.interpArgs = 0
         self.interpArgCount = 0
         self.interpArgTypes = [ None, None, None, None ]
@@ -95,6 +96,7 @@ class Context:
         self.code = []
         self.srcline = None
         self.interpMode = False
+        self.interpInstCount = 0
         self.interpArgs = 0
         self.interpArgCount = 0
         self.interpArgTypes = [ None, None, None, None ]
