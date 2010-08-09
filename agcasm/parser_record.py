@@ -54,6 +54,7 @@ class ParserRecord:
         self.interpArgCount = 0
         self.interpArgType = None
         self.packingType = None
+        self.complementNext = False
 
     def isGenerative(self):
         return RecordType.isGenerative(self.type)
