@@ -20,6 +20,7 @@
 
 from record_type import RecordType
 from memory import MemoryType
+from interpretive import InterpretiveType
 
 class ParserRecord:
     """Class storing parser data."""
@@ -51,6 +52,7 @@ class ParserRecord:
         self.argcode = None
         self.interpArgs = 0
         self.interpArgCount = 0
+        self.interpArgType = None
         self.packingType = None
 
     def isGenerative(self):
@@ -101,6 +103,7 @@ class ParserRecord:
                         text += "%05o " % (self.argcode)
                     else:
                         text += 6 * ' '
+                    text += InterpretiveType.toString(self.interpArgType) + ' '
                 if self.code != None and len(self.code) > 0:
                     if len(self.code) == 1 and self.code[0] != None:
                         text += " %05o %s " % (self.code[0] & 077777, 5 * ' ')
