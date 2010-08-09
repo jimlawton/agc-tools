@@ -26,6 +26,18 @@ class InterpretiveType:
     NORMAL = 0
     SWITCH = 1
     SHIFT  = 2
+    INDEX  = 3
+
+    @classmethod
+    def toString(cls, type):
+        if type == InterpretiveType.SWITCH:
+            return '[SW]'
+        elif type == InterpretiveType.SHIFT:
+            return '[SH]'
+        elif type == InterpretiveType.INDEX:
+            return '[IX]'
+        else:
+            return '    '
 
 class PackingType:
     "Specifies the packing type of a line of interpretive code, i.e. whether a left word only, right word only, or a packed pair (2 opcodes, or opcode/operand)."
@@ -43,6 +55,7 @@ class Interpretive(Opcode):
         self.switchcode = switchcode
         self.type = RecordType.INTERP
         self.interpType = interpType
+        self.interpArgType = None
         self.complement = True          # Default is to complement the generated code.
 
     def parse(self, context, operands):
@@ -71,7 +84,6 @@ class Interpretive(Opcode):
             oplen = 0
         opcodes = [ self.opcode ]
 
-        checkForOperand = False
         if oplen == 0:
             # Case 1
             context.currentRecord.packingType = PackingType.OPCODE_ONLY
@@ -86,9 +98,10 @@ class Interpretive(Opcode):
                 opcodes.append(opobj.opcode)
                 numArgs2 = opobj.numOperands
             else:
+                # Case 3
                 context.currentRecord.packingType = PackingType.OPCODE_OPERAND
-                checkForOperand = True
         elif oplen == 2 or oplen == 3:
+            # Case 4, 5
             context.currentRecord.packingType = PackingType.OPCODE_OPERAND
             pass
         else:
@@ -108,8 +121,8 @@ class Interpretive(Opcode):
                     context.log(5, "interpretive: incrementing interpArgs, %d -> %d" % (context.interpArgs, 4))
                     context.interpArgs = 4
 
-        if oplen == 2 or oplen == 3 or checkForOperand == True:
-            Interpretive._parseOperand(context, operands, checkForOperand)
+        if context.currentRecord.packingType == PackingType.OPCODE_OPERAND:
+            Interpretive._parseOperand(context, operands, embedded=True)
 
         try:
             method = self.__getattribute__("parse_" + self.methodName)
@@ -150,17 +163,17 @@ class Interpretive(Opcode):
 
         context.log(5, "interpretive: generated %05o (%03o,%03o)" % (code & 077777, (code / 0200) & 0177, code & 0177))
 
-        if self.complement or (context.complementNext and checkForOperand):
+        if self.complement or (context.complementNext and context.currentRecord.packingType == PackingType.OPCODE_OPERAND):
             code = ~code & 077777
             context.log(5, "interpretive: complemented to %05o " % (code))
-            if (context.complementNext and checkForOperand):
+            if (context.complementNext):
                 context.complementNext = False
 
         context.currentRecord.code = [ code ]
         context.currentRecord.complete = True
         context.currentRecord.type = self.type
 
-        if oplen != 2 and oplen != 3:
+        if context.currentRecord.packingType != PackingType.OPERAND_ONLY:
             # If any operands found, parseOperand will already have done this.
             context.incrLoc(self.numwords)
 
@@ -170,7 +183,7 @@ class Interpretive(Opcode):
             context.interpMode = True
 
     @classmethod
-    def _parseOperand(cls, context, operands, store=False):
+    def _parseOperand(cls, context, operands, embedded=False):
         context.log(5, "interpretive: trying to parse operand %d %s" % (context.interpArgCount, operands))
         newoperands = []
         indexreg = 0
@@ -190,6 +203,7 @@ class Interpretive(Opcode):
             code = context.memmap.pseudoToInterpretiveAddress(operand.value)
             acindex = context.interpArgCount
             if context.interpArgTypes[acindex] != None:
+                context.currentRecord.interpArgType = context.interpArgTypes[acindex]
                 # Switch or shift operand.
                 if context.interpArgTypes[acindex] == InterpretiveType.SWITCH:
                     context.log(5, "interpretive: switch operand value=%05o [%d] %05o" % (code, acindex, context.interpArgCodes[acindex]))
@@ -202,25 +216,31 @@ class Interpretive(Opcode):
                     bit = (code % 15)
                     code = (flag << 8) | bit | (context.currentRecord.argcode << 4)
                     context.log(5, "interpretive: switch operand flag=%03o bit=%02o code=%05o" % (flag, bit, code))
-                else:
+                elif context.interpArgTypes[acindex] == InterpretiveType.SHIFT:
                     context.log(5, "interpretive: shift operand value=%05o [%d] %05o" % (code, acindex, context.interpArgCodes[acindex]))
                     context.currentRecord.argcode = context.interpArgCodes[acindex]
-                    code |= (context.interpArgCodes[acindex] << 2)
+                    code |= (context.interpArgCodes[acindex] << 6)
+                    code += 1
+                elif context.interpArgTypes[acindex] == InterpretiveType.INDEX:
+                    context.log(5, "interpretive: index operand value=%05o [%d]" % (code, acindex))
+                else:
+                    context.error("invalid interpretive argument type")
             else:
                 if context.memmap.isErasable(operand.value):
                     code += 1
                 if operand.length > 1:
                     code += operand.length - 1
-                if indexreg == 2 or (context.complementNext and not store):
+                if (indexreg == 2 or context.complementNext) and not embedded:
                     code = ~code & 077777
-                    if (context.complementNext and not store):
+                    context.log(5, "interpretive: indexed X2 or complementNext, code=%05o" % (code))
+                    if context.complementNext:
                         context.complementNext = False
             context.currentRecord.code = [ code ]
             context.currentRecord.complete = True
             context.log(5, "interpretive: generated operand %05o" % code)
         else:
             context.log(5, "interpretive: operand undefined")
-        if not store:
+        if not embedded:
             context.incrLoc(1)
 
         if context.interpArgCount < 4:
@@ -232,9 +252,9 @@ class Interpretive(Opcode):
             context.interpArgCount = 0
 
     @classmethod
-    def parseOperand(cls, context, operands, store=False):
+    def parseOperand(cls, context, operands, embedded=False):
         context.currentRecord.packingType = PackingType.OPERAND_ONLY
-        cls._parseOperand(context, operands, store)
+        cls._parseOperand(context, operands, embedded)
         context.currentRecord.type = RecordType.INTERP
 
     def parse_EXIT(self, context, operands):
@@ -264,4 +284,14 @@ class Interpretive(Opcode):
         context.interpArgCodes[acindex] = self.switchcode
         context.interpArgTypes[acindex] = InterpretiveType.SHIFT
         context.log(5, "interpretive: shift detected, [%d]=%05o" % (acindex, context.interpArgCodes[acindex]))
+
+    def parse_Index(self, context, operands):
+        context.log(5, "interpretive: index, %d operands" % (self.numOperands))
+        if self.numOperands == 2:
+            acindex = context.interpArgs - 2
+        else:
+            acindex = context.interpArgs - 1
+        context.interpArgCodes[acindex] = 0
+        context.interpArgTypes[acindex] = InterpretiveType.INDEX
+        context.log(5, "interpretive: index detected, [%d]=%05o" % (acindex, context.interpArgCodes[acindex]))
 
