@@ -25,6 +25,7 @@ import sys
 class Word(object):
 
     def __init__(self, value=0, bits=15):
+        self.bits = bits
         if bits == 15:
             self.maxval = 077777
         elif bits == 16:
@@ -33,6 +34,30 @@ class Word(object):
             print >>sys.stderr, "Error, illegal word size (%d)" % (bits)
 
         self.value = (value & self.maxval)
+
+    def set(self, value):
+        self.value = (value & self.maxval)
+
+    def get(self):
+        return self.value
+
+    def getSize(self):
+        return self.bit
+
+    def getMax(self):
+        return self.maxval
+
+    def isPositive(self):
+        if self.value & 040000 == 040000:
+            return False
+        else:
+            return True
+
+    def isNegative(self):
+        if self.value & 040000 == 040000:
+            return True
+        else:
+            return False
 
     def add(self, value):
         self.value += value
@@ -53,7 +78,15 @@ class Word(object):
     def complement(self):
         self.value = (~self.value & self.maxval)
 
-def test(data, methodName=None):
+class Word15(Word):
+    def __init__(self, value=0):
+        super(Word15, self).__init__(value, 15)
+
+class Word16(Word):
+    def __init__(self, value=0):
+        super(Word16, self).__init__(value, 16)
+
+def test(data, size=15, methodName=None):
     passed = 0
     failed = 0
     text = ""
@@ -70,7 +103,7 @@ def test(data, methodName=None):
 
     for value in data:
         for testdata in data[value]:
-            word = Word(value)
+            word = Word(value, bits=size)
             precondition = testdata[0]
             operand = testdata[1]
             postcondition = testdata[2]
@@ -122,7 +155,7 @@ def test_15bit_numbers():
         9216: [ (022000, 0, 0) ],
         768:  [ (001400, 0, 0) ]
     }
-    return test(testdata)
+    return test(testdata, 15)
 
 def test_15bit_add():
     testdata = {
@@ -132,7 +165,7 @@ def test_15bit_add():
         -2:   [ (077776, 1, 077777) ],
         4095: [ (007777, 1, 010000) ],
     }
-    return test(testdata, "add")
+    return test(testdata, 15, "add")
 
 def test_15bit_subtract():
     testdata = {
@@ -142,7 +175,7 @@ def test_15bit_subtract():
         -2:   [ (077776, 1, 077775) ],
         4095: [ (007777, 1, 007776) ],
     }
-    return test(testdata, "subtract")
+    return test(testdata, 15, "subtract")
 
 def test_15bit_increment():
     testdata = {
@@ -152,7 +185,7 @@ def test_15bit_increment():
         -2:   [ (077776, None, 077777) ],
         4095: [ (007777, None, 010000) ],
     }
-    return test(testdata, "increment")
+    return test(testdata, 15, "increment")
 
 def test_15bit_decrement():
     testdata = {
@@ -162,7 +195,7 @@ def test_15bit_decrement():
         -2:   [ (077776, None, 077775) ],
         4095: [ (007777, None, 007776) ],
     }
-    return test(testdata, "decrement")
+    return test(testdata, 15, "decrement")
 
 def test_15bit_complement():
     testdata = {
@@ -172,7 +205,69 @@ def test_15bit_complement():
         -2:   [ (077776, None, 1) ],
         4095: [ (007777, None, 070000) ],
     }
-    return test(testdata, "complement")
+    return test(testdata, 15, "complement")
+
+def test_16bit_numbers():
+    testdata = {
+         0:   [ (0000000, 0, 0) ],
+        -1:   [ (0177777, 0, 0) ],
+        1:    [ (0000001, 0, 0) ],
+        -2:   [ (0177776, 0, 0) ],
+        4096: [ (0010000, 0, 0) ],
+        9216: [ (0022000, 0, 0) ],
+        768:  [ (0001400, 0, 0) ]
+    }
+    return test(testdata, 16)
+
+def test_16bit_add():
+    testdata = {
+         0:   [ (0000000, 1, 1) ],
+        -1:   [ (0177777, 1, 0), (0177777, -1, 0177776) ],
+        1:    [ (0000001, 1, 2), (0000001, -1, 0) ],
+        -2:   [ (0177776, 1, 0177777) ],
+        4095: [ (0007777, 1, 0010000) ],
+    }
+    return test(testdata, 16, "add")
+
+def test_16bit_subtract():
+    testdata = {
+         0:   [ (0000000, 1, 0177777) ],
+        -1:   [ (0177777, 1, 0177776), (0177777, -1, 0) ],
+        1:    [ (0000001, 1, 0), (0000001, -1, 2) ],
+        -2:   [ (0177776, 1, 0177775) ],
+        4095: [ (0007777, 1, 0007776) ],
+    }
+    return test(testdata, 16, "subtract")
+
+def test_16bit_increment():
+    testdata = {
+         0:   [ (0000000, None, 1) ],
+        -1:   [ (0177777, None, 0) ],
+        1:    [ (0000001, None, 2) ],
+        -2:   [ (0177776, None, 0177777) ],
+        4095: [ (0007777, None, 0010000) ],
+    }
+    return test(testdata, 16, "increment")
+
+def test_16bit_decrement():
+    testdata = {
+         0:   [ (0000000, None, 0177777) ],
+        -1:   [ (0177777, None, 0177776) ],
+        1:    [ (0000001, None, 0) ],
+        -2:   [ (0177776, None, 0177775) ],
+        4095: [ (0007777, None, 0007776) ],
+    }
+    return test(testdata, 16, "decrement")
+
+def test_16bit_complement():
+    testdata = {
+         0:   [ (0000000, None, 0177777) ],
+        -1:   [ (0177777, None, 0) ],
+        1:    [ (0000001, None, 0177776) ],
+        -2:   [ (0177776, None, 1) ],
+        4095: [ (0007777, None, 0170000) ],
+    }
+    return test(testdata, 16, "complement")
 
 if __name__=="__main__":
     print "AGC Word class tester..."
@@ -198,6 +293,30 @@ if __name__=="__main__":
     failed += fail2
 
     (pass2, fail2) = test_15bit_complement()
+    passed += pass2
+    failed += fail2
+
+    (pass2, fail2) = test_16bit_numbers()
+    passed += pass2
+    failed += fail2
+
+    (pass2, fail2) = test_16bit_add()
+    passed += pass2
+    failed += fail2
+
+    (pass2, fail2) = test_16bit_subtract()
+    passed += pass2
+    failed += fail2
+
+    (pass2, fail2) = test_16bit_increment()
+    passed += pass2
+    failed += fail2
+
+    (pass2, fail2) = test_16bit_decrement()
+    passed += pass2
+    failed += fail2
+
+    (pass2, fail2) = test_16bit_complement()
     passed += pass2
     failed += fail2
 
