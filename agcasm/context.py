@@ -121,6 +121,7 @@ class Context:
             self.mode = record.mode
             self.lastEbank = record.lastEbank
             self.previousWasEbankEquals = record.previousWasEbankEquals
+            self.complementNext = record.complementNext
             self.super = record.super
             self.ebank = record.ebank
             self.fbank = record.fbank
@@ -133,6 +134,7 @@ class Context:
         if partial == False:
             record.lastEbank = self.lastEbank
             record.previousWasEbankEquals = self.previousWasEbankEquals
+            record.complementNext = self.complementNext
             record.mode = self.mode
             record.loc = self.loc
             record.super = self.super
