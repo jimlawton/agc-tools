@@ -31,7 +31,7 @@ class Instruction(Opcode):
 
     def parse(self, context, operands):
         if context.mode == OpcodeType.EXTENDED and self.mnemonic not in context.opcodes[OpcodeType.EXTENDED]:
-            self.context.error("missing EXTEND before extended instruction")
+            context.error("missing EXTEND before extended instruction")
             return
         if self.operandType == OperandType.NONE:
             if operands != None:
@@ -48,7 +48,7 @@ class Instruction(Opcode):
                     if expr.complete:
                         pa = expr.value
                         if pa < 0:
-                            # Relative address.
+                            # Negative, relative address.
                             context.currentRecord.code = [ (self.opcode + pa) & 077777 ]
                         else:
                             if context.debug:
@@ -72,6 +72,12 @@ class Instruction(Opcode):
         if context.mode == OpcodeType.EXTENDED:
             if self.mnemonic != "EXTEND" and self.mnemonic != "INDEX":
                 context.mode = OpcodeType.BASIC
+
+        if context.currentRecord.complete:
+            if self.numwords == 1:
+                context.log(5, "generated code %05o" % (context.currentRecord.code[0]))
+            else:
+                context.log(5, "generated code %05o %05o" % (context.currentRecord.code[0], context.currentRecord.code[1]))
 
     def parse_EXTEND(self, context, operands):
         context.mode = OpcodeType.EXTENDED
