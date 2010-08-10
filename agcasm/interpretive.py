@@ -208,25 +208,26 @@ class Interpretive(Opcode):
         operand = AddressExpression(context, newoperands)
         if operand.complete:
             context.currentRecord.target = operand.value
-            code = context.memmap.pseudoToInterpretiveAddress(operand.value)
             acindex = context.interpArgCount
             if context.interpArgTypes[acindex] != None:
                 context.currentRecord.interpArgType = context.interpArgTypes[acindex]
                 # Switch or shift operand.
                 if context.interpArgTypes[acindex] == InterpretiveType.SWITCH:
-                    context.log(5, "interpretive: switch operand value=%05o [%d] %05o" % (code, acindex, context.interpArgCodes[acindex]))
+                    context.log(5, "interpretive: switch operand value=%05o [%d] %05o" % (operand.value, acindex, context.interpArgCodes[acindex]))
                     context.currentRecord.argcode = context.interpArgCodes[acindex]
                     # Switch operands use the encoding 0WWWWWWNNNNBBBB, where:
                     #  WWWWWW (6 bits) is the quotient when the constant value is divided by 15.
                     #  BBBB (4 bits) is the remainder when the constant value is divided by 15.
                     #  NNNN is an operation-specific value (all switch operations share the same opcode).
-                    flag = (code / 15) & 077
-                    bit = (code % 15)
+                    flag = (operand.value / 15) & 077
+                    bit = (operand.value % 15)
                     code = (flag << 8) | bit | (context.currentRecord.argcode << 4)
                     context.log(5, "interpretive: switch operand flag=%03o bit=%02o code=%05o" % (flag, bit, code))
                 elif context.interpArgTypes[acindex] == InterpretiveType.SHIFT:
-                    if code < 0:
-                        code = (~abs(code) + 1) & 077777
+                    if operand.value < 0:
+                        code = (~abs(operand.value) + 1) & 077777
+                    else:
+                        code = operand.value
                     context.log(5, "interpretive: shift operand value=%05o [%d] %05o" % (code, acindex, context.interpArgCodes[acindex]))
                     context.currentRecord.argcode = context.interpArgCodes[acindex]
                     context.log(5, "interpretive: shift operand, oring with %05o" % (context.interpArgCodes[acindex] << 6))
@@ -234,16 +235,20 @@ class Interpretive(Opcode):
                     code += 1
                     code &= 077777
                 elif context.interpArgTypes[acindex] == InterpretiveType.INDEX:
-                    context.log(5, "interpretive: index operand value=%05o [%d]" % (code, acindex))
+                    context.log(5, "interpretive: index operand value=%05o [%d]" % (operand.value, acindex))
+                    code = operand.value
                 else:
                     context.error("invalid interpretive argument type")
             else:
-                if operand.value & 0100000 == 0:
+                if operand.value >= 0:
+                    code = context.memmap.pseudoToInterpretiveAddress(operand.value)
                     context.log(5, "interpretive: positive normal operand value=%05o" % (code))
                     # Positive operand value.
-                    if context.memmap.isErasable(operand.value) or operand.value < 0:
+                    if context.memmap.isErasable(operand.value):
+                        context.log(5, "interpretive: erasable or fixed/indexed, incrementing code=%05o" % (code))
                         code += 1
                     if operand.length > 1:
+                        context.log(5, "interpretive: operand length > 1, incrementing code=%05o by %d" % (code, operand.length - 1))
                         code += operand.length - 1
                     if (indexreg == 2 or context.complementNext) and not embedded:
                         code = ~code & 077777
@@ -251,7 +256,7 @@ class Interpretive(Opcode):
                         if context.complementNext:
                             context.complementNext = False
                 else:
-                    #code = operand.value
+                    code = operand.value
                     context.log(5, "interpretive: negative normal operand value=%05o" % (code))
             context.currentRecord.code = [ code ]
             context.currentRecord.complete = True
