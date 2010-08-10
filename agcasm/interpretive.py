@@ -169,7 +169,7 @@ class Interpretive(Opcode):
                 context.log(5, "interpretive: operand %05o" % (operandcode))
                 code = (opcodes[0] + operandcode) & 077777
 
-        context.log(5, "interpretive: generated %05o (%03o,%03o)" % (code & 077777, (code / 0200) & 0177, code & 0177))
+        context.log(5, "interpretive: generated %05o" % code)
 
         if self.complement or (context.complementNext and context.currentRecord.packingType == PackingType.OPCODE_OPERAND):
             code = ~code & 077777
@@ -250,7 +250,7 @@ class Interpretive(Opcode):
                     if operand.length > 1:
                         context.log(5, "interpretive: operand length > 1, incrementing code=%05o by %d" % (code, operand.length - 1))
                         code += operand.length - 1
-                    if (indexreg == 2 or context.complementNext) and not embedded:
+                    if indexreg == 2 or context.complementNext:
                         code = ~code & 077777
                         context.log(5, "interpretive: indexed X2 or complementNext, code=%05o" % (code))
                         if context.complementNext:
