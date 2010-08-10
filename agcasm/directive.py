@@ -384,7 +384,7 @@ class Directive(Opcode):
 
     def parse_EQUALS(self, context, operands):
         if operands != None:
-            expr = Expression(context, operands)
+            expr = AddressExpression(context, operands)
             if expr.complete:
                 if not context.reparse and context.passnum == 0:
                     context.symtab.add(context.currentRecord.label, operands, expr.value)
