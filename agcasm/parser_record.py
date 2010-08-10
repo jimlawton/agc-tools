@@ -81,7 +81,7 @@ class ParserRecord:
         text += "%06d,%06d " % (self.global_linenum, self.linenum)
         if RecordType.isIgnored(self.type):
             if self.context.debug:
-                text += 49 * ' '
+                text += 54 * ' '
             else:
                 text += 29 * ' '
         else:
@@ -116,7 +116,7 @@ class ParserRecord:
                     text += " ????? " + 6 * ' '
             else:
                 if self.context.debug:
-                    text += 33 * ' '
+                    text += 38 * ' '
                 else:
                     text += 13 * ' '
         text += "   %s" % self.srcline
