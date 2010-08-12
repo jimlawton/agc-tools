@@ -77,6 +77,7 @@ class Interpretive(Opcode):
             exitInterp = True
 
         if context.complementNext:
+            self.complement = True
             context.log(5, "record will be complemented")
 
         mnemonic2 = None
@@ -171,10 +172,10 @@ class Interpretive(Opcode):
 
         context.log(5, "interpretive: generated %05o" % code)
 
-        if self.complement or (context.complementNext and context.currentRecord.packingType == PackingType.OPCODE_OPERAND):
+        if self.complement:
             code = ~code & 077777
             context.log(5, "interpretive: complemented to %05o " % (code))
-            if (context.complementNext):
+            if context.complementNext:
                 context.complementNext = False
 
         context.currentRecord.code = [ code ]
@@ -250,7 +251,7 @@ class Interpretive(Opcode):
                     if operand.length > 1:
                         context.log(5, "interpretive: operand length > 1, incrementing code=%05o by %d" % (code, operand.length - 1))
                         code += operand.length - 1
-                    if indexreg == 2 or context.complementNext:
+                    if indexreg == 2 or (context.complementNext and context.currentRecord.packingType == PackingType.OPERAND_ONLY):
                         code = ~code & 077777
                         context.log(5, "interpretive: indexed X2 or complementNext, code=%05o" % (code))
                         if context.complementNext:
@@ -284,7 +285,9 @@ class Interpretive(Opcode):
         context.interpMode = False
 
     def parse_Store(self, context, operands):
-        self.complement = False
+        if not context.complementNext:
+            self.complement = False
+            context.log(5, "store record will not be complemented")
 
     def parse_STADR(self, context, operands):
         context.complementNext = True
