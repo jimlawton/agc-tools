@@ -20,6 +20,7 @@
 
 import os
 import sys
+import time
 from opcode import OpcodeType
 from parser_record import ParserRecord
 from record_type import RecordType
@@ -205,7 +206,14 @@ class Assembler:
         self.context.log(6, "updated record %06d: %s" % (recordIndex, self.context.records[recordIndex]))
 
     def resolve(self, maxPasses=10):
+        startTime = time.time()
         self.context.symtab.resolve(maxPasses)
+        if self.context.debug:
+            endTime = time.time()
+            delta = endTime - startTime
+            print "Symbol resolution: %3.2f seconds" % delta
+
+        startTime = time.time()
         numRecords = len(self.context.records)
         self.context.log(3, "updating %d parser records..." % (numRecords))
         nUndefs = nPrevUndefs = 0
@@ -232,6 +240,10 @@ class Assembler:
             if nUndefs == nPrevUndefs:
                 self.context.error("no progress resolving parser records", source=False)
                 break
+        if self.context.debug:
+            endTime = time.time()
+            delta = endTime - startTime
+            print "Pass 2: %3.2f seconds" % delta
 
     def fatal(self, text, source=True):
         self.error(text, source)

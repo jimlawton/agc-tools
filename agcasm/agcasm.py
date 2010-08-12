@@ -74,7 +74,7 @@ def main():
         endTime = time.time()
         delta = endTime - startTime
         totalTime += delta
-        print "Process source files: %3.2f seconds" % delta
+        print "Pass 1: %3.2f seconds" % delta
 
     assembler.info("Resolving symbols...", source=False)
     startTime = time.time()
@@ -83,7 +83,6 @@ def main():
         endTime = time.time()
         delta = endTime - startTime
         totalTime += delta
-        print "Symbol resolution: %3.2f seconds" % delta
 
     assembler.info("Writing listing...", source=False)
     startTime = time.time()
