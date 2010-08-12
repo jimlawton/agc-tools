@@ -53,12 +53,12 @@ class CoreDiff:
             self.srcline = self.srcline[:-1]
 
     def __str__(self):
-        line = "%06o (%7s)   %05o   %05o   " % (self.coreaddr, self.address, self.leftval, self.rightval)
+        line = "%06o (%7s) %05o %05o " % (self.coreaddr, self.address, self.leftval, self.rightval)
         if self.pagenum:
-            line += "%4d   " % (self.pagenum)
+            line += "%4d " % (self.pagenum)
         else:
-            line += "       "
-        line += "%-48s   " % (self.module)
+            line += "     "
+        line += "%-48s " % (self.module)
         line += "%-100s" % self.srcline
         return line
 
@@ -303,8 +303,8 @@ def main():
     log("")
 
     if difftotal > 0:
-        log("Core address       Left    Right   Page   Module                                             Line Number    Address           Source")
-        log("----------------   -----   -----   ----   ------------------------------------------------   -------------- -------           -------------------------------------------------------------------------------------------------------")
+        log("Core address     Left  Right Page Module                                           Line Number    Address           Source")
+        log("---------------- ----- ----- ---- ------------------------------------------------ -------------- -------           -------------------------------------------------------------------------------------------------------")
         log("")
         for diff in diffs:
             log(diff.__str__())
