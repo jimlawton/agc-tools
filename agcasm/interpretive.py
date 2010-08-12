@@ -20,7 +20,7 @@
 
 from opcode import Opcode, OpcodeType
 from record_type import RecordType
-from expression import AddressExpression, ExpressionType
+from expression import AddressExpression
 
 class InterpretiveType:
     NORMAL = 0

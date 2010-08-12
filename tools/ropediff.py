@@ -28,7 +28,6 @@ import glob
 from optparse import OptionParser
 import struct
 import operator
-import time
 import listing_analyser
 
 
