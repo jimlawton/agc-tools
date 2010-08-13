@@ -38,6 +38,7 @@ class Instruction(Opcode):
                 context.error("instruction takes no operand")
             else:
                 context.currentRecord.code = [ self.opcode ]
+                context.currentRecord.operandType = RecordType.NONE
                 context.currentRecord.complete = True
         else:
             if operands == None:
@@ -55,6 +56,7 @@ class Instruction(Opcode):
                                 context.currentRecord.target = expr.value
                             address = context.memmap.pseudoToAddress(pa)
                             context.currentRecord.code = [ (self.opcode + address) & 077777 ]
+                        context.currentRecord.operandType = expr.refType
                         context.currentRecord.complete = True
                 else:
                     context.error("missing operand")
