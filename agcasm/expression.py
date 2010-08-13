@@ -20,11 +20,22 @@
 
 from number import Number
 from opcode import OperandType
+from record_type import RecordType
 
 class ExpressionType:
     NONE         = 0    # No expression.
     CONSTANT     = 1    # Octal or decimal constant.
     SYMBOLIC     = 2    # Symbolic expression.
+
+    @classmethod
+    def toString(cls, type):
+        if type == ExpressionType.CONSTANT:
+            text = "CON"
+        elif type == ExpressionType.SYMBOLIC:
+            text = "SYM"
+        else:
+            text = "   "
+        return text
 
 class Expression:
     """Class that represents an AGC expression."""
@@ -37,6 +48,7 @@ class Expression:
         self.context = context
         self.type = ExpressionType.NONE     # The type of the expression.
         self.length = 1                     # Length of the addressed quantity in words.
+        self.refType = None                 # The type of the record symbol refers to.
 
         self.context.log(5, "expression: operands=%s addressExpr=%s" % (operands, addressExpr))
 
@@ -96,6 +108,7 @@ class Expression:
             retval = entry.value
             rettype = OperandType.SYMBOLIC
             self.length = entry.length
+            self.refType = entry.type
         else:
             tmpop = operand
             if self.addressExpr and (operand.startswith('+') or operand.startswith('-')):
@@ -106,6 +119,7 @@ class Expression:
                 if op.isValid():
                     retval = op.value
                     rettype = OperandType.DECIMAL
+                    self.refType = RecordType.CONST
             except:
                 # Assume it is a symbol as yet undefined.
                 pass
