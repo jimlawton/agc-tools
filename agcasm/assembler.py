@@ -105,7 +105,7 @@ class Assembler:
                 label = fields[0]
                 if len(fields) == 1:
                     # Label only.
-                    self.context.symtab.add(label, None, self.context.loc)
+                    self.context.symtab.add(label, None, self.context.loc, 0, RecordType.LABEL)
                     record = self._makeNewRecord(srcline, RecordType.LABEL, label, None, None, None, comment)
                     record.complete = True
                     self.context.records.append(record)
@@ -185,9 +185,9 @@ class Assembler:
             if label != None and self.context.addSymbol == True and self.context.passnum == 0:
                 if not self.context.reparse:
                     numWords = self.context.loc - preloc
-                    self.context.symtab.add(label, operands, preloc, length=numWords)
+                    self.context.symtab.add(label, operands, preloc, length=numWords, type=self.context.currentRecord.type)
                 else:
-                    self.context.symtab.update(label, operands, preloc)
+                    self.context.symtab.update(label, operands, preloc, length=numWords, type=self.context.currentRecord.type)
         except:
             self.error("Exception processing line:")
             raise
