@@ -22,15 +22,15 @@ import sys
 
 class SymbolTableEntry:
 
-    def __init__(self, context, name, symbolic=None, value=None, length=1):
+    def __init__(self, context, name, symbolic=None, value=None, length=1, type=None):
         self.context = context              # Assembler context.
         self.name = name                    # Symbol name.
         self.symbolic = symbolic            # Symbolic value (expression).
         self.value = value                  # Actual value.
         self.recordIndex = None             # Index of the parser record containing the definition of this symbol.
         self.references = []                # TODO: List of references.
-        self.refType = None                 # Reference type: None, forward or reverse
         self.length = length                # Length of the addressed quantity (default is 1 word).
+        self.type = type                    # Type of record the symbol refers to.
 
     def isComplete(self):
         return (self.value != None)
@@ -43,10 +43,6 @@ class SymbolTableEntry:
 
     def __str__(self):
         text = "%-8s "  % (self.name)
-        if self.refType != None:
-            text += "%-4s " % self.refType
-        else:
-            text += 4 * ' '
         if self.value == None:
             text += "%-20s" % "******"
         else:
@@ -66,22 +62,20 @@ class SymbolTable:
         self.undefs = []
         self.context = context
 
-    def add(self, name=None, symbolic=None, value=None, length=1):
+    def add(self, name=None, symbolic=None, value=None, length=1, type=None):
         if name != None:
             if name in self.symbols.keys():
                 self.context.error("symbol \"%s\" already defined!" % (name))
             else:
-                self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value, length)
+                self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value, length, type)
                 self.symbols[name].recordIndex = self.context.global_linenum - 1
                 if value == None:
                     self.undefs.append(name)
-                    self.symbols[name].refType = "FWD"
                     self.context.log(6, "[%05d] added undefined symbol %-8s" % (len(self.symbols), name))
                 else:
-                    self.symbols[name].refType = "REV"
                     self.context.log(6, "[%05d] added   defined symbol %-8s %s" % (len(self.symbols), name, self.context.memmap.pseudoToSegmentedString(value)))
 
-    def update(self, name=None, symbolic=None, value=None):
+    def update(self, name=None, symbolic=None, value=None, length=1, type=None):
         if name != None:
             if name not in self.symbols.keys():
                 self.context.error("symbol \"%s\" not defined!" % (name))
@@ -89,6 +83,8 @@ class SymbolTable:
                 entry = self.symbols[name]
                 oldval = entry.value
                 entry.value = value
+                entry.length = length
+                entry.type = type
                 self.symbols[name] = entry
                 self.context.log(6, "updated symbol %-8s %s -> %s" % (name, self.context.memmap.pseudoToSegmentedString(oldval), self.context.memmap.pseudoToSegmentedString(value)))
 
@@ -110,6 +106,12 @@ class SymbolTable:
                 self.context.error("aborting, no progress in resolving symbols", source=False)
                 break
             nPrevUndefs = nUndefs
+        if self.context.debug and nUndefs == 0:
+            for symbol in self.symbols:
+                entry = self.symbols[symbol]
+                if entry.type == None:
+                    entry.type = self.context.records[entry.recordIndex].type
+                    self.symbols[symbol] = entry
 
     def pruneUndefines(self):
         # Prune the undefs list.
