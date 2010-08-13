@@ -20,7 +20,7 @@
 
 from opcode import Opcode, OpcodeType
 from record_type import RecordType
-from expression import AddressExpression
+from expression import AddressExpression, ExpressionType
 
 class InterpretiveType:
     NORMAL = 0
@@ -92,12 +92,14 @@ class Interpretive(Opcode):
             # Case 1
             context.log(5, "interpretive: packing type [OPCODE,0]")
             context.currentRecord.packingType = PackingType.OPCODE_ONLY
+            context.currentRecord.operandType = RecordType.NONE
             context.log(5, "interpretive: %s (%03o)" % (self.mnemonic, self.opcode))
         elif oplen == 1:
             if operands[0] in context.opcodes[OpcodeType.INTERPRETIVE]:
                 # Case 2
                 context.log(5, "interpretive: packing type [OPCODE,OPCODE]")
                 context.currentRecord.packingType = PackingType.OPCODE_PAIR
+                context.currentRecord.operandType = RecordType.NONE
                 mnemonic2 = operands[0]
                 opobj = context.opcodes[OpcodeType.INTERPRETIVE][operands[0]]
                 context.log(5, "interpretive: %s (%03o), %s (%03o)" % (self.mnemonic, self.opcode, opobj.mnemonic, opobj.opcode))
@@ -209,6 +211,7 @@ class Interpretive(Opcode):
         operand = AddressExpression(context, newoperands)
         if operand.complete:
             context.currentRecord.target = operand.value
+            context.currentRecord.operandType = operand.refType
             acindex = context.interpArgCount
             if context.interpArgTypes[acindex] != None:
                 context.currentRecord.interpArgType = context.interpArgTypes[acindex]
@@ -246,7 +249,10 @@ class Interpretive(Opcode):
                     context.log(5, "interpretive: positive normal operand value=%05o" % (code))
                     # Positive operand value.
                     if context.memmap.isErasable(operand.value):
-                        context.log(5, "interpretive: erasable or fixed/indexed, incrementing code=%05o" % (code))
+                        context.log(5, "interpretive: erasable, incrementing code=%05o" % (code))
+                        code += 1
+                    elif context.memmap.isFixed(operand.value) and (operand.refType != RecordType.CONST and operand.refType != RecordType.INTERP):
+                        context.log(5, "interpretive: fixed, incrementing code=%05o" % (code))
                         code += 1
                     if operand.length > 1:
                         context.log(5, "interpretive: operand length > 1, incrementing code=%05o by %d" % (code, operand.length - 1))
