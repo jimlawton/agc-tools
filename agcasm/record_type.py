@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 class RecordType:
     """Class defining type of a parser record."""
-    
+
     NONE        = 0     # Invalid.
     INCLUDE     = 1     # Include directive.
     BLANK       = 2     # Blank line.
@@ -31,22 +31,22 @@ class RecordType:
     EXEC        = 7     # Executable line, code generated.
     INTERP      = 8     # Interpretive line.
     IGNORE      = 9     # Ignored.`
-    
+
     @classmethod
     def isGenerative(cls, rectype):
         """Return True if record type generates machine code."""
-        isGenerative = { 
+        isGenerative = {
             None:                 False,
-            RecordType.NONE:      False, 
-            RecordType.INCLUDE:   False, 
-            RecordType.BLANK:     False, 
-            RecordType.COMMENT:   False, 
-            RecordType.LABEL:     False, 
-            RecordType.ASMCONST:  False, 
-            RecordType.CONST:     True, 
-            RecordType.EXEC:      True, 
-            RecordType.INTERP:    True, 
-            RecordType.IGNORE:    False 
+            RecordType.NONE:      False,
+            RecordType.INCLUDE:   False,
+            RecordType.BLANK:     False,
+            RecordType.COMMENT:   False,
+            RecordType.LABEL:     False,
+            RecordType.ASMCONST:  False,
+            RecordType.CONST:     True,
+            RecordType.EXEC:      True,
+            RecordType.INTERP:    True,
+            RecordType.IGNORE:    False
         }
         if rectype:
             return isGenerative[rectype]
@@ -56,18 +56,18 @@ class RecordType:
     @classmethod
     def isAddressValid(cls, rectype):
         """Return True if record type is one in which the address field is valid."""
-        isAddress = { 
+        isAddress = {
             None:                 False,
-            RecordType.NONE:      False, 
-            RecordType.INCLUDE:   False, 
-            RecordType.BLANK:     False, 
-            RecordType.COMMENT:   False, 
-            RecordType.LABEL:     True, 
-            RecordType.ASMCONST:  False, 
-            RecordType.CONST:     True, 
-            RecordType.EXEC:      True, 
-            RecordType.INTERP:    True, 
-            RecordType.IGNORE:    False 
+            RecordType.NONE:      False,
+            RecordType.INCLUDE:   False,
+            RecordType.BLANK:     False,
+            RecordType.COMMENT:   False,
+            RecordType.LABEL:     True,
+            RecordType.ASMCONST:  False,
+            RecordType.CONST:     True,
+            RecordType.EXEC:      True,
+            RecordType.INTERP:    True,
+            RecordType.IGNORE:    False
         }
         if rectype:
             return isAddress[rectype]
@@ -77,17 +77,17 @@ class RecordType:
     @classmethod
     def isParseable(cls, rectype):
         """Return True if record type is reparseable."""
-        isParseable = { 
-            RecordType.NONE:      False, 
-            RecordType.INCLUDE:   False, 
-            RecordType.BLANK:     False, 
-            RecordType.COMMENT:   False, 
-            RecordType.LABEL:     False, 
-            RecordType.ASMCONST:  True, 
-            RecordType.CONST:     True, 
-            RecordType.EXEC:      True, 
-            RecordType.INTERP:    True, 
-            RecordType.IGNORE:    False 
+        isParseable = {
+            RecordType.NONE:      False,
+            RecordType.INCLUDE:   False,
+            RecordType.BLANK:     False,
+            RecordType.COMMENT:   False,
+            RecordType.LABEL:     False,
+            RecordType.ASMCONST:  True,
+            RecordType.CONST:     True,
+            RecordType.EXEC:      True,
+            RecordType.INTERP:    True,
+            RecordType.IGNORE:    False
         }
         if rectype:
             return isParseable[rectype]
@@ -97,17 +97,17 @@ class RecordType:
     @classmethod
     def isIgnored(cls, rectype):
         """Return True if record type should be ignored."""
-        isIgnored = { 
-            RecordType.NONE:      True, 
-            RecordType.INCLUDE:   False, 
-            RecordType.BLANK:     True, 
-            RecordType.COMMENT:   True, 
-            RecordType.LABEL:     False, 
-            RecordType.ASMCONST:  False, 
-            RecordType.CONST:     False, 
-            RecordType.EXEC:      False, 
-            RecordType.INTERP:    False, 
-            RecordType.IGNORE:    True 
+        isIgnored = {
+            RecordType.NONE:      True,
+            RecordType.INCLUDE:   False,
+            RecordType.BLANK:     True,
+            RecordType.COMMENT:   True,
+            RecordType.LABEL:     False,
+            RecordType.ASMCONST:  False,
+            RecordType.CONST:     False,
+            RecordType.EXEC:      False,
+            RecordType.INTERP:    False,
+            RecordType.IGNORE:    True
         }
         if rectype:
             return isIgnored[rectype]
@@ -124,17 +124,16 @@ class RecordType:
 
     @classmethod
     def toString(cls, rectype):
-        textdict = { 
-            RecordType.NONE:      "     ", 
-            RecordType.INCLUDE:   "[INC]", 
-            RecordType.BLANK:     "     ", 
-            RecordType.COMMENT:   "     ", 
-            RecordType.LABEL:     "[LBL]", 
-            RecordType.ASMCONST:  "[ASM]", 
-            RecordType.CONST:     "[CON]", 
-            RecordType.EXEC:      "[EXE]", 
-            RecordType.INTERP:    "[INT]", 
-            RecordType.IGNORE:    "     " 
+        textdict = {
+            RecordType.NONE:      "   ",
+            RecordType.INCLUDE:   "INC",
+            RecordType.BLANK:     "   ",
+            RecordType.COMMENT:   "   ",
+            RecordType.LABEL:     "LBL",
+            RecordType.ASMCONST:  "ASM",
+            RecordType.CONST:     "CON",
+            RecordType.EXEC:      "EXE",
+            RecordType.INTERP:    "INT",
+            RecordType.IGNORE:    "   "
         }
         return textdict[rectype]
-    
