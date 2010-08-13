@@ -98,11 +98,7 @@ class ParserRecord:
             if self.isGenerative():
                 if self.context.debug:
                     text += RecordType.toString(self.type) + ' '
-                    try:
-                        text += RecordType.toString(self.operandType) + ' '
-                    except:
-                        print self.srcline
-                        raise
+                    text += RecordType.toString(self.operandType) + ' '
                     text += self.context.memmap.bankToString(MemoryType.ERASABLE, self.context.ebank)
                     text += ' '
                     text += self.context.memmap.bankToString(MemoryType.FIXED, self.context.fbank)
