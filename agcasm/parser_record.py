@@ -21,6 +21,7 @@
 from record_type import RecordType
 from memory import MemoryType
 from interpretive import InterpretiveType
+from expression import ExpressionType
 
 class ParserRecord:
     """Class storing parser data."""
@@ -31,6 +32,7 @@ class ParserRecord:
         self.linenum = linenum              # Source line number.
         self.srcline = srcline              # Source line.
         self.type = type                    # Record type.
+        self.operandType = None             # Operand type, if any.
         self.label = label                  # Label field [optional].
         self.pseudolabel = pseudolabel      # Pseudo-label field [optional].
         self.opcode = opcode                # Opcode or directive field.
@@ -81,7 +83,7 @@ class ParserRecord:
         text += "%06d,%06d " % (self.global_linenum, self.linenum)
         if RecordType.isIgnored(self.type):
             if self.context.debug:
-                text += 54 * ' '
+                text += 62 * ' '
             else:
                 text += 29 * ' '
         else:
@@ -95,6 +97,12 @@ class ParserRecord:
                 text += 8 * ' '
             if self.isGenerative():
                 if self.context.debug:
+                    text += RecordType.toString(self.type) + ' '
+                    try:
+                        text += RecordType.toString(self.operandType) + ' '
+                    except:
+                        print self.srcline
+                        raise
                     text += self.context.memmap.bankToString(MemoryType.ERASABLE, self.context.ebank)
                     text += ' '
                     text += self.context.memmap.bankToString(MemoryType.FIXED, self.context.fbank)
@@ -116,7 +124,7 @@ class ParserRecord:
                     text += " ????? " + 6 * ' '
             else:
                 if self.context.debug:
-                    text += 38 * ' '
+                    text += 46 * ' '
                 else:
                     text += 13 * ' '
         text += "   %s" % self.srcline
