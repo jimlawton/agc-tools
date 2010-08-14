@@ -50,6 +50,7 @@ class Context:
         self.interpArgCount = 0
         self.interpArgTypes = [ None, None, None, None ]
         self.interpArgCodes = [ 0, 0, 0, 0 ]
+        self.interpArgIncrement = [ False, False, False, False ]
         self.indexed = False
         self.currentRecord = None
         self.previousRecord = None
@@ -100,6 +101,7 @@ class Context:
         self.interpArgCount = 0
         self.interpArgTypes = [ None, None, None, None ]
         self.interpArgCodes = [ 0, 0, 0, 0 ]
+        self.interpArgIncrement = [ False, False, False, False ]
         self.indexed = False
         self.currentRecord = None
         self.previousRecord = None
