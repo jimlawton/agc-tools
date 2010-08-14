@@ -404,7 +404,7 @@ OPCODES = {
             "STADR":  Interpretive("STADR",         "STADR",    0150,   0),
             "STCALL": Interpretive("Store",         "STCALL",   034000, 2,          True),
             "STODL":  Interpretive("StoreLoad",     "STODL",    014000, 2,          True),
-            "STODL*": Interpretive("Storeload",     "STODL*",   020000, 2,          True),
+            "STODL*": Interpretive("StoreLoad",     "STODL*",   020000, 2,          True),
             "STORE":  Interpretive("Store",         "STORE",    000000, 1,          True),
             "STOVL":  Interpretive("StoreLoad",     "STOVL",    024000, 2,          True),
             "STOVL*": Interpretive("StoreLoad",     "STOVL*",   030000, 2,          True),
