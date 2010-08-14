@@ -77,8 +77,8 @@ class Interpretive(Opcode):
 
         # Increment flag for operand(s) of first opcode.
         if self.numOperands > 0:
-            if self.methodName == "Store":
-                # Stores seem to increment all their operands.
+            if self.methodName == "StoreLoad":
+                # Store/loads seem to increment all their operands.
                 if self.increment:
                     context.interpArgIncrement[0] = self.increment
                     if self.numOperands > 1:
@@ -330,6 +330,13 @@ class Interpretive(Opcode):
             context.log(5, "store record will be complemented")
         else:
             context.log(5, "store record will not be complemented")
+            self.complement = False
+
+    def parse_StoreLoad(self, context, operands):
+        if context.complementNext:
+            context.log(5, "store/load record will be complemented")
+        else:
+            context.log(5, "store/load record will not be complemented")
             self.complement = False
 
     def parse_STADR(self, context, operands):
