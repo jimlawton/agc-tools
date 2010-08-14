@@ -81,13 +81,15 @@ class Interpretive(Opcode):
                 # Store/loads seem to increment all their operands.
                 if self.increment:
                     context.interpArgIncrement[0] = self.increment
+                    context.log(5, "interpretive: opcode increment operand %d" % 0)
                     if self.numOperands > 1:
                         context.interpArgIncrement[1] = self.increment
+                        context.log(5, "interpretive: opcode increment operand %d" % 1)
             else:
                 # Other opcodes only increment the first operand.
                 if self.increment:
                     context.interpArgIncrement[0] = self.increment
-                    context.log(5, "interpretive: opcode increment first operand set [%d]" % 0)
+                    context.log(5, "interpretive: opcode increment operand %d" % 0)
             context.log(5, "interpArgIncrement: %s" % (context.interpArgIncrement))
 
         if self.mnemonic == "EXIT":
@@ -210,7 +212,7 @@ class Interpretive(Opcode):
         context.currentRecord.complete = True
         context.currentRecord.type = self.type
 
-        if self.methodName == "Store" and context.complementNext:
+        if (self.methodName == "Store" or self.methodName == "StoreLoad") and context.complementNext:
             context.complementNext = False
 
         if context.currentRecord.packingType != PackingType.OPERAND_ONLY:
@@ -287,7 +289,7 @@ class Interpretive(Opcode):
                     #if operand.length > 1:
                     #    context.log(5, "interpretive: operand length > 1, incrementing code=%05o by %d" % (code, operand.length - 1))
                     #    code += operand.length - 1
-                    if indexreg == 2 or (context.complementNext and context.currentRecord.packingType == PackingType.OPERAND_ONLY):
+                    if context.currentRecord.packingType == PackingType.OPERAND_ONLY and (indexreg == 2 or context.complementNext):
                         code = ~code & 077777
                         context.log(5, "interpretive: indexed X2 or complementNext, code=%05o" % (code))
                         if context.complementNext:
