@@ -55,6 +55,7 @@ class ParserRecord:
         self.interpArgs = 0
         self.interpArgCount = 0
         self.interpArgType = None
+        self.interpArgIncrement = False
         self.packingType = None
         self.complementNext = False
 
@@ -83,7 +84,7 @@ class ParserRecord:
         text += "%06d,%06d " % (self.global_linenum, self.linenum)
         if RecordType.isIgnored(self.type):
             if self.context.debug:
-                text += 62 * ' '
+                text += 64 * ' '
             else:
                 text += 29 * ' '
         else:
@@ -108,6 +109,10 @@ class ParserRecord:
                         text += "%05o " % (self.argcode)
                     else:
                         text += 6 * ' '
+                    if self.interpArgIncrement == True:
+                        text += "+ "
+                    else:
+                        text += 2 * ' '
                     text += InterpretiveType.toString(self.interpArgType) + ' '
                 if self.code != None and len(self.code) > 0:
                     if len(self.code) == 1 and self.code[0] != None:
@@ -120,7 +125,7 @@ class ParserRecord:
                     text += " ????? " + 6 * ' '
             else:
                 if self.context.debug:
-                    text += 46 * ' '
+                    text += 48 * ' '
                 else:
                     text += 13 * ' '
         text += "   %s" % self.srcline
