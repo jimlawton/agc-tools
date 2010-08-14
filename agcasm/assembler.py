@@ -164,6 +164,8 @@ class Assembler:
 
             preloc = self.context.loc
 
+            self.context.log(5, "interpArgIncrement: %s" % (self.context.interpArgIncrement))
+
             if opcode == None:
                 Interpretive.parseOperand(self.context, operands)
             else:
@@ -178,6 +180,7 @@ class Assembler:
                         self.context.interpArgCount = 0
                         self.context.interpArgTypes = [ None, None, None, None ]
                         self.context.interpArgCodes = [ 0, 0, 0, 0 ]
+                        self.context.interpArgIncrement = [ False, False, False, False ]
                     self.context.opcodes[self.context.mode][opcode].parse(self.context, operands)
                 else:
                     self.error("invalid opcode")
