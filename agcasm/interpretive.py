@@ -75,10 +75,19 @@ class Interpretive(Opcode):
         context.interpArgCodes = [ 0, 0, 0, 0 ]
         context.interpArgIncrement = [ False, False, False, False ]
 
-        # Increment flag for first operand of first opcode.
-        context.interpArgIncrement[0] = self.increment
-        if self.increment == True:
-            context.log(5, "interpretive: opcode increment first operand set [0]")
+        # Increment flag for operand(s) of first opcode.
+        if self.numOperands > 0:
+            if self.methodName == "Store":
+                # Stores seem to increment all their operands.
+                if self.increment:
+                    context.interpArgIncrement[0] = self.increment
+                    if self.numOperands > 1:
+                        context.interpArgIncrement[1] = self.increment
+            else:
+                # Other opcodes only increment the first operand.
+                if self.increment:
+                    context.interpArgIncrement[0] = self.increment
+                    context.log(5, "interpretive: opcode increment first operand set [%d]" % 0)
             context.log(5, "interpArgIncrement: %s" % (context.interpArgIncrement))
 
         if self.mnemonic == "EXIT":
