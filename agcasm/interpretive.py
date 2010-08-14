@@ -247,8 +247,8 @@ class Interpretive(Opcode):
             if context.interpArgTypes[acindex] != None:
                 context.currentRecord.interpArgType = context.interpArgTypes[acindex]
                 # Switch or shift operand.
-                if context.interpArgTypes[acindex] == InterpretiveType.SWITCH:
-                    context.log(5, "interpretive: switch operand value=%05o [%d] %05o" % (operand.value, acindex, context.interpArgCodes[acindex]))
+                if context.currentRecord.interpArgType == InterpretiveType.SWITCH:
+                    context.log(5, "interpretive: switch operand value=%05o [%d] argcode=%05o" % (operand.value, acindex, context.interpArgCodes[acindex]))
                     context.currentRecord.argcode = context.interpArgCodes[acindex]
                     context.currentRecord.interpArgIncrement = context.interpArgIncrement[acindex]
                     # Switch operands use the encoding 0WWWWWWNNNNBBBB, where:
@@ -259,26 +259,26 @@ class Interpretive(Opcode):
                     bit = (operand.value % 15)
                     code = (flag << 8) | bit | (context.currentRecord.argcode << 4)
                     context.log(5, "interpretive: switch operand flag=%03o bit=%02o code=%05o" % (flag, bit, code))
-                elif context.interpArgTypes[acindex] == InterpretiveType.SHIFT:
+                elif context.currentRecord.interpArgType == InterpretiveType.SHIFT:
                     if operand.value < 0:
                         code = (~abs(operand.value) + 1) & 077777
                     else:
                         code = operand.value
-                    context.log(5, "interpretive: shift operand value=%05o [%d] %05o" % (code, acindex, context.interpArgCodes[acindex]))
+                    context.log(5, "interpretive: shift operand code=%05o [%d] argcode=%05o" % (code, acindex, context.interpArgCodes[acindex]))
                     context.currentRecord.argcode = context.interpArgCodes[acindex]
                     context.currentRecord.interpArgIncrement = context.interpArgIncrement[acindex]
-                    context.log(5, "interpretive: shift operand, oring with %05o" % (context.interpArgCodes[acindex] << 6))
                     code += (context.interpArgCodes[acindex] << 6)
                     code &= 077777
-                elif context.interpArgTypes[acindex] == InterpretiveType.INDEX:
-                    context.log(5, "interpretive: index operand value=%05o [%d]" % (operand.value, acindex))
+                    context.log(5, "interpretive: shift operand |=%05o, code=%05o" % (context.interpArgCodes[acindex] << 6, code))
+                elif context.currentRecord.interpArgType == InterpretiveType.INDEX:
                     code = operand.value
+                    context.log(5, "interpretive: index operand value=%05o [%d] code=%05o" % (operand.value, acindex, code))
                 else:
                     context.error("invalid interpretive argument type")
             else:
                 if operand.value >= 0:
                     code = context.memmap.pseudoToInterpretiveAddress(operand.value)
-                    context.log(5, "interpretive: positive normal operand [%d] value=%05o" % (acindex, code))
+                    context.log(5, "interpretive: positive normal operand [%d] code=%05o" % (acindex, code))
                     # Positive operand value.
                     #if context.memmap.isErasable(operand.value):
                     #    context.log(5, "interpretive: erasable, incrementing code=%05o" % (code))
@@ -289,11 +289,6 @@ class Interpretive(Opcode):
                     #if operand.length > 1:
                     #    context.log(5, "interpretive: operand length > 1, incrementing code=%05o by %d" % (code, operand.length - 1))
                     #    code += operand.length - 1
-                    if context.currentRecord.packingType == PackingType.OPERAND_ONLY and (indexreg == 2 or context.complementNext):
-                        code = ~code & 077777
-                        context.log(5, "interpretive: indexed X2 or complementNext, code=%05o" % (code))
-                        if context.complementNext:
-                            context.complementNext = False
                 else:
                     code = operand.value
                     context.log(5, "interpretive: negative normal operand [%d] value=%05o" % (acindex, code))
@@ -302,6 +297,13 @@ class Interpretive(Opcode):
                 code += 1
                 code &= 077777
                 context.log(5, "interpretive: operand increment set [%d] code=%05o" % (acindex, code))
+
+            if context.currentRecord.packingType == PackingType.OPERAND_ONLY and (indexreg == 2 or context.complementNext):
+                code = ~code & 077777
+                context.log(5, "interpretive: indexed X2 or complementNext, code=%05o" % (code))
+                if context.complementNext:
+                    context.complementNext = False
+
             context.currentRecord.code = [ code ]
             context.currentRecord.complete = True
             context.log(5, "interpretive: generated operand %05o" % code)
