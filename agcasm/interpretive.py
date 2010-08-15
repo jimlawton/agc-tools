@@ -255,7 +255,7 @@ class Interpretive(Opcode):
                 # Switch or shift operand.
                 if context.currentRecord.interpArgType == InterpretiveType.SWITCH:
                     context.currentRecord.argcode = context.interpArgCodes[acindex]
-                    context.log(5, "interpretive: switch flag operand value=%05o [%d] argcode=%05o" % (operand.value, acindex, context.interpArgCodes[acindex]))
+                    context.log(5, "interpretive: switch operand, value=%05o [%d] argcode=%05o" % (operand.value, acindex, context.interpArgCodes[acindex]))
                     context.currentRecord.interpArgIncrement = context.interpArgIncrement[acindex]
                     # Switch operands use the encoding 0WWWWWWNNNNBBBB, where:
                     #  WWWWWW (6 bits) is the quotient when the constant value is divided by 15.
@@ -264,24 +264,24 @@ class Interpretive(Opcode):
                     flag = (operand.value / 15) & 077
                     bit = (operand.value % 15)
                     code = (flag << 8) | bit | (context.currentRecord.argcode << 4)
-                    context.log(5, "interpretive: switch flag operand flag=%03o bit=%02o code=%05o" % (flag, bit, code))
+                    context.log(5, "interpretive: switch operand, flag=%03o bit=%02o code=%05o" % (flag, bit, code))
                 elif context.currentRecord.interpArgType == InterpretiveType.SHIFT:
                     if operand.value < 0:
                         code = (~abs(operand.value) + 1) & 077777
                     else:
                         code = operand.value
-                    context.log(5, "interpretive: shift operand code=%05o [%d] argcode=%05o" % (code, acindex, context.interpArgCodes[acindex]))
+                    context.log(5, "interpretive: shift operand, code=%05o [%d] argcode=%05o" % (code, acindex, context.interpArgCodes[acindex]))
                     context.currentRecord.argcode = context.interpArgCodes[acindex]
                     context.currentRecord.interpArgIncrement = context.interpArgIncrement[acindex]
                     code += (context.interpArgCodes[acindex] << 6)
                     code &= 077777
-                    context.log(5, "interpretive: shift operand |=%05o, code=%05o" % (context.interpArgCodes[acindex] << 6, code))
+                    context.log(5, "interpretive: shift operand, |=%05o, code=%05o" % (context.interpArgCodes[acindex] << 6, code))
                 elif context.currentRecord.interpArgType == InterpretiveType.INDEX:
                     code = context.memmap.pseudoToInterpretiveAddress(operand.value)
-                    context.log(5, "interpretive: index operand value=%05o [%d] code=%05o" % (operand.value, acindex, code))
+                    context.log(5, "interpretive: index operand, value=%05o [%d] code=%05o" % (operand.value, acindex, code))
                 elif context.currentRecord.interpArgType == InterpretiveType.BRANCH:
                     code = context.memmap.pseudoToInterpretiveAddress(operand.value, size=15)
-                    context.log(5, "interpretive: branch or switch/branch operand value=%05o [%d] code=%05o" % (operand.value, acindex, code))
+                    context.log(5, "interpretive: branch operand, value=%05o [%d] code=%05o" % (operand.value, acindex, code))
                 else:
                     context.error("invalid interpretive argument type")
             else:
@@ -416,5 +416,11 @@ class Interpretive(Opcode):
         # SSP's 2nd operand is branch address.
         acindex = context.interpArgs - 1
         context.interpArgTypes[acindex] = InterpretiveType.BRANCH
-        context.log(5, "interpretive: SSP branch detected, [%d]" % (acindex))
+        context.log(5, "interpretive: SSP address operand detected, [%d]" % (acindex))
+
+    def parse_AXT(self, context, operands):
+        # AXT's operand is branch address.
+        acindex = context.interpArgs - 1
+        context.interpArgTypes[acindex] = InterpretiveType.BRANCH
+        context.log(5, "interpretive: AXT address operand detected, [%d]" % (acindex))
 
