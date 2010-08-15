@@ -20,13 +20,14 @@
 
 from opcode import Opcode, OpcodeType
 from record_type import RecordType
-from expression import AddressExpression, ExpressionType
+from expression import AddressExpression
 
 class InterpretiveType:
     NORMAL = 0
     SWITCH = 1
     SHIFT  = 2
     INDEX  = 3
+    BRANCH = 4
 
     @classmethod
     def toString(cls, type):
@@ -36,6 +37,8 @@ class InterpretiveType:
             return '[SH]'
         elif type == InterpretiveType.INDEX:
             return '[IX]'
+        elif type == InterpretiveType.BRANCH:
+            return '[BR]'
         else:
             return '    '
 
@@ -251,8 +254,8 @@ class Interpretive(Opcode):
                 context.currentRecord.interpArgType = context.interpArgTypes[acindex]
                 # Switch or shift operand.
                 if context.currentRecord.interpArgType == InterpretiveType.SWITCH:
-                    context.log(5, "interpretive: switch operand value=%05o [%d] argcode=%05o" % (operand.value, acindex, context.interpArgCodes[acindex]))
                     context.currentRecord.argcode = context.interpArgCodes[acindex]
+                    context.log(5, "interpretive: switch flag operand value=%05o [%d] argcode=%05o" % (operand.value, acindex, context.interpArgCodes[acindex]))
                     context.currentRecord.interpArgIncrement = context.interpArgIncrement[acindex]
                     # Switch operands use the encoding 0WWWWWWNNNNBBBB, where:
                     #  WWWWWW (6 bits) is the quotient when the constant value is divided by 15.
@@ -261,7 +264,7 @@ class Interpretive(Opcode):
                     flag = (operand.value / 15) & 077
                     bit = (operand.value % 15)
                     code = (flag << 8) | bit | (context.currentRecord.argcode << 4)
-                    context.log(5, "interpretive: switch operand flag=%03o bit=%02o code=%05o" % (flag, bit, code))
+                    context.log(5, "interpretive: switch flag operand flag=%03o bit=%02o code=%05o" % (flag, bit, code))
                 elif context.currentRecord.interpArgType == InterpretiveType.SHIFT:
                     if operand.value < 0:
                         code = (~abs(operand.value) + 1) & 077777
@@ -276,6 +279,9 @@ class Interpretive(Opcode):
                 elif context.currentRecord.interpArgType == InterpretiveType.INDEX:
                     code = context.memmap.pseudoToInterpretiveAddress(operand.value)
                     context.log(5, "interpretive: index operand value=%05o [%d] code=%05o" % (operand.value, acindex, code))
+                elif context.currentRecord.interpArgType == InterpretiveType.BRANCH:
+                    code = context.memmap.pseudoToInterpretiveAddress(operand.value, size=15)
+                    context.log(5, "interpretive: branch or switch/branch operand value=%05o [%d] code=%05o" % (operand.value, acindex, code))
                 else:
                     context.error("invalid interpretive argument type")
             else:
@@ -358,6 +364,9 @@ class Interpretive(Opcode):
             context.interpArgCodes[acindex] = self.switchcode
             context.interpArgTypes[acindex] = InterpretiveType.SWITCH
             context.log(5, "interpretive: switch detected, [%d]=%05o" % (acindex, context.interpArgCodes[acindex]))
+            if self.numOperands == 2:
+                context.interpArgTypes[acindex+1] = InterpretiveType.BRANCH
+                context.log(5, "interpretive: switch branch detected, [%d]" % (acindex+1))
 
     def parse_Shift(self, context, operands):
         # Store argcode in appropriate slot in context.interpArgCodes.
@@ -377,4 +386,15 @@ class Interpretive(Opcode):
             context.interpArgCodes[acindex] = 0
             context.interpArgTypes[acindex] = InterpretiveType.INDEX
             context.log(5, "interpretive: index detected, [%d]=%05o" % (acindex, context.interpArgCodes[acindex]))
+
+    def parse_Branch(self, context, operands):
+        context.log(5, "interpretive: branch, %d operands" % (self.numOperands))
+        if self.numOperands > 0:
+            if self.numOperands == 2:
+                acindex = context.interpArgs - 2
+            else:
+                acindex = context.interpArgs - 1
+            context.interpArgCodes[acindex] = 0
+            context.interpArgTypes[acindex] = InterpretiveType.BRANCH
+            context.log(5, "interpretive: branch detected, [%d]=%05o" % (acindex, context.interpArgCodes[acindex]))
 
