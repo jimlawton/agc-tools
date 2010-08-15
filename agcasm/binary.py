@@ -27,6 +27,8 @@ class ObjectCode:
     def __init__(self, context):
         self.context = context              # Assembler context.
         self.objectCode = {}
+        self.buggerIndex = {}
+
         for bank in self.context.memmap.getBanks(MemoryType.FIXED):
             self.objectCode[bank] = {}
             for offset in range(self.context.getBankSize(MemoryType.FIXED, bank)):
@@ -62,9 +64,11 @@ class ObjectCode:
 
             if count < 01776:
                 self.objectCode[bank][count] = count + offset
+                self.context.log(4, "added word %05o at (%02o,%04o)" % (count + offset, bank, count + 02000))
                 count += 1
             if count < 01777:
                 self.objectCode[bank][count] = count + offset
+                self.context.log(4, "added word %05o at (%02o,%04o)" % (count + offset, bank, count + 02000))
                 count += 1
             if count < 02000:
                 bugger = 0
@@ -76,7 +80,21 @@ class ObjectCode:
                 else:
                     guess = self.add(077777 & ~bank, 077777 & ~bugger)
                 self.objectCode[bank][count] = guess
+                self.buggerIndex[bank] = count
                 self.context.log(4, "bugger word %05o at (%02o,%04o)" % (guess, bank, count + 02000))
+
+    def writeUsage(self, listfile):
+        for bank in self.context.memmap.getBanks(MemoryType.ERASABLE):
+            count = self.context.getBankCount(MemoryType.ERASABLE, bank)
+            size = self.context.getBankSize(MemoryType.ERASABLE, bank)
+            print >>listfile, "  %s    %04o used, %04o available" % (self.context.memmap.bankToString(MemoryType.ERASABLE, bank), count, size - count)
+
+        print >>listfile
+
+        for bank in self.context.memmap.getBanks(MemoryType.FIXED):
+            count = self.context.getBankCount(MemoryType.FIXED, bank)
+            size = self.context.getBankSize(MemoryType.FIXED, bank)
+            print >>listfile, "  %s    %04o used, %04o available" % (self.context.memmap.bankToString(MemoryType.FIXED, bank), count, size - count)
 
     # Convert AGC number to native format.
     @classmethod
@@ -110,7 +128,7 @@ class ObjectCode:
         return sum
 
     def getBugger(self, data):
-        """Return the bugger word in the supplied bank data. The bugger word is the last non-zero word."""
+        """Return the bugger word (checksum) in the supplied bank data. The bugger word is the last non-zero word."""
 
         index = 0
         for i in range(len(data)-1, -1, -1):
@@ -137,3 +155,31 @@ class ObjectCode:
                 wordval = struct.pack(">H", value)
                 outputfile.write(wordval)
         self.context.log(4, "wrote %d words" % (count))
+
+    def writeListing(self, listfile):
+        for bank in self.context.memmap.getBanks(MemoryType.FIXED):
+            gotBugger = False
+            size = self.context.getBankSize(MemoryType.FIXED, bank)
+            self.context.log(4, "writing rope listing for bank %02o (%d words)" % (bank, size))
+            buggerIndex = self.buggerIndex[bank]
+            for offset in range(0, size, 8):
+                if bank == 2 or bank == 3:
+                    text = "   %04o" % (bank * 02000 + offset)
+                else:
+                    text = self.context.memmap.segmentedToString(bank, offset + 02000)
+                values = []
+                for i in range(8):
+                    if offset + i == buggerIndex:
+                        text += "  CKSM %05o" % self.objectCode[bank][offset+i]
+                        gotBugger = True
+                    else:
+                        if gotBugger:
+                            text += "         @  "
+                        else:
+                            text += "       %05o" % self.objectCode[bank][offset+i]
+                print >>listfile, text
+                if (offset + 8) % 040 == 0:
+                    print >>listfile
+                if (offset + 8) % 0400 == 0:
+                    print >>listfile
+
