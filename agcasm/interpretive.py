@@ -152,7 +152,10 @@ class Interpretive(Opcode):
 
         # FIXME: Should this be done after parsing first opcode?
         if context.currentRecord.packingType == PackingType.OPCODE_OPERAND:
-            Interpretive._parseOperand(context, operands, embedded=True)
+            isStore = False
+            if self.mnemonic == "STORE":
+                isStore = True
+            Interpretive._parseOperand(context, operands, embedded=True, store=isStore)
 
         try:
             method = self.__getattribute__("parse_" + self.methodName)
@@ -225,7 +228,7 @@ class Interpretive(Opcode):
             context.interpMode = True
 
     @classmethod
-    def _parseOperand(cls, context, operands, embedded=False):
+    def _parseOperand(cls, context, operands, embedded=False, store=False):
         context.log(5, "interpretive: trying to parse operand %d %s" % (context.interpArgCount, operands))
         newoperands = []
         indexreg = 0
@@ -293,6 +296,12 @@ class Interpretive(Opcode):
                     code = operand.value
                     context.log(5, "interpretive: negative normal operand [%d] value=%05o" % (acindex, code))
 
+            if store and indexreg > 0:
+                if indexreg == 1:
+                    code |= 004000
+                else:
+                    code |= 010000
+
             if context.interpArgIncrement[acindex] == True:
                 code += 1
                 code &= 077777
@@ -309,6 +318,7 @@ class Interpretive(Opcode):
             context.log(5, "interpretive: generated operand %05o" % code)
         else:
             context.log(5, "interpretive: operand undefined")
+
         if not embedded:
             context.incrLoc(1)
 
