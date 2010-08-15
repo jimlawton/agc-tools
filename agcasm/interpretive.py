@@ -335,12 +335,23 @@ class Interpretive(Opcode):
     def parse_EXIT(self, context, operands):
         context.interpMode = False
 
-    def parse_Store(self, context, operands):
+    def parse_STORE(self, context, operands):
         if context.complementNext:
             context.log(5, "store record will be complemented")
         else:
             context.log(5, "store record will not be complemented")
             self.complement = False
+
+    def parse_STCALL(self, context, operands):
+        if context.complementNext:
+            context.log(5, "store record will be complemented")
+        else:
+            context.log(5, "store record will not be complemented")
+            self.complement = False
+        # STCALL's 2nd operand is branch address.
+        acindex = context.interpArgs - 1
+        context.interpArgTypes[acindex] = InterpretiveType.BRANCH
+        context.log(5, "interpretive: STCALL branch detected, [%d]" % (acindex))
 
     def parse_StoreLoad(self, context, operands):
         if context.complementNext:
@@ -357,6 +368,7 @@ class Interpretive(Opcode):
         # Store argcode in appropriate slot in context.interpArgCodes.
         context.log(5, "interpretive: switch, %d operands" % (self.numOperands))
         if self.numOperands > 0:
+            # First operand is the switch flag.
             if self.numOperands == 2:
                 acindex = context.interpArgs - 2
             else:
@@ -365,11 +377,12 @@ class Interpretive(Opcode):
             context.interpArgTypes[acindex] = InterpretiveType.SWITCH
             context.log(5, "interpretive: switch detected, [%d]=%05o" % (acindex, context.interpArgCodes[acindex]))
             if self.numOperands == 2:
+                # Second operand (if any) is the branch address.
                 context.interpArgTypes[acindex+1] = InterpretiveType.BRANCH
                 context.log(5, "interpretive: switch branch detected, [%d]" % (acindex+1))
 
     def parse_Shift(self, context, operands):
-        # Store argcode in appropriate slot in context.interpArgCodes.
+        # Store switch code in appropriate slot in context.interpArgCodes.
         if self.numOperands > 0:
             acindex = context.interpArgs - 1
             context.interpArgCodes[acindex] = self.switchcode
@@ -390,6 +403,7 @@ class Interpretive(Opcode):
     def parse_Branch(self, context, operands):
         context.log(5, "interpretive: branch, %d operands" % (self.numOperands))
         if self.numOperands > 0:
+            # First operand is the branch address.
             if self.numOperands == 2:
                 acindex = context.interpArgs - 2
             else:
