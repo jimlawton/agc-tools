@@ -412,3 +412,9 @@ class Interpretive(Opcode):
             context.interpArgTypes[acindex] = InterpretiveType.BRANCH
             context.log(5, "interpretive: branch detected, [%d]=%05o" % (acindex, context.interpArgCodes[acindex]))
 
+    def parse_SSP(self, context, operands):
+        # SSP's 2nd operand is branch address.
+        acindex = context.interpArgs - 1
+        context.interpArgTypes[acindex] = InterpretiveType.BRANCH
+        context.log(5, "interpretive: SSP branch detected, [%d]" % (acindex))
+
