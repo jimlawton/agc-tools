@@ -218,7 +218,7 @@ class Interpretive(Opcode):
         context.currentRecord.complete = True
         context.currentRecord.type = self.type
 
-        if (self.methodName == "Store" or self.methodName == "StoreLoad") and context.complementNext:
+        if (self.mnemonic == "STORE" or self.mnemonic == "STCALL" or self.methodName == "StoreLoad") and context.complementNext:
             context.complementNext = False
 
         if context.currentRecord.packingType != PackingType.OPERAND_ONLY:
