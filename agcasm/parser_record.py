@@ -93,7 +93,10 @@ class ParserRecord:
             else:
                 text += 8 * ' '
             if self.target:
-                text += self.context.memmap.pseudoToSegmentedString(self.target) + ' '
+                if self.target >= 0:
+                    text += self.context.memmap.pseudoToSegmentedString(self.target) + ' '
+                else:
+                    text += "  %05o " % self.target
             else:
                 text += 8 * ' '
             if self.isGenerative():
