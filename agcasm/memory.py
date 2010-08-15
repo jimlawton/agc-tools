@@ -222,13 +222,19 @@ class MemoryMap:
                 retval |= 002000
         return retval
 
-    def pseudoToInterpretiveAddress(self, pa):
+    def pseudoToInterpretiveAddress(self, pa, size=14):
         # Convert pseudo address to interpretive encoded form.
         (bank, offset) = self.pseudoToBankOffset(pa)
         if self.isErasable(pa):
             retval = 0400 * bank + offset
         else:
             retval = 02000 * bank + offset
+        if size == 15:
+            # Branch instructions can use 15-bit address.
+            retval &= 077777
+        else:
+            # All others use 14-bit.
+            retval &= 037777
         return retval
 
     def pseudoToBank(self, pa):
