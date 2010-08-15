@@ -76,6 +76,8 @@ def main():
         totalTime += delta
         print "Pass 1: %3.2f seconds" % delta
 
+    context.saveCurrentBank()
+
     assembler.info("Resolving symbols...", source=False)
     startTime = time.time()
     assembler.resolve()
@@ -91,7 +93,6 @@ def main():
     print >>listfile, "-------"
     for record in assembler.context.records:
         print >>listfile, record
-    listfile.close()
     if options.debug:
         endTime = time.time()
         delta = endTime - startTime
@@ -104,7 +105,6 @@ def main():
     print >>symtabfile, "Symbol Table"
     print >>symtabfile, "------------"
     assembler.context.symtab.printTable(symtabfile)
-    symtabfile.close()
     if options.debug:
         endTime = time.time()
         delta = endTime - startTime
@@ -198,14 +198,44 @@ def main():
     ocode = ObjectCode(context)
     ocode.generateBuggers()
     ocode.write(binfile)
-    binfile.close()
     if options.debug:
         endTime = time.time()
         delta = endTime - startTime
         totalTime += delta
         print "Binary generation: %3.2f seconds" % delta
 
+    assembler.info("Writing rope usage...", source=False)
+    startTime = time.time()
+    print >>listfile
+    print >>listfile
+    print >>listfile, "Bank Usage"
+    print >>listfile, "----------"
+    print >>listfile
+    ocode.writeUsage(listfile)
+    if options.debug:
+        endTime = time.time()
+        delta = endTime - startTime
+        totalTime += delta
+        print "Rope usage: %3.2f seconds" % delta
+
+    assembler.info("Writing rope image listing...", source=False)
+    startTime = time.time()
+    print >>listfile
+    print >>listfile
+    print >>listfile, "Rope Image Listing"
+    print >>listfile, "------------------"
+    print >>listfile
+    ocode.writeListing(listfile)
+    if options.debug:
+        endTime = time.time()
+        delta = endTime - startTime
+        totalTime += delta
+        print "Rope image listing: %3.2f seconds" % delta
+
     assembler.info("Done.", source=False)
+    listfile.close()
+    symtabfile.close()
+    binfile.close()
     logfile.close()
 
     if options.debug:
