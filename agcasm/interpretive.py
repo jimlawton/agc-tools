@@ -282,16 +282,6 @@ class Interpretive(Opcode):
                 if operand.value >= 0:
                     code = context.memmap.pseudoToInterpretiveAddress(operand.value)
                     context.log(5, "interpretive: positive normal operand [%d] code=%05o" % (acindex, code))
-                    # Positive operand value.
-                    #if context.memmap.isErasable(operand.value):
-                    #    context.log(5, "interpretive: erasable, incrementing code=%05o" % (code))
-                    #    code += 1
-                    #elif context.memmap.isFixed(operand.value) and (indexreg == 0 and operand.refType != RecordType.CONST and operand.refType != RecordType.INTERP):
-                    #    context.log(5, "interpretive: fixed, incrementing code=%05o" % (code))
-                    #    code += 1
-                    #if operand.length > 1:
-                    #    context.log(5, "interpretive: operand length > 1, incrementing code=%05o by %d" % (code, operand.length - 1))
-                    #    code += operand.length - 1
                 else:
                     code = operand.value
                     context.log(5, "interpretive: negative normal operand [%d] value=%05o" % (acindex, code))
