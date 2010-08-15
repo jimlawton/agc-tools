@@ -274,7 +274,7 @@ class Interpretive(Opcode):
                     code &= 077777
                     context.log(5, "interpretive: shift operand |=%05o, code=%05o" % (context.interpArgCodes[acindex] << 6, code))
                 elif context.currentRecord.interpArgType == InterpretiveType.INDEX:
-                    code = operand.value
+                    code = context.memmap.pseudoToInterpretiveAddress(operand.value)
                     context.log(5, "interpretive: index operand value=%05o [%d] code=%05o" % (operand.value, acindex, code))
                 else:
                     context.error("invalid interpretive argument type")
