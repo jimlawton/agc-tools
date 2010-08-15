@@ -225,6 +225,9 @@ class MemoryMap:
     def pseudoToInterpretiveAddress(self, pa, size=14):
         # Convert pseudo address to interpretive encoded form.
         (bank, offset) = self.pseudoToBankOffset(pa)
+        if bank > 037:
+            # Superbank 1
+            bank -= 010
         if self.isErasable(pa):
             retval = 0400 * bank + offset
         else:
