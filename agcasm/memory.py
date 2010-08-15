@@ -309,7 +309,7 @@ class MemoryMap:
     def getBanks(self, memtype, sorted=False):
         banks = []
         for startaddr in self.addresses:
-            if self.memmap[startaddr].memtype == MemoryType.FIXED:
+            if self.memmap[startaddr].memtype == memtype:
                 banks.append(self.memmap[startaddr].banknum)
         if sorted:
             banks.sort()
