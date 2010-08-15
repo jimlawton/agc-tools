@@ -48,12 +48,13 @@ class SymbolTableEntry:
         else:
             text += "%-10s" % self.context.memmap.pseudoToString(self.value)
             text += "%s " % self.context.memmap.pseudoToSegmentedString(self.value)
-        if self.symbolic:
-            text += "%-32s " % (' '.join(self.symbolic))
-        else:
-            text += 33 * ' '
-        if self.recordIndex != None:
-            text += " %s" % (self.context.records[self.recordIndex].srcline)
+        if self.context.debug:
+            if self.symbolic:
+                text += "%-32s " % (' '.join(self.symbolic))
+            else:
+                text += 33 * ' '
+            if self.recordIndex != None:
+                text += " %s" % (self.context.records[self.recordIndex].srcline)
         return text
 
 class SymbolTable:
