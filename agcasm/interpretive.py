@@ -280,7 +280,10 @@ class Interpretive(Opcode):
                     code = context.memmap.pseudoToInterpretiveAddress(operand.value)
                     context.log(5, "interpretive: index operand, value=%05o [%d] code=%05o" % (operand.value, acindex, code))
                 elif context.currentRecord.interpArgType == InterpretiveType.BRANCH:
-                    code = context.memmap.pseudoToInterpretiveAddress(operand.value, size=15)
+                    if operand.value < 0:
+                        code = (operand.value - 1) & 077777
+                    else:
+                        code = context.memmap.pseudoToInterpretiveAddress(operand.value, size=15)
                     context.log(5, "interpretive: branch operand, value=%05o [%d] code=%05o" % (operand.value, acindex, code))
                 else:
                     context.error("invalid interpretive argument type")
