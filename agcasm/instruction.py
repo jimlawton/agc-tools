@@ -50,6 +50,8 @@ class Instruction(Opcode):
                         pa = expr.value
                         if pa < 0:
                             # Negative, relative address.
+                            if self.mnemonic == "TC":
+                                pa -= 1
                             context.currentRecord.code = [ (self.opcode + pa) & 077777 ]
                         else:
                             if context.debug:
