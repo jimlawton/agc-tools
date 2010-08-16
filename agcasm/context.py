@@ -35,8 +35,8 @@ class Context:
         self.srcfile = None
         self.opcodes = OPCODES[self.arch]
         self.symtab = SymbolTable(self)
-        self.linenum = 0
-        self.global_linenum = 0
+        self.linenum = 1
+        self.global_linenum = 1
         self.mode = OpcodeType.BASIC
         self.memmap = MemoryMap(arch, verbose)
         self.lastEbank = 0
