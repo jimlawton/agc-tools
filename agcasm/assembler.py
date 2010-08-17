@@ -74,6 +74,7 @@ class Assembler:
             comment = None
 
             if line.startswith('$'):
+                self.context.linenum = 0
                 modname = line[1:].split()[0]
                 if not os.path.isfile(modname):
                     self.fatal("File \"%s\" does not exist" % modname, source=False)
@@ -112,7 +113,11 @@ class Assembler:
                     continue
                 fields = fields[1:]
             else:
-                if line.startswith(' ') and line.strip(' ').startswith('+') or line.strip(' ').startswith('-'):
+                if line.startswith(' +') or line.startswith('\t+') or line.startswith(' \t+') or \
+                   line.startswith(' -') or line.startswith('\t-') or line.startswith(' \t-'):
+                    # It's a pseudo-label.
+                    if not line.startswith(' +') and not line.startswith(' -'):
+                        self.context.warn("bad indentation")
                     pseudolabel = fields[0]
                     fields = fields[1:]
             try:
@@ -255,10 +260,10 @@ class Assembler:
     def error(self, text, source=True):
         msg = ""
         if source:
-            msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, self.context.global_linenum)
+            msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.linenum, self.context.global_linenum)
         msg += "error: %s" % (text)
         if source:
-            msg += "\n%s" % self.context.currentRecord.srcline
+            msg += "\n%s" % self.context.srcline
         print >>sys.stderr, msg
         self.log(1, msg)
         self.context.errors += 1
@@ -269,10 +274,10 @@ class Assembler:
     def warn(self, text, source=True):
         msg = ""
         if source:
-            msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, self.context.global_linenum)
+            msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.linenum, self.context.global_linenum)
         msg += "warning: %s" % (text)
         if source:
-            msg += "\n%s" % self.context.currentRecord.srcline
+            msg += "\n%s" % self.context.srcline
         print >>sys.stderr, msg
         self.log(2, msg)
         self.context.warnings += 1
@@ -280,10 +285,10 @@ class Assembler:
     def info(self, text, source=True):
         msg = ""
         if source:
-            msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.currentRecord.linenum, self.context.global_linenum)
+            msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.linenum, self.context.global_linenum)
         msg += "%s" % (text)
         if source:
-            msg += "\n%s" % self.context.currentRecord.srcline
+            msg += "\n%s" % self.context.srcline
         if self.context.verbose:
             print msg
         self.log(3, msg)
