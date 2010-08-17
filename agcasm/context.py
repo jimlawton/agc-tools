@@ -24,9 +24,10 @@ from opcodes import OPCODES
 from symbol_table import SymbolTable
 
 class Context:
-    def __init__(self, arch, listfile, binfile, verbose=False, debug=False, logLevel=0, logfile=None):
-        self.verbose = verbose
-        self.debug = debug
+    def __init__(self, arch, listfile, binfile, options, logLevel=0, logfile=None):
+        self.options = options
+        self.verbose = options.verbose
+        self.debug = options.debug
         self.logfile = logfile
         self.assembler = None
         self.arch = arch
@@ -38,7 +39,7 @@ class Context:
         self.linenum = 1
         self.global_linenum = 1
         self.mode = OpcodeType.BASIC
-        self.memmap = MemoryMap(arch, verbose)
+        self.memmap = MemoryMap(arch, options.verbose)
         self.lastEbank = 0
         self.previousWasEbankEquals = False
         self.code = []
@@ -58,6 +59,7 @@ class Context:
         self.reparse = False
         self.passnum = 0
         self.complementNext = False     # STADR complements the following instruction(s).
+        self.messages = []
 
         # Log level:
         #  0 - None.
@@ -112,6 +114,7 @@ class Context:
         self.ebank = 0
         self.fbank = 0
         self.complementNext = False
+        self.messages = []
 
     def load(self, record, partial=True):
         self.linenum = record.linenum
@@ -127,6 +130,7 @@ class Context:
             self.super = record.super
             self.ebank = record.ebank
             self.fbank = record.fbank
+            self.messages = record.messages
 
     def save(self, record, partial=True):
         record.linenum = self.linenum
@@ -142,6 +146,7 @@ class Context:
             record.super = self.super
             record.ebank = self.ebank
             record.fbank = self.fbank
+            record.messages = self.messages
 
     def setLoc(self, loc):
         if not self.memmap.isValid(loc):

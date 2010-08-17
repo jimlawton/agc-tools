@@ -67,6 +67,7 @@ class Assembler:
             self.context.global_linenum += 1
             self.context.code = None
             self.context.addSymbol = True
+            self.context.messages = []
             label = None
             pseudolabel = None
             opcode = None
@@ -261,7 +262,8 @@ class Assembler:
         msg = ""
         if source:
             msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.linenum, self.context.global_linenum)
-        msg += "error: %s" % (text)
+        msg += "error, %s" % (text)
+        self.context.messages.append('\n' + msg + ':')
         if source:
             msg += "\n%s" % self.context.srcline
         print >>sys.stderr, msg
@@ -276,6 +278,7 @@ class Assembler:
         if source:
             msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.linenum, self.context.global_linenum)
         msg += "warning: %s" % (text)
+        self.context.messages.append('\n' + msg + ':')
         if source:
             msg += "\n%s" % self.context.srcline
         print >>sys.stderr, msg

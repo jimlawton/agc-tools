@@ -58,6 +58,7 @@ class ParserRecord:
         self.interpArgIncrement = False
         self.packingType = None
         self.complementNext = False
+        self.messages = []
 
     def isGenerative(self):
         return RecordType.isGenerative(self.type)
@@ -76,9 +77,14 @@ class ParserRecord:
         self.previousWasEbankEquals = self.context.previousWasEbankEquals
         self.interpArgs = self.context.interpArgs
         self.interpArgCount = self.context.interpArgCount
+        if self.context.options.syntaxOnly or (not self.context.options.syntaxOnly and self.context.passnum > 0):
+            self.messages = self.context.messages
 
     def __str__(self):
         text = ""
+        if len(self.messages) > 0:
+            for msg in self.messages:
+                text += "%s\n" % msg
         if self.type == RecordType.INCLUDE:
             text += "\n\n"
         text += "%06d,%06d " % (self.global_linenum, self.linenum)
@@ -132,4 +138,6 @@ class ParserRecord:
                 else:
                     text += 13 * ' '
         text += "   %s" % self.srcline
+        if len(self.messages) > 0:
+            text += '\n'
         return text

@@ -55,7 +55,7 @@ def main():
     binfile = open(args[0] + ".bin", 'wb')
     logfile = open(args[0].split('.')[0] + ".log", 'w')
 
-    context = Context(Architecture.AGC4_B2, listfile, binfile, options.verbose, options.debug, int(options.logLevel), logfile)
+    context = Context(Architecture.AGC4_B2, listfile, binfile, options, int(options.logLevel), logfile)
     assembler = Assembler(context)
     context.assembler = assembler
 
