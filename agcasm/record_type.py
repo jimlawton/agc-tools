@@ -124,6 +124,8 @@ class RecordType:
 
     @classmethod
     def toString(cls, rectype):
+        if rectype == None:
+            rectype = RecordType.NONE
         textdict = {
             RecordType.NONE:      "   ",
             RecordType.INCLUDE:   "INC",
