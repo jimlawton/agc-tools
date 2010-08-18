@@ -115,6 +115,7 @@ def main():
             print "Write symbol table: %3.2f seconds" % delta
 
     assembler.info("%d errors, %d warnings" % (context.errors, context.warnings), source=False)
+    print "%d errors, %d warnings" % (context.errors, context.warnings)
 
     if not options.syntaxOnly:
         if options.test:
