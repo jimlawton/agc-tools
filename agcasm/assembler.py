@@ -262,7 +262,7 @@ class Assembler:
         msg = ""
         if source:
             msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.linenum, self.context.global_linenum)
-        msg += "error, %s" % (text)
+        msg += "error: %s" % (text)
         self.context.messages.append('\n' + msg + ':')
         if source:
             msg += "\n%s" % self.context.srcline
