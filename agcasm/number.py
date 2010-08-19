@@ -55,10 +55,6 @@ class Number:
                 self._getOctal(text)
             elif self.DECIMAL_RE.search(text) or self.FLOAT_RE.search(text):
                 self._getDecimal(text)
-            else:
-                print >>sys.stderr, "Error, invalid number format \"%s\", neither octal or decimal" % (text)
-                sys.exit()
-
 
     def scaleFactor(self, text):
         retval = 1.0
