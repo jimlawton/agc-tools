@@ -70,7 +70,13 @@ def main():
 
     startTime = time.time()
     for arg in args:
-        assembler.assemble(arg)
+        try:
+            assembler.assemble(arg)
+        except:
+            print >>sys.stderr
+            print >>sys.stderr, "EXCEPTION:"
+            print >>sys.stderr, context
+            raise
     if options.debug:
         endTime = time.time()
         delta = endTime - startTime
@@ -82,7 +88,11 @@ def main():
     if not options.syntaxOnly:
         assembler.info("Resolving symbols...", source=False)
         startTime = time.time()
-        assembler.resolve()
+        try:
+            assembler.resolve()
+        except:
+            context.log(1, "EXCEPTION:\n%s" % context)
+            raise
         if options.debug:
             endTime = time.time()
             delta = endTime - startTime
