@@ -22,6 +22,7 @@ from memory import MemoryMap, MemoryType
 from opcode import OpcodeType
 from opcodes import OPCODES
 from symbol_table import SymbolTable
+from record_type import RecordType
 
 class Context:
     def __init__(self, arch, listfile, binfile, options, logLevel=0, logfile=None):
@@ -36,8 +37,8 @@ class Context:
         self.srcfile = None
         self.opcodes = OPCODES[self.arch]
         self.symtab = SymbolTable(self)
-        self.linenum = 1
-        self.global_linenum = 1
+        self.linenum = 0
+        self.global_linenum = 0
         self.mode = OpcodeType.BASIC
         self.memmap = MemoryMap(arch, options.verbose)
         self.lastEbank = 0
@@ -88,6 +89,49 @@ class Context:
 
         self.errors = 0
         self.warnings = 0
+
+    def __str__(self):
+        text = ""
+        text += "options: %s\n" % self.options
+        text += "logfile: %s" % self.logfile
+        text += "arch=%d\n" % self.arch
+        text += "listfile: %s\n" % self.listfile
+        text += "binfile: %s\n" % self.binfile
+        text += "srcfile: %s\n" % self.srcfile
+        text += "linenum=%d\n" % self.linenum
+        text += "global_linenum=%d\n" % self.global_linenum
+        text += "mode=%d\n" % self.mode
+        text += "lastEbank=%s\n" % self.lastEbank
+        text += "previousWasEbankEquals=%s\n" % self.previousWasEbankEquals
+        text += "code: %s\n" % self.code
+        text += "srcline: %s\n" % self.srcline
+        text += "interpMode=%s\n" % self.interpMode
+        text += "interpInstCount=%d\n" % self.interpInstCount
+        text += "interpArgs=%d\n" % self.interpArgs
+        text += "interpArgCount=%d\n" % self.interpArgCount
+        text += "interpArgTypes: %s\n" % self.interpArgTypes
+        text += "interpArgCodes: %s\n" % self.interpArgCodes
+        text += "interpArgIncrement: %s\n" % self.interpArgIncrement
+        text += "indexed=%s\n" % self.indexed
+        text += "currentRecord: %s\n" % self.currentRecord
+        text += "currentRecord.type:  %s (%d)\n" % (RecordType.toString(self.currentRecord.type), self.currentRecord.type)
+        text += "previousRecord: %s\n" % self.previousRecord
+        text += "previousRecord.type: %s (%d)\n" % (RecordType.toString(self.previousRecord.type), self.previousRecord.type)
+        text += "addSymbol=%s\n" % self.addSymbol
+        text += "reparse=%s\n" % self.reparse
+        text += "passnum=%d\n" % self.passnum
+        text += "complementNext=%s\n" % self.complementNext
+        text += "messages: %s\n" % self.messages
+        text += "logLevel=%d\n" % self.logLevel
+        text += "loc=%06o\n" % self.loc
+        text += "ebank=%02o\n" % self.ebank
+        text += "fbank=%02o\n" % self.fbank
+        text += "super=%s\n" % self.super
+        text += "ebankloc: %s\n" % self.ebankloc
+        text += "fbankloc: %s\n" % self.fbankloc
+        text += "errors=%d\n" % self.errors
+        text += "warnings=%d\n" % self.warnings
+        return text
 
     def reset(self):
         self.linenum = 0
