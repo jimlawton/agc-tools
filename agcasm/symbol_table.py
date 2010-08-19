@@ -72,9 +72,9 @@ class SymbolTable:
                 self.symbols[name].recordIndex = self.context.global_linenum - 1
                 if value == None:
                     self.undefs.append(name)
-                    self.context.log(6, "[%05d] added undefined symbol %-8s" % (len(self.symbols), name))
+                    self.context.log(6, "[%05d] added undefined symbol %-8s at index %d" % (len(self.symbols), name, self.symbols[name].recordIndex))
                 else:
-                    self.context.log(6, "[%05d] added   defined symbol %-8s %s" % (len(self.symbols), name, self.context.memmap.pseudoToSegmentedString(value)))
+                    self.context.log(6, "[%05d] added   defined symbol %-8s %s at index %d" % (len(self.symbols), name, self.context.memmap.pseudoToSegmentedString(value), self.symbols[name].recordIndex))
 
     def update(self, name=None, symbolic=None, value=None, length=1, type=None):
         if name != None:
