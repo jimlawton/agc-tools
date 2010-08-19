@@ -74,6 +74,8 @@ class Assembler:
             operands = None
             comment = None
 
+            self.context.log(7, "assemble: %s:%d (%d) %s" % (self.context.srcfile, self.context.linenum, self.context.global_linenum, self.context.srcline))
+
             if line.startswith('$'):
                 self.context.linenum = 0
                 modname = line[1:].split()[0]
@@ -169,8 +171,6 @@ class Assembler:
             self.context.log(7, "parse: label=%s opcode=%s operands=%s" % (label, opcode, operands))
 
             preloc = self.context.loc
-
-            self.context.log(5, "interpArgIncrement: %s" % (self.context.interpArgIncrement))
 
             if opcode == None:
                 Interpretive.parseOperand(self.context, operands)
