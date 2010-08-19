@@ -285,7 +285,7 @@ class MemoryMap:
             if bankdesc:
                 (bank, offset) = self.pseudoToSegmented(pa)
                 if bank == None or offset == None:
-                    text = "??????   "
+                    text = "?????? "
                 else:
                     if bankdesc.memtype == MemoryType.ERASABLE:
                         bankstr = "E%1o" % bankdesc.banknum
