@@ -97,6 +97,7 @@ class SymbolTable:
                 self.context.log(3, "all symbols resolved")
                 break
             for symbol in self.undefs:
+                self.context.log(3, "attempting to resolve symbol \"%s\" (%d)" % (symbol, self.symbols[symbol].recordIndex))
                 if not self.symbols[symbol].isComplete():
                     self.context.assembler.parseRecord(self.symbols[symbol].recordIndex)
                     if self.symbols[symbol].isComplete():
