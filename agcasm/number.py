@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim Lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of pyagc. 
+#
+# This file is part of pyagc.
 #
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,17 +22,17 @@ import re
 import sys
 
 class Number:
-    
+
     OCTAL   = 0
     DECIMAL = 1
-    
+
     OCTAL_RE   = re.compile("^[+-]*[0-7]+$")
-    DECIMAL_RE = re.compile("^[+-]*[0-9]+[D]$")
+    DECIMAL_RE = re.compile("^[+-]*[0-9]+[D]*[ ]*(E[+-]*[0-9]+)*[ ]*(B[+-]*[0-9]+)*[*]*$")
     FLOAT_RE   = re.compile("^[+-]*[0-9]*\.[0-9]+[ ]*(E[+-]*[0-9]+)* *(B[+-]*[0-9]+)*[*]*$")
-    
+
     def __init__(self, text, forcetype=None, size=1):
         self.valid = False
-        self.text = text
+        self.text = text.strip()
         self.type = None
         self.size = size
 
@@ -44,7 +44,7 @@ class Number:
         # Trim trailing asterisk, if any.
         if text.endswith('*'):
             text = text[:-1]
-            
+
         if forcetype != None:
             if forcetype == Number.OCTAL:
                 self._getOctal(text)
@@ -55,6 +55,10 @@ class Number:
                 self._getOctal(text)
             elif self.DECIMAL_RE.search(text) or self.FLOAT_RE.search(text):
                 self._getDecimal(text)
+            else:
+                print >>sys.stderr, "Error, invalid number format \"%s\", neither octal or decimal" % (text)
+                sys.exit()
+
 
     def scaleFactor(self, text):
         retval = 1.0
@@ -67,11 +71,44 @@ class Number:
     def _getOctal(self, text):
         negate = False
         self.type = Number.OCTAL
-        if text.startswith('-'):
+        fields = text.split()
+        bscale = 0
+        escale = 0
+        mantissa = text
+        skip = False
+        if len(fields) > 1:
+            mantissa = None
+            # Handle E and B scaling.
+            for i in range(len(fields)):
+                if skip:
+                    skip = False
+                    continue
+                field = fields[i]
+                if field.startswith('B'):
+                    bfield = field
+                    if field == 'B':
+                        bfield += fields[i+1]
+                        skip = True
+                    bscale = self.scaleFactor(bfield)
+                elif field.startswith('E'):
+                    efield = field
+                    if field == 'E':
+                        efield += fields[i+1]
+                        skip = True
+                    escale = self.scaleFactor(efield)
+                else:
+                    mantissa = field
+        else:
+            if not '.' in mantissa:
+                if self.size == 1:
+                    bscale = self.scaleFactor("B-14")
+                else:
+                    bscale = self.scaleFactor("B-28")
+        if mantissa.startswith('-'):
             negate = True
-        if text.startswith('-') or text.startswith('+'):
-            text = text[1:]
-        value = int(text, 8)
+        if mantissa.startswith('-') or mantissa.startswith('+'):
+            mantissa = mantissa[1:]
+        value = int(mantissa, 8)
         if self.size == 1:
             self.value = value
             if negate:
@@ -101,7 +138,7 @@ class Number:
                 if skip:
                     skip = False
                     continue
-                field = fields[i] 
+                field = fields[i]
                 if field.startswith('B'):
                     bfield = field
                     if field == 'B':
@@ -234,7 +271,7 @@ def test(numtype, size, data):
             text += "Float"
 
     print "Testing %s..." % text
-    
+
     for value in data:
         if size == 1:
             if numtype == Number.OCTAL:
@@ -246,27 +283,63 @@ def test(numtype, size, data):
                 testval = DoubleOctal(value)
             elif numtype == Number.DECIMAL:
                 testval = DoubleDecimal(value)
-  
+
         if testval.isValid():
             if size == 1:
                 if testval.value != data[value]:
                     print "FAIL: \"%s\", %06o != %06o" % (value, testval.value, data[value])
                     failed += 1
                 else:
-                    print "PASS: \"%s\", %06o == %06o" % (value, testval.value, data[value])
+                    #print "PASS: \"%s\", %06o == %06o" % (value, testval.value, data[value])
                     passed += 1
             else:
                 if testval.value[0] != data[value][0] or testval.value[1] != data[value][1]:
-                    print "FAIL: \"%s\", (%06o,%06o) != (%06o,%06o)" % (value, testval.value[0], testval.value[1], data[value][0], data[value][1])
+                    print "FAIL: \"%s\", actual (%06o,%06o) != expected (%06o,%06o)" % (value, testval.value[0], testval.value[1], data[value][0], data[value][1])
                     failed += 1
                 else:
-                    print "PASS: \"%s\", (%06o,%06o) == (%06o,%06o)" % (value, testval.value[0], testval.value[1], data[value][0], data[value][1])
+                    #print "PASS: \"%s\", actual (%06o,%06o) == expected (%06o,%06o)" % (value, testval.value[0], testval.value[1], data[value][0], data[value][1])
                     passed += 1
         else:
             print "FAIL: \"%s\" failed to parse" % (value)
             failed += 1
 
     print "%s: %d passed, %d failed of %d total" % (text, passed, failed, passed+failed)
+    print
+    return (passed, failed)
+
+def testGeneral(data):
+    passed = 0
+    failed = 0
+
+    print "Testing unspecified formats..."
+
+    for value in data:
+        testval = Number(value)
+        if testval.isValid():
+            try:
+                x = len(testval.value)
+                size = 2
+            except:
+                size = 1
+            if size == 1:
+                if testval.value != data[value]:
+                    print "FAIL: \"%s\", actual %06o != expected %06o" % (value, testval.value, data[value])
+                    failed += 1
+                else:
+                    #print "PASS: \"%s\", actual %06o == expected %06o" % (value, testval.value, data[value])
+                    passed += 1
+            else:
+                if testval.value[0] != data[value][0] or testval.value[1] != data[value][1]:
+                    print "FAIL: \"%s\", actual (%06o,%06o) != expected (%06o,%06o)" % (value, testval.value[0], testval.value[1], data[value][0], data[value][1])
+                    failed += 1
+                else:
+                    #print "PASS: \"%s\", actual (%06o,%06o) == expected (%06o,%06o)" % (value, testval.value[0], testval.value[1], data[value][0], data[value][1])
+                    passed += 1
+        else:
+            print "FAIL: \"%s\" failed to parse" % (value)
+            failed += 1
+
+    print "Unspecified: %d passed, %d failed of %d total" % (passed, failed, passed+failed)
     print
     return (passed, failed)
 
@@ -280,7 +353,8 @@ def test_sp_oct():
         "10000":            010000,
         "22000":            022000,
         "77777":            077777,
-        "1400":             001400
+        "1400":             001400,
+        "+10":              000010,
     }
     return test(Number.OCTAL, 1, testdata)
 
@@ -310,8 +384,8 @@ def test_sp_dec():
         "+120*":            000170,
         "-0 B-14":          077777,
         "-0":               077777,
-        "1000":             001750,  
-        "1000 B-14":        001750,  
+        "1000":             001750,
+        "1000 B-14":        001750,
         "-71 B-14":         077670,
         "-71":              077670,
         "2":                000002,
@@ -319,10 +393,12 @@ def test_sp_dec():
         "9000":             021450,
         "7199":             016037,
         "-07199":           061740,
-        "-0000":            077777
+        "-0000":            077777,
+        "+8":               000010,
+        "8":                000010
     }
     return test(Number.DECIMAL, 1, testdata)
-            
+
 def test_dp_oct():
     testdata = {
         "0106505603":       (001065, 005603),
@@ -374,11 +450,66 @@ def test_dp_dec():
     }
     return test(Number.DECIMAL, 2, testdata)
 
+def test_general():
+    testdata = {
+        "0":                000000,
+        "+0":               000000,
+        "-0":               077777,
+        "1":                000001,
+        "-1":               077776,
+        "10000":            010000,
+        "22000":            022000,
+        "77777":            077777,
+        "1400":             001400,
+        "+10":              000010,
+        "16372":            016372,
+        "16372  B-14":      037764,
+        "16372D":           037764,
+        "16372D  B-14":     037764,
+        "-.38888":          063434,
+        "-83":              077654,
+        "-83 B-14":         077654,
+        "-79":              077660,
+        "-79 B-14":         077660,
+        "41":               000041,
+        "41 B-14":          000051,
+        "76":               000076,
+        "76 B-14":          000114,
+        "52":               000052,
+        "52 B-14":          000064,
+        "52D":              000064,
+        "52D B-14":         000064,
+        "-30":              077747,
+        "-30 B-14":         077741,
+        "120":              000120,
+        "120 B-14":         000170,
+        "120D":             000170,
+        "+120D":            000170,
+        "+120":             000120,
+        "+120D*":           000170,
+        "+120*":            000120,
+        "-0 B-14":          077777,
+        "-0":               077777,
+        "1000":             001000,
+        "1000 B-14":        001750,
+        "-71 B-14":         077670,
+        "-71":              077706,
+        "2":                000002,
+        "2 B-14":           000002,
+        "9000":             021450,
+        "7199":             016037,
+        "-07199":           061740,
+        "-0000":            077777,
+        "+8":               000010,
+        "8":                000010
+    }
+    return testGeneral(testdata)
+
 if __name__=="__main__":
     print "AGC Number classes tester..."
 
     passed = failed = 0
-    
+
     (passed, failed) = test_sp_oct()
 
     (pass2, fail2) = test_sp_dec()
@@ -392,7 +523,11 @@ if __name__=="__main__":
     (pass4, fail4) = test_dp_dec()
     passed += pass4
     failed += fail4
-    
+
+    (pass5, fail5) = test_general()
+    passed += pass5
+    failed += fail5
+
     print "Overall: %d passed, %d failed of %d total" % (passed, failed, passed+failed)
-     
+
     sys.exit()
