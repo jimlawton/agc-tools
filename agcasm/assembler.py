@@ -57,6 +57,7 @@ class Assembler:
         self.context.linenum = 0
         sfile = open(srcfile)
         lines = sfile.readlines()
+        self.context.log(7, "assemble: file %s, lines %d" % (srcfile, len(lines)))
         sfile.close()
         for line in lines:
             if line.endswith('\n'):
@@ -74,16 +75,16 @@ class Assembler:
             operands = None
             comment = None
 
-            self.context.log(7, "assemble: %s:%d (%d) %s" % (self.context.srcfile, self.context.linenum, self.context.global_linenum, self.context.srcline))
+            self.context.log(7, "assemble: %d/%d (%d) \"%s\"" % (self.context.linenum, len(lines), self.context.global_linenum, self.context.srcline))
 
             if line.startswith('$'):
-                self.context.linenum = 0
                 modname = line[1:].split()[0]
                 if not os.path.isfile(modname):
                     self.fatal("File \"%s\" does not exist" % modname, source=False)
                 record = self._makeNewRecord(srcline, RecordType.INCLUDE, None, None, None, None, comment)
                 record.complete = True
                 self.context.records.append(record)
+                self.context.log(7, "assemble: added record %d" % (len(self.context.records) - 1))
                 self.assemble(modname)
                 continue
 
@@ -91,6 +92,7 @@ class Assembler:
                 record = self._makeNewRecord(srcline, RecordType.BLANK, None, None, None, None, None)
                 record.complete = True
                 self.context.records.append(record)
+                self.context.log(7, "assemble: added record %d" % (len(self.context.records) - 1))
                 continue
 
             if line.strip().startswith('#'):
@@ -98,6 +100,7 @@ class Assembler:
                 record = self._makeNewRecord(srcline, RecordType.COMMENT, None, None, None, None, comment)
                 record.complete = True
                 self.context.records.append(record)
+                self.context.log(7, "assemble: added record %d" % (len(self.context.records) - 1))
                 continue
 
             # Real parsing starts here.
@@ -113,6 +116,7 @@ class Assembler:
                     record = self._makeNewRecord(srcline, RecordType.LABEL, label, None, None, None, comment)
                     record.complete = True
                     self.context.records.append(record)
+                    self.context.log(7, "assemble: added record %d" % (len(self.context.records) - 1))
                     continue
                 fields = fields[1:]
             else:
@@ -165,6 +169,7 @@ class Assembler:
             self.parse(label, opcode, operands)
             self.context.currentRecord.update()
             self.context.records.append(self.context.currentRecord)
+            self.context.log(7, "assemble: added record %d" % (len(self.context.records) - 1))
 
     def parse(self, label, opcode, operands):
         try:
@@ -206,11 +211,15 @@ class Assembler:
         record = self.context.records[recordIndex]
         self.context.reparse = True
         saveRecord = self.context.currentRecord
+        savePrevRecord = self.context.previousRecord
         self.context.currentRecord = record
+        if recordIndex >= 1:
+            self.context.previousRecord = self.context.records[recordIndex - 1]
         self.context.load(record, partial=False)
         self.parse(record.label, record.opcode, record.operands)
         self.context.records[recordIndex] = self.context.currentRecord
         self.context.currentRecord = saveRecord
+        self.context.previousRecord = savePrevRecord
         self.context.reparse = False
         self.context.log(6, "updated record %06d: %s" % (recordIndex, self.context.records[recordIndex]))
 
@@ -231,6 +240,7 @@ class Assembler:
             self.context.reset()
             nPrevUndefs = nUndefs
             nUndefs = 0
+            undefRecords = []
             for j in range(numRecords):
                 record = self.context.records[j]
                 if record.isParseable():
@@ -242,10 +252,14 @@ class Assembler:
                     self.context.records[j] = self.context.currentRecord
                     if not record.isComplete():
                         nUndefs += 1
+                        undefRecords.append(record)
             self.context.log(3, "%d incomplete parser records" % (nUndefs))
             if nUndefs == 0:
                 self.context.log(3, "all parser records complete")
                 break
+            else:
+                for urec in undefRecords:
+                    self.context.error("undefined symbol in line:\n%s" % urec, source=False)
             if nUndefs == nPrevUndefs:
                 self.context.error("no progress resolving parser records", source=False)
                 break
@@ -263,7 +277,7 @@ class Assembler:
         if source:
             msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.linenum, self.context.global_linenum)
         msg += "error: %s" % (text)
-        self.context.messages.append('\n' + msg + ':')
+        self.context.messages.append('\n' + msg)
         if source:
             msg += "\n%s" % self.context.srcline
         print >>sys.stderr, msg
