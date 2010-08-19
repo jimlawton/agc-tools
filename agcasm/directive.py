@@ -457,7 +457,7 @@ class Directive(Opcode):
                     bank -= 010
                 word = ((bank) << 10) | offset
                 context.currentRecord.code = [ word ]
-                context.currentRecord.target = word
+                context.currentRecord.target = pa
                 context.currentRecord.operandType = expr.refType
                 context.currentRecord.complete = True
             else:
