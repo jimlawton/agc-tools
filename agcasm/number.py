@@ -67,44 +67,11 @@ class Number:
     def _getOctal(self, text):
         negate = False
         self.type = Number.OCTAL
-        fields = text.split()
-        bscale = 0
-        escale = 0
-        mantissa = text
-        skip = False
-        if len(fields) > 1:
-            mantissa = None
-            # Handle E and B scaling.
-            for i in range(len(fields)):
-                if skip:
-                    skip = False
-                    continue
-                field = fields[i]
-                if field.startswith('B'):
-                    bfield = field
-                    if field == 'B':
-                        bfield += fields[i+1]
-                        skip = True
-                    bscale = self.scaleFactor(bfield)
-                elif field.startswith('E'):
-                    efield = field
-                    if field == 'E':
-                        efield += fields[i+1]
-                        skip = True
-                    escale = self.scaleFactor(efield)
-                else:
-                    mantissa = field
-        else:
-            if not '.' in mantissa:
-                if self.size == 1:
-                    bscale = self.scaleFactor("B-14")
-                else:
-                    bscale = self.scaleFactor("B-28")
-        if mantissa.startswith('-'):
+        if text.startswith('-'):
             negate = True
-        if mantissa.startswith('-') or mantissa.startswith('+'):
-            mantissa = mantissa[1:]
-        value = int(mantissa, 8)
+        if text.startswith('-') or text.startswith('+'):
+            text = text[1:]
+        value = int(text, 8)
         if self.size == 1:
             self.value = value
             if negate:
