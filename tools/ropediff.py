@@ -150,12 +150,18 @@ def main():
     listfile = None
     if options.analyse:
         if len(lfiles) > 1:
-            print "Warning: multiple listing files, using %s!" % (lfiles[0])
+            for l in lfiles:
+                if l.endswith("MAIN.lst"):
+                    lfiles.remove(l)
+            if len(lfiles) > 1:
+                print lfiles
+                print "Warning: multiple listing files, using %s!" % (lfiles[0])
         listfile = lfiles[0]
         if not os.path.isfile(listfile):
             parser.error("File \"%s\" does not exist" % listfile)
             sys.exit(1)
         log("")
+        log("Listing: %s" % listfile)
         log("Build: %s" % os.path.basename(os.path.dirname(listfile).split('.')[0]))
 
         log("Analysing listing file... ", verbose=True)
@@ -246,7 +252,7 @@ def main():
         elems = line.split()
         if len(elems) > 0:
             if not line.startswith(' '):
-                if "## Page" in line and "scans" not in line:
+                if "# Page " in line and "scans" not in line:
                     pagenum = line.split()[3]
                     if pagenum.isdigit():
                         pagenum = int(pagenum)
