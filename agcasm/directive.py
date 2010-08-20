@@ -20,8 +20,8 @@
 
 import sys
 from number import Decimal, DoubleDecimal, Octal, DoubleOctal
-from expression import Expression, AddressExpression, Number, ExpressionType
-from opcode import Opcode, OperandType
+from expression import Expression, AddressExpression, Number
+from opcode import Opcode
 from record_type import RecordType
 
 # NOTE: Must be a new-style class.

@@ -21,7 +21,6 @@
 from record_type import RecordType
 from memory import MemoryType
 from interpretive import InterpretiveType
-from expression import ExpressionType
 
 class ParserRecord:
     """Class storing parser data."""
