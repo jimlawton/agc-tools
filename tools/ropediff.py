@@ -167,7 +167,8 @@ def main():
     modlist = []
     srcfiles = glob.glob("*.agc")
     srcfiles.remove("MAIN.agc")
-    srcfiles.remove("Template.agc")
+    if "Templates.agc" in srcfiles:
+        srcfiles.remove("Template.agc")
     for srcfile in srcfiles:
         modlist.append(srcfile.split('.')[0])
     for module in modlist:
