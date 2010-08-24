@@ -167,7 +167,6 @@ class ObjectCode:
                     text = "   %04o" % (bank * 02000 + offset)
                 else:
                     text = self.context.memmap.segmentedToString(bank, offset + 02000)
-                values = []
                 for i in range(8):
                     if offset + i == buggerIndex:
                         text += "  CKSM %05o" % self.objectCode[bank][offset+i]
