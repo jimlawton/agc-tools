@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Copyright 2010 Jim lawton <jim dot lawton at gmail dot com>
-# 
-# This file is part of yaAGC. 
+#
+# This file is part of yaAGC.
 #
 # yaAGC is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,10 +19,10 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-# Python script to check the page meta-comments in AGC source modules. 
+# Python script to check the page meta-comments in AGC source modules.
 # Looks for all .agc files in the current directory, and searches them for '## Page'
 # directives. It checks the directives to verify that there are no incorrect page numbers
-# (missing, extra, duplicated, out of sequence). 
+# (missing, extra, duplicated, out of sequence).
 #
 # While the page numbers do not form part of the original AGC source, they are very important
 # in the code conversion process, and in the debugging of errors in the rope binary files.
@@ -31,8 +31,14 @@ import sys
 import glob
 
 def main():
-    
+
     sfiles = glob.glob('*.agc')
+
+    if len(sfiles) == 0:
+        print >>sys.stderr, "Error, no AGC source files found!"
+        sys.exit(1)
+
+    errors = 0
 
     for sfile in sfiles:
         if sfile == "Template.agc":
@@ -42,7 +48,7 @@ def main():
         start = True
         for line in open(sfile):
             linenum += 1
-            if "## Page" in line and "scans" not in line:
+            if "# Page" in line and "scans" not in line and "Pages" not in line:
                 pagenum = line.split()[2]
                 if pagenum.isdigit():
                     pagenum = int(pagenum)
@@ -52,9 +58,15 @@ def main():
                     else:
                         page += 1
                     if page != pagenum:
-                        print "%s: page number mismatch, expected %d, got %d" % (sfile, page, pagenum)
+                        print >>sys.stderr, "%s, line %d: page number mismatch, expected %d, got %d" % (sfile, linenum, page, pagenum)
+                        errors += 1
                 else:
-                    print "%s: line %d, invalid page number \"%s\"" % (sfile, linenum, pagenum)
+                    print >>sys.stderr, "%s, line %d: invalid page number \"%s\"" % (sfile, linenum, pagenum)
+                    errors += 1
+    if errors != 0:
+        print >>sys.stderr, "%d errors found" % (errors)
+    else:
+        print "No errors found"
 
 if __name__=="__main__":
     sys.exit(main())
