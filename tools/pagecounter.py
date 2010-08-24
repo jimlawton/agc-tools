@@ -48,21 +48,34 @@ def main():
         start = True
         for line in open(sfile):
             linenum += 1
-            if "# Page" in line and "scans" not in line and "Pages" not in line:
-                pagenum = line.split()[2]
-                if pagenum.isdigit():
-                    pagenum = int(pagenum)
-                    if start:
-                        page = pagenum
-                        start = False
-                    else:
-                        page += 1
-                    if page != pagenum:
-                        print >>sys.stderr, "%s, line %d: page number mismatch, expected %d, got %d" % (sfile, linenum, page, pagenum)
-                        errors += 1
+            sline = line.strip()
+            if not sline.startswith('#'):
+                continue
+            if not "Page" in sline or ("Page" in sline and ("scans" in sline or "Pages" in sline)):
+                continue
+            fields = sline
+            if sline.startswith('#Page'):
+                print >>sys.stderr, "%s, line %d: invalid page number \"%s\"" % (sfile, linenum, sline)
+                errors += 1
+                fields = sline[1:]
+            elif sline.startswith('# Page'):
+                fields = sline[2:]
+            else:
+                continue
+            pagenum = fields.split()[1]
+            if pagenum.isdigit():
+                pagenum = int(pagenum)
+                if start:
+                    page = pagenum
+                    start = False
                 else:
-                    print >>sys.stderr, "%s, line %d: invalid page number \"%s\"" % (sfile, linenum, pagenum)
+                    page += 1
+                if page != pagenum:
+                    print >>sys.stderr, "%s, line %d: page number mismatch, expected %d, got %d" % (sfile, linenum, page, pagenum)
                     errors += 1
+            else:
+                print >>sys.stderr, "%s, line %d: invalid page number \"%s\"" % (sfile, linenum, pagenum)
+                errors += 1
     if errors != 0:
         print >>sys.stderr, "%d errors found" % (errors)
     else:
