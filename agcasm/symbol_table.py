@@ -19,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import sys
+import struct
 
 class SymbolTableEntry:
 
@@ -174,3 +175,8 @@ class SymbolTable:
 
     def getNumUndefs(self):
         return len(self.undefs)
+
+    def write(self, outfile=None):
+        if outfile != None:
+            pass
+            # TODO: Write binary symtab output.
