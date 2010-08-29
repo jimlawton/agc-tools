@@ -98,6 +98,9 @@ def main():
             delta = endTime - startTime
             totalTime += delta
 
+    for record in assembler.context.records:
+        record.printMessages()
+
     assembler.info("Writing listing...", source=False)
     startTime = time.time()
     print >>listfile
@@ -112,12 +115,22 @@ def main():
         print "Write listing: %3.2f seconds" % delta
 
     if not options.syntaxOnly:
+        assembler.info("Writing symbol table listing...", source=False)
+        startTime = time.time()
+        print >>listfile
+        print >>listfile, "Symbol Table"
+        print >>listfile, "------------"
+        assembler.context.symtab.printTable(listfile)
+        if options.debug:
+            endTime = time.time()
+            delta = endTime - startTime
+            totalTime += delta
+            print "Write symbol table listing: %3.2f seconds" % delta
+
+    if not options.syntaxOnly and context.errors == 0:
         assembler.info("Writing symbol table...", source=False)
         startTime = time.time()
-        print >>symtabfile
-        print >>symtabfile, "Symbol Table"
-        print >>symtabfile, "------------"
-        assembler.context.symtab.printTable(symtabfile)
+        assembler.context.symtab.write(symtabfile)
         if options.debug:
             endTime = time.time()
             delta = endTime - startTime
@@ -208,7 +221,7 @@ def main():
 
             # FIXME: End of temporary hack
 
-    if not options.syntaxOnly:
+    if not options.syntaxOnly and context.errors == 0:
         assembler.info("Writing binary output...", source=False)
         startTime = time.time()
         ocode = ObjectCode(context)
