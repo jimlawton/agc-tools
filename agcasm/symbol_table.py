@@ -22,7 +22,7 @@ import sys
 
 class SymbolTableEntry:
 
-    def __init__(self, context, name, symbolic=None, value=None, length=1, type=None):
+    def __init__(self, context, name, symbolic=None, value=None, length=1, type=None, file=None, line=0):
         self.context = context              # Assembler context.
         self.name = name                    # Symbol name.
         self.symbolic = symbolic            # Symbolic value (expression).
@@ -31,6 +31,8 @@ class SymbolTableEntry:
         self.references = []                # TODO: List of references.
         self.length = length                # Length of the addressed quantity (default is 1 word).
         self.type = type                    # Type of record the symbol refers to.
+        self.file = file
+        self.line = line
 
     def isComplete(self):
         return (self.value != None)
@@ -49,6 +51,10 @@ class SymbolTableEntry:
             text += "%-10s" % self.context.memmap.pseudoToString(self.value)
             text += "%s " % self.context.memmap.pseudoToSegmentedString(self.value)
         if self.context.debug:
+            if self.file != None and self.line != 0:
+                text += "%-42s " % ("%s:%d" % (self.file, self.line))
+            else:
+                text += 43 * ' '
             if self.symbolic:
                 text += "%-32s " % (' '.join(self.symbolic))
             else:
@@ -68,7 +74,7 @@ class SymbolTable:
             if name in self.symbols.keys():
                 self.context.error("symbol \"%s\" already defined!" % (name))
             else:
-                self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value, length, type)
+                self.symbols[name] = SymbolTableEntry(self.context, name, symbolic, value, length, type, self.context.srcfile, self.context.linenum)
                 self.symbols[name].recordIndex = self.context.global_linenum - 1
                 if value == None:
                     self.undefs.append(name)
