@@ -121,7 +121,6 @@ class Context:
         text += "reparse=%s\n" % self.reparse
         text += "passnum=%d\n" % self.passnum
         text += "complementNext=%s\n" % self.complementNext
-        text += "messages: %s\n" % self.messages
         text += "logLevel=%d\n" % self.logLevel
         text += "loc=%06o\n" % self.loc
         text += "ebank=%02o\n" % self.ebank
@@ -158,7 +157,6 @@ class Context:
         self.ebank = 0
         self.fbank = 0
         self.complementNext = False
-        self.messages = []
 
     def load(self, record, partial=True):
         self.linenum = record.linenum
@@ -174,7 +172,6 @@ class Context:
             self.super = record.super
             self.ebank = record.ebank
             self.fbank = record.fbank
-            self.messages = record.messages
 
     def save(self, record, partial=True):
         record.linenum = self.linenum
@@ -190,7 +187,6 @@ class Context:
             record.super = self.super
             record.ebank = self.ebank
             record.fbank = self.fbank
-            record.messages = self.messages
 
     def setLoc(self, loc):
         if not self.memmap.isValid(loc):
