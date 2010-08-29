@@ -21,6 +21,7 @@
 from record_type import RecordType
 from memory import MemoryType
 from interpretive import InterpretiveType
+import sys
 
 class ParserRecord:
     """Class storing parser data."""
@@ -57,7 +58,8 @@ class ParserRecord:
         self.interpArgIncrement = False
         self.packingType = None
         self.complementNext = False
-        self.messages = []
+        self.error = None
+        self.warning = None
 
     def isGenerative(self):
         return RecordType.isGenerative(self.type)
@@ -76,14 +78,23 @@ class ParserRecord:
         self.previousWasEbankEquals = self.context.previousWasEbankEquals
         self.interpArgs = self.context.interpArgs
         self.interpArgCount = self.context.interpArgCount
-        if self.context.options.syntaxOnly or (not self.context.options.syntaxOnly and self.context.passnum > 0):
-            self.messages = self.context.messages
 
+    def printMessages(self):
+        if self.error != None or self.warning != None:
+            if self.error != None:
+                print >>sys.stderr, self.error
+            if self.warning != None:
+                print >>sys.stderr, self.warning
+            print >>sys.stderr, self.srcline
+        
     def __str__(self):
         text = ""
-        if len(self.messages) > 0:
-            for msg in self.messages:
-                text += "%s\n" % msg
+        if self.error != None or self.warning != None:
+            text += '\n'
+            if self.error != None:
+                text += "%s\n" % self.error
+            if self.warning != None:
+                text += "%s\n" % self.warning
         if self.type == RecordType.INCLUDE:
             text += "\n\n"
         text += "%06d,%06d " % (self.global_linenum, self.linenum)
@@ -137,6 +148,6 @@ class ParserRecord:
                 else:
                     text += 13 * ' '
         text += "   %s" % self.srcline
-        if len(self.messages) > 0:
+        if self.error != None or self.warning != None:
             text += '\n'
         return text
