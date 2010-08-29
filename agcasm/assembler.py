@@ -268,19 +268,20 @@ class Assembler:
             delta = endTime - startTime
             print "Pass 2: %3.2f seconds" % delta
 
-    def fatal(self, text, source=True):
+    def fatal(self, text, source=True, fatal=True):
         self.error(text, source)
         sys.exit(1)
 
-    def error(self, text, source=True):
+    def error(self, text, source=True, fatal=False):
         msg = ""
         if source:
             msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.linenum, self.context.global_linenum)
         msg += "error: %s" % (text)
-        self.context.messages.append('\n' + msg)
+        self.context.currentRecord.error = msg + ':'
         if source:
             msg += "\n%s" % self.context.srcline
-        print >>sys.stderr, msg
+        if fatal:
+            print >>sys.stderr, msg
         self.log(1, msg)
         self.context.errors += 1
 
@@ -292,10 +293,10 @@ class Assembler:
         if source:
             msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.linenum, self.context.global_linenum)
         msg += "warning: %s" % (text)
-        self.context.messages.append('\n' + msg + ':')
+        self.context.currentRecord.warning = msg + ':'
         if source:
             msg += "\n%s" % self.context.srcline
-        print >>sys.stderr, msg
+        #print >>sys.stderr, msg
         self.log(2, msg)
         self.context.warnings += 1
 
