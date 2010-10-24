@@ -280,7 +280,7 @@ def testGeneral(data):
         testval = Number(value)
         if testval.isValid():
             try:
-                x = len(testval.value)
+                dummy = len(testval.value)
                 size = 2
             except:
                 size = 1
