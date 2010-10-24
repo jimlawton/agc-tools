@@ -123,8 +123,6 @@ class Assembler:
                 if line.startswith(' +') or line.startswith('\t+') or line.startswith(' \t+') or \
                    line.startswith(' -') or line.startswith('\t-') or line.startswith(' \t-'):
                     # It's a pseudo-label.
-                    if not line.startswith(' +') and not line.startswith(' -'):
-                        self.context.warn("bad indentation")
                     pseudolabel = fields[0]
                     fields = fields[1:]
             try:
@@ -166,6 +164,10 @@ class Assembler:
 
             self.context.previousRecord = self.context.currentRecord
             self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
+            if line.startswith('\t+') or line.startswith(' \t+') or \
+               line.startswith('\t-') or line.startswith(' \t-'):
+                # It's a pseudo-label.
+                self.context.warn("bad indentation")
             self.parse(label, opcode, operands)
             self.context.currentRecord.update()
             self.context.records.append(self.context.currentRecord)
