@@ -21,6 +21,7 @@
 import os
 import sys
 import time
+import traceback
 from optparse import OptionParser
 from architecture import Architecture
 from assembler import Assembler
@@ -75,6 +76,8 @@ def main():
         except:
             print >>sys.stderr
             print >>sys.stderr, "EXCEPTION:"
+            traceback.print_exc(file=sys.stderr)
+            print >>sys.stderr, "Context:"
             print >>sys.stderr, context
             raise
     if options.debug:
@@ -91,7 +94,7 @@ def main():
         try:
             assembler.resolve()
         except:
-            context.log(1, "EXCEPTION:\n%s" % context)
+            assembler.log(1, "EXCEPTION:\n%s" % context)
             raise
         if options.debug:
             endTime = time.time()
