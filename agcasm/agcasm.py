@@ -140,8 +140,16 @@ def main():
             totalTime += delta
             print "Write symbol table: %3.2f seconds" % delta
 
-    assembler.info("%d errors, %d warnings" % (context.errors, context.warnings), source=False)
-    print "%d errors, %d warnings" % (context.errors, context.warnings)
+    if context.errors == 1:
+        msg = "1 error, "
+    else:
+        msg = "%d errors, " % (context.errors)
+    if context.warnings == 1:
+        msg += "1 warning, "
+    else:
+        msg += "%d warnings, " % (context.warnings)
+    assembler.info(msg, source=False)
+    print msg
 
     if not options.syntaxOnly:
         if options.test:
