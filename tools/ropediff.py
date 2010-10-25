@@ -334,8 +334,12 @@ def main():
 
             if len(diffblocks) > 0:
                 log("")
+                log("")
                 log("Difference blocks: (sorted by length, ignoring single isolated differences)")
-                log("-" * 80)
+                #log("-" * 80)
+                log("")
+                log("Core address        Diffs   Module                                               ")
+                log("----------------    -----   ---------------------------------------------------- ")
 
                 for (diff, length) in sorted(diffblocks, key=operator.itemgetter(1), reverse=True):
                     address = diff.address
