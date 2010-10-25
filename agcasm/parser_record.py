@@ -87,6 +87,16 @@ class ParserRecord:
                 print >>sys.stderr, self.warningMsg
             print >>sys.stderr, self.srcline
 
+    def error(self, text):
+        msg = "%s, line %d, " % (self.srcfile, self.linenum)
+        msg += "error: %s:" % (text)
+        self.errorMsg = msg
+
+    def warn(self, text):
+        msg = "%s, line %d, " % (self.srcfile, self.linenum)
+        msg += "warning: %s:" % (text)
+        self.warningMsg = msg
+
     def __str__(self):
         text = ""
         if self.errorMsg != None or self.warningMsg != None:
