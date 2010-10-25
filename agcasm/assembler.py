@@ -163,7 +163,7 @@ class Assembler:
                         operands = newoperands
                         opcode = None
 
-            self.context.log(7, "assemble: label=%s opcode=%s operands=%s [%d]" % (label, opcode, operands, opindex))
+            self.context.log(7, "assemble: label='%s' opcode='%s' operands=%s [%d]" % (label, opcode, operands, opindex))
 
             self.context.previousRecord = self.context.currentRecord
             self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
@@ -185,7 +185,7 @@ class Assembler:
 
     def parse(self, label, opcode, operands):
         try:
-            self.context.log(7, "parse: label=%s opcode=%s operands=%s" % (label, opcode, operands))
+            self.context.log(7, "parse: label='%s' opcode='%s' operands=%s" % (label, opcode, operands))
 
             preloc = self.context.loc
 
