@@ -25,6 +25,7 @@ from opcode import OpcodeType
 from parser_record import ParserRecord
 from record_type import RecordType
 from interpretive import Interpretive
+from expression import Expression
 
 class Assembler:
     """Class defining an AGC assembler."""
@@ -153,12 +154,17 @@ class Assembler:
                 if opindex != 16 and opindex != 24:
                     self.context.error("bad indentation")
                 if opindex == 24:
-                    # Handle stand-alone interpretive operands.
                     newoperands = [ opcode ]
                     if operands != None:
                         newoperands.extend(operands)
-                    operands = newoperands
-                    opcode = None
+                    if not Expression.isExpression(self.context, newoperands) and \
+                       ( opcode in self.context.opcodes[OpcodeType.DIRECTIVE] or \
+                         opcode in self.context.opcodes[self.context.mode]):
+                        self.context.warn("bad indentation")
+                    else:
+                        # Handle stand-alone interpretive operands.
+                        operands = newoperands
+                        opcode = None
 
             self.context.log(7, "assemble: label=%s opcode=%s operands=%s [%d]" % (label, opcode, operands, opindex))
 
