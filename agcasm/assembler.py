@@ -228,6 +228,8 @@ class Assembler:
         if recordIndex >= 1:
             self.context.previousRecord = self.context.records[recordIndex - 1]
         self.context.load(record, partial=False)
+        self.context.currentRecord.errorMsg = None
+        self.context.currentRecord.warningMsg = None
         self.parse(record.label, record.opcode, record.operands)
         self.context.records[recordIndex] = self.context.currentRecord
         self.context.currentRecord = saveRecord
@@ -272,44 +274,53 @@ class Assembler:
             if nUndefs == nPrevUndefs:
                 self.context.error("no progress resolving parser records, %d undefined records" % nUndefs, source=False)
                 for urec in undefRecords:
-                    self.context.error("undefined symbol in line:\n%s" % urec, source=False)
+                    #self.context.error("undefined symbol in line:\n%s" % urec, source=True)
+                    urec.printMessages()
                 break
         if self.context.debug:
             endTime = time.time()
             delta = endTime - startTime
             print "Pass 2: %3.2f seconds" % delta
 
-    def fatal(self, text, source=True, fatal=True):
-        self.error(text, source)
+    def fatal(self, text, source=True):
+        self.error(text, source, fatal=True)
         sys.exit(1)
 
-    def error(self, text, source=True, fatal=False):
+    def _error(self, prefix, text, source=True, fatal=False, count=True):
         msg = ""
         if source:
             msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.linenum, self.context.global_linenum)
-        msg += "error: %s" % (text)
-        self.context.currentRecord.error = msg + ':'
+        msg += "%s %s" % (prefix, text)
+        if source:
+            msg += ':'
+        self.context.currentRecord.errorMsg = msg
         if source:
             msg += "\n%s" % self.context.srcline
         if fatal:
             print >>sys.stderr, msg
         self.log(1, msg)
-        self.context.errors += 1
+        if count:
+            self.context.errors += 1
 
-    def syntax(self, text, source=True):
-        self.error("syntax error: %s" % text, source)
+    def error(self, text, source=True, fatal=False, count=True):
+        self._error("error:", text, source, fatal, count)
 
-    def warn(self, text, source=True):
+    def syntax(self, text, source=True, count=True):
+        self._error("syntax error:", text, source, count)
+
+    def warn(self, text, source=True, count=True):
         msg = ""
         if source:
             msg = "%s, line %d (%d), " % (self.context.currentRecord.srcfile, self.context.linenum, self.context.global_linenum)
         msg += "warning: %s" % (text)
-        self.context.currentRecord.warning = msg + ':'
+        if source:
+            msg += ':'
+        self.context.currentRecord.warningMsg = msg
         if source:
             msg += "\n%s" % self.context.srcline
-        #print >>sys.stderr, msg
         self.log(2, msg)
-        self.context.warnings += 1
+        if count:
+            self.context.warnings += 1
 
     def info(self, text, source=True):
         msg = ""

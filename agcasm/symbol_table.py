@@ -112,7 +112,7 @@ class SymbolTable:
             self.pruneUndefines()
             nUndefs = len(self.undefs)
             if nUndefs == nPrevUndefs:
-                self.context.error("no progress resolving symbols, %d undefined symbols" % nUndefs, source=False)
+                self.context.error("no progress resolving symbols, %d undefined symbols" % nUndefs, source=False, count=False)
                 break
             nPrevUndefs = nUndefs
         if self.context.debug and nUndefs == 0:

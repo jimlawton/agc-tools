@@ -58,8 +58,8 @@ class ParserRecord:
         self.interpArgIncrement = False
         self.packingType = None
         self.complementNext = False
-        self.error = None
-        self.warning = None
+        self.errorMsg = None
+        self.warningMsg = None
 
     def isGenerative(self):
         return RecordType.isGenerative(self.type)
@@ -80,21 +80,21 @@ class ParserRecord:
         self.interpArgCount = self.context.interpArgCount
 
     def printMessages(self):
-        if self.error != None or self.warning != None:
-            if self.error != None:
-                print >>sys.stderr, self.error
-            if self.warning != None:
-                print >>sys.stderr, self.warning
+        if self.errorMsg != None or self.warningMsg != None:
+            if self.errorMsg != None:
+                print >>sys.stderr, self.errorMsg
+            if self.warningMsg != None:
+                print >>sys.stderr, self.warningMsg
             print >>sys.stderr, self.srcline
-        
+
     def __str__(self):
         text = ""
-        if self.error != None or self.warning != None:
+        if self.errorMsg != None or self.warningMsg != None:
             text += '\n'
-            if self.error != None:
-                text += "%s\n" % self.error
-            if self.warning != None:
-                text += "%s\n" % self.warning
+            if self.errorMsg != None:
+                text += "%s\n" % self.errorMsg
+            if self.warningMsg != None:
+                text += "%s\n" % self.warningMsg
         if self.type == RecordType.INCLUDE:
             text += "\n\n"
         text += "%06d,%06d " % (self.global_linenum, self.linenum)
@@ -148,6 +148,6 @@ class ParserRecord:
                 else:
                     text += 13 * ' '
         text += "   %s" % self.srcline
-        if self.error != None or self.warning != None:
+        if self.errorMsg != None or self.warningMsg != None:
             text += '\n'
         return text

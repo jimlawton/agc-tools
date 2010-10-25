@@ -60,7 +60,8 @@ class Context:
         self.reparse = False
         self.passnum = 0
         self.complementNext = False     # STADR complements the following instruction(s).
-        self.messages = []
+        self.errorMsg = None
+        self.warningMsg = None
 
         # Log level:
         #  0 - None.
@@ -164,6 +165,8 @@ class Context:
         self.code = record.code
         self.srcline = record.srcline
         self.loc = record.loc
+        self.errorMsg = record.errorMsg
+        self.warningMsg = record.warningMsg
         if partial == False:
             self.mode = record.mode
             self.lastEbank = record.lastEbank
@@ -178,6 +181,8 @@ class Context:
         record.global_linenum = self.global_linenum
         record.code = self.code
         record.srcline = self.srcline
+        record.errorMsg = self.errorMsg
+        record.warningMsg = self.warningMsg
         if partial == False:
             record.lastEbank = self.lastEbank
             record.previousWasEbankEquals = self.previousWasEbankEquals
