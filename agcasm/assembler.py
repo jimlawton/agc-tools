@@ -25,13 +25,13 @@ from opcode import OpcodeType
 from parser_record import ParserRecord
 from record_type import RecordType
 from interpretive import Interpretive
-from expression import Expression
 
 class Assembler:
     """Class defining an AGC assembler."""
 
     def __init__(self, context):
         self.context = context
+        self.context.fatal = self.fatal
         self.context.error = self.error
         self.context.syntax = self.syntax
         self.context.warn = self.warn
@@ -151,17 +151,14 @@ class Assembler:
                 opindex = -1
 
             if opindex != -1:
-                if opindex != 16 and opindex != 24:
-                    self.context.error("bad indentation")
                 if opindex == 24:
                     newoperands = [ opcode ]
                     if operands != None:
                         newoperands.extend(operands)
-                    if not Expression.isExpression(self.context, newoperands) and \
-                       ( opcode in self.context.opcodes[OpcodeType.DIRECTIVE] or \
-                         opcode in self.context.opcodes[self.context.mode]):
-                        self.context.warn("bad indentation")
-                    else:
+                    if opcode not in self.context.opcodes[OpcodeType.DIRECTIVE] and \
+                       (opcode not in self.context.opcodes[self.context.mode] or \
+                       (opcode in self.context.opcodes[self.context.mode] and opcode != self.context.opcodes[self.context.mode][opcode].mnemonic)) or \
+                       opcode == "TC":
                         # Handle stand-alone interpretive operands.
                         operands = newoperands
                         opcode = None
@@ -174,6 +171,13 @@ class Assembler:
                line.startswith('\t-') or line.startswith(' \t-'):
                 # It's a pseudo-label.
                 self.context.warn("bad indentation")
+            if opindex != -1:
+                if opindex != 16 and opindex != 24:
+                    self.context.error("bad indentation")
+                if opindex == 24:
+                    # TC is also used as an interpretive label.
+                    if opcode != None:
+                        self.context.warn("bad indentation")
             self.parse(label, opcode, operands)
             self.context.currentRecord.update()
             self.context.records.append(self.context.currentRecord)
@@ -265,11 +269,10 @@ class Assembler:
             if nUndefs == 0:
                 self.context.log(3, "all parser records complete")
                 break
-            else:
+            if nUndefs == nPrevUndefs:
+                self.context.error("no progress resolving parser records, %d undefined records" % nUndefs, source=False)
                 for urec in undefRecords:
                     self.context.error("undefined symbol in line:\n%s" % urec, source=False)
-            if nUndefs == nPrevUndefs:
-                self.context.error("no progress resolving parser records", source=False)
                 break
         if self.context.debug:
             endTime = time.time()
