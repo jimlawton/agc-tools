@@ -112,7 +112,7 @@ class SymbolTable:
             self.pruneUndefines()
             nUndefs = len(self.undefs)
             if nUndefs == nPrevUndefs:
-                self.context.error("aborting, no progress in resolving symbols", source=False)
+                self.context.error("no progress resolving symbols, %d undefined symbols" % nUndefs, source=False)
                 break
             nPrevUndefs = nUndefs
         if self.context.debug and nUndefs == 0:
@@ -160,9 +160,10 @@ class SymbolTable:
         for symbol in symbols:
             print >>out, self.symbols[symbol]
 
-        print >>out, "\nUndefined symbols:\n"
-        for symbol in self.undefs:
-            print >>out, self.symbols[symbol]
+        if len(self.undefs) > 0:
+            print >>out, "\nUndefined symbols:\n"
+            for symbol in self.undefs:
+                print >>out, self.symbols[symbol]
 
     def printUndefs(self, outfile=None):
         if outfile == None:
