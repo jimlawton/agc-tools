@@ -27,11 +27,14 @@ class ExpressionType:
     CONSTANT     = 1    # Octal or decimal constant.
     SYMBOLIC     = 2    # Symbolic expression.
 
+    def __init__(self):
+        pass
+    
     @classmethod
-    def toString(cls, type):
-        if type == ExpressionType.CONSTANT:
+    def toString(cls, exprtype):
+        if exprtype == ExpressionType.CONSTANT:
             text = "CON"
-        elif type == ExpressionType.SYMBOLIC:
+        elif exprtype == ExpressionType.SYMBOLIC:
             text = "SYM"
         else:
             text = "   "
@@ -40,7 +43,7 @@ class ExpressionType:
 class Expression:
     """Class that represents an AGC expression."""
 
-    def __init__(self, context, operands, addressExpr=False):
+    def __init__(self, context, operands, addressExpr=False, tryOnly=False):
         self.complete = False               # Expression complete, all references resolved.
         self.operands = operands            # List of operand fields.
         self.value = None                   # If complete, calculated result of the expression.
@@ -81,9 +84,11 @@ class Expression:
                         # Split a +N or -N operand.
                         operands = [ operands[0], operands[1][0], operands[1][1:] ]
                     else:
-                        self.context.syntax("second operand must be +number or -number")
+                        if not tryOnly:
+                            self.context.syntax("second operand must be +number or -number")
                 if operands[1] != '+' and operands[1] != '-':
-                    self.context.syntax("expression must be either addition (+) or subtraction (-)")
+                    if not tryOnly:
+                        self.context.syntax("expression must be either addition (+) or subtraction (-)")
             if len(operands) == 3:
                 (op2, op2type) = self._parseOperand(operands[2])
                 if op1 != None and op2 != None:
@@ -134,6 +139,11 @@ class Expression:
         else:
             text += ", value=%s" % self.value
         return text
+
+    @classmethod
+    def isExpression(cls, context, fields):
+        expr = Expression(context, fields, tryOnly=True)
+        return expr.complete
 
 class AddressExpression(Expression):
     "Class that represents an address expression."
