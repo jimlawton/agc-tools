@@ -25,6 +25,7 @@ class Number:
 
     OCTAL   = 0
     DECIMAL = 1
+    FLOAT   = 2
 
     OCTAL_RE   = re.compile("^[+-]*[0-7]+$")
     DECIMAL_RE = re.compile("^[+-]*[0-9]+[D]*[ ]*(E[+-]*[0-9]+)*[ ]*(B[+-]*[0-9]+)*[*]*$")
@@ -177,7 +178,7 @@ class Number:
         return ~self.value
 
     def __str__(self):
-        text = " ".join([ "%05o" % x for x in self.values ])
+        text = " ".join([ "%05o" % x for x in self.value ])
         return text
 
 class Octal(Number):
@@ -213,8 +214,8 @@ class DoubleDecimal(DoubleNumber):
         DoubleNumber.__init__(self, text, forcetype=Number.DECIMAL)
 
 def test(numtype, size, data):
-    passed = 0
-    failed = 0
+    npassed = 0
+    nfailed = 0
     text = ""
     if size == 1:
         text += "SP "
@@ -251,28 +252,28 @@ def test(numtype, size, data):
             if size == 1:
                 if testval.value != data[value]:
                     print "FAIL: \"%s\", %06o != %06o" % (value, testval.value, data[value])
-                    failed += 1
+                    nfailed += 1
                 else:
                     #print "PASS: \"%s\", %06o == %06o" % (value, testval.value, data[value])
-                    passed += 1
+                    npassed += 1
             else:
                 if testval.value[0] != data[value][0] or testval.value[1] != data[value][1]:
                     print "FAIL: \"%s\", actual (%06o,%06o) != expected (%06o,%06o)" % (value, testval.value[0], testval.value[1], data[value][0], data[value][1])
-                    failed += 1
+                    nfailed += 1
                 else:
                     #print "PASS: \"%s\", actual (%06o,%06o) == expected (%06o,%06o)" % (value, testval.value[0], testval.value[1], data[value][0], data[value][1])
-                    passed += 1
+                    npassed += 1
         else:
             print "FAIL: \"%s\" failed to parse" % (value)
-            failed += 1
+            nfailed += 1
 
-    print "%s: %d passed, %d failed of %d total" % (text, passed, failed, passed+failed)
+    print "%s: %d passed, %d failed of %d total" % (text, npassed, nfailed, npassed+nfailed)
     print
-    return (passed, failed)
+    return (npassed, nfailed)
 
 def testGeneral(data):
-    passed = 0
-    failed = 0
+    npassed = 0
+    nfailed = 0
 
     print "Testing unspecified formats..."
 
@@ -287,22 +288,22 @@ def testGeneral(data):
             if size == 1:
                 if testval.value != data[value]:
                     print "FAIL: \"%s\", actual %06o != expected %06o" % (value, testval.value, data[value])
-                    failed += 1
+                    nfailed += 1
                 else:
                     #print "PASS: \"%s\", actual %06o == expected %06o" % (value, testval.value, data[value])
-                    passed += 1
+                    npassed += 1
             else:
                 if testval.value[0] != data[value][0] or testval.value[1] != data[value][1]:
                     print "FAIL: \"%s\", actual (%06o,%06o) != expected (%06o,%06o)" % (value, testval.value[0], testval.value[1], data[value][0], data[value][1])
-                    failed += 1
+                    nfailed += 1
                 else:
                     #print "PASS: \"%s\", actual (%06o,%06o) == expected (%06o,%06o)" % (value, testval.value[0], testval.value[1], data[value][0], data[value][1])
-                    passed += 1
+                    npassed += 1
         else:
             print "FAIL: \"%s\" failed to parse" % (value)
-            failed += 1
+            nfailed += 1
 
-    print "Unspecified: %d passed, %d failed of %d total" % (passed, failed, passed+failed)
+    print "Unspecified: %d passed, %d failed of %d total" % (npassed, nfailed, npassed+nfailed)
     print
     return (passed, failed)
 
@@ -409,7 +410,6 @@ def test_dp_dec():
         ".203966 E-8 B+28":         (021412, 020500),
         "2.21422176 E4 B-15":       (025477, 003367),
         ".45162595 E-4 B+14":       (027533, 007571),
-        "2538.09 E3 B-27":          (000465, 032324),
     }
     return test(Number.DECIMAL, 2, testdata)
 
@@ -452,7 +452,6 @@ def test_general():
         "+120D*":           000170,
         "+120*":            000120,
         "-0 B-14":          077777,
-        "-0":               077777,
         "1000":             001000,
         "1000 B-14":        001750,
         "-71 B-14":         077670,
