@@ -158,7 +158,7 @@ class Assembler:
                     if opcode not in self.context.opcodes[OpcodeType.DIRECTIVE] and \
                        (opcode not in self.context.opcodes[self.context.mode] or \
                        (opcode in self.context.opcodes[self.context.mode] and opcode != self.context.opcodes[self.context.mode][opcode].mnemonic)) or \
-                       opcode == "TC":
+                       opcode == "TC" or opcode == "VN":
                         # Handle stand-alone interpretive operands.
                         operands = newoperands
                         opcode = None
@@ -272,10 +272,10 @@ class Assembler:
                 self.context.log(3, "all parser records complete")
                 break
             if nUndefs == nPrevUndefs:
-                self.context.error("no progress resolving parser records, %d undefined records" % nUndefs, source=False)
                 for urec in undefRecords:
-                    #self.context.error("undefined symbol in line:\n%s" % urec, source=True)
-                    urec.printMessages()
+                    urec.error("undefined symbol")
+                    self.context.errors += 1
+                self.context.error("no progress resolving parser records, %d undefined records" % nUndefs, source=False, count=False)
                 break
         if self.context.debug:
             endTime = time.time()
@@ -293,10 +293,9 @@ class Assembler:
         msg += "%s %s" % (prefix, text)
         if source:
             msg += ':'
-        self.context.currentRecord.errorMsg = msg
-        if source:
+            self.context.currentRecord.errorMsg = msg
             msg += "\n%s" % self.context.srcline
-        if fatal:
+        if not source or fatal:
             print >>sys.stderr, msg
         self.log(1, msg)
         if count:
@@ -315,9 +314,10 @@ class Assembler:
         msg += "warning: %s" % (text)
         if source:
             msg += ':'
-        self.context.currentRecord.warningMsg = msg
-        if source:
+            self.context.currentRecord.warningMsg = msg
             msg += "\n%s" % self.context.srcline
+        if not source:
+            print >>sys.stderr, msg
         self.log(2, msg)
         if count:
             self.context.warnings += 1
