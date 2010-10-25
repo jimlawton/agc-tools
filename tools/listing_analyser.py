@@ -71,6 +71,8 @@ def analyse(listing):
                             except:
                                 print line
                                 raise
+                            if pagenum.endswith(','):
+                                pagenum = pagenum[:-1]
                             if pagenum.isdigit():
                                 pagenum = int(pagenum)
                             else:
