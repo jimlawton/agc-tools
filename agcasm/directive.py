@@ -223,7 +223,7 @@ class Directive(Opcode):
             if bank == None or offset == None:
                 context.error("invalid address %06o" % pa)
             else:
-                if (context.memmap.isSwitched(pa) and bank != context.fbank and bank != context.ebank):
+                if (context.passnum > 0 and context.memmap.isSwitched(pa) and bank != context.fbank and bank != context.ebank):
                     context.error("bank (%02o) does not match current FB (%02o) or EB (%02o)" % (bank, context.fbank, context.ebank))
                 else:
                     context.currentRecord.code = [ context.memmap.pseudoToAddress(pa) ]
@@ -357,7 +357,7 @@ class Directive(Opcode):
             if bank == None or offset == None:
                 context.error("invalid address %06o" % pa)
             else:
-                if (context.memmap.isSwitched(pa) and bank != context.fbank and bank != context.ebank):
+                if (context.passnum > 0 and context.memmap.isSwitched(pa) and bank != context.fbank and bank != context.ebank):
                     context.error("bank (%02o) does not match current FB (%02o) or EB (%02o)" % (bank, context.fbank, context.ebank))
                 else:
                     context.currentRecord.code = [ 030000 + context.memmap.pseudoToAddress(pa) ]
