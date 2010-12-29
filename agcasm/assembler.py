@@ -158,7 +158,7 @@ class Assembler:
                     if opcode not in self.context.opcodes[OpcodeType.DIRECTIVE] and \
                        (opcode not in self.context.opcodes[self.context.mode] or \
                        (opcode in self.context.opcodes[self.context.mode] and opcode != self.context.opcodes[self.context.mode][opcode].mnemonic)) or \
-                       opcode == "TC" or opcode == "VN":
+                       opcode == "TC" or opcode == "VN" or opcode == "MM":
                         # Handle stand-alone interpretive operands.
                         operands = newoperands
                         opcode = None
