@@ -62,6 +62,14 @@ class Directive(Opcode):
 
         context.currentRecord.type = self.type
         context.incrLoc(self.numwords)
+
+        if context.currentRecord.complete:
+            if context.currentRecord.code: 
+                if len(context.currentRecord.code) == 1:
+                    context.log(5, "directive: generated code %05o" % (context.currentRecord.code[0]))
+                else:
+                    context.log(5, "directive: generated code %05o %05o" % (context.currentRecord.code[0], context.currentRecord.code[1]))
+        
         if self.numwords > 0 and context.interpArgs > 0:
             context.log(5, "directive: incrementing interpArgCount: %d -> %d" % (context.interpArgCount, context.interpArgCount + 1))
             context.interpArgCount += 1
@@ -255,10 +263,11 @@ class Directive(Opcode):
             bbval = 0
             # Bits 14:10 of the generated word contain the bank number.
             bank = fbank
-            super = False
+            isSuper = False
             if fbank >= 040:
-                super = True
+                isSuper = True
                 bank = fbank - 010
+            context.log(3, "BBCON: fbank=%o bank=%o super=%d ebank=%o" % (fbank, bank, context.super, context.ebank))
             bbval |= ((bank) << 10)
             # Bits 9:7 are zero.
             # Bits 6:4 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
@@ -267,7 +276,7 @@ class Directive(Opcode):
                     bbval |= 0100
                 else:
                     bbval |= 0060
-            elif 030 <= bank <= 033 and super:
+            elif 030 <= bank <= 033 and isSuper:
                 bbval |= 0100
             else:
                 bbval |= 0060
