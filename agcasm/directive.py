@@ -148,14 +148,13 @@ class Directive(Opcode):
             pa = expr.value
             word1 = context.memmap.pseudoToAddress(pa)
             if context.memmap.isFixed(pa):
-                fbank = context.memmap.getBankNumber(pa)
+                bank = context.memmap.getBankNumber(pa)
                 word2 = 0
                 # Bits 14:10 of the generated word contain the bank number.
-                bank = fbank
-                super = False
-                if fbank >= 040:
-                    super = True
-                    bank = fbank - 010
+                isSuper = False
+                if bank >= 040:
+                    isSuper = True
+                    bank -= 010
                 word2 |= ((bank) << 10)
                 # Bits 9:7 are zero.
                 # Bits 6:4 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
@@ -164,7 +163,7 @@ class Directive(Opcode):
                         word2 |= 0100
                     else:
                         word2 |= 0060
-                elif 030 <= bank <= 033 and super:
+                elif 030 <= bank <= 033 and isSuper:
                     word2 |= 0100
                 else:
                     word2 |= 0060
@@ -256,30 +255,37 @@ class Directive(Opcode):
         return True
 
     def parse_BBCON(self, context, operands):
-        fbank = None
+        bank = None
         expr = AddressExpression(context, operands)
         if expr.complete:
-            fbank = context.memmap.getBankNumber(expr.value)
+            bank = context.memmap.getBankNumber(expr.value)
             bbval = 0
             # Bits 14:10 of the generated word contain the bank number.
-            bank = fbank
             isSuper = False
-            if fbank >= 040:
+            if bank >= 040:
                 isSuper = True
-                bank = fbank - 010
-            context.log(3, "BBCON: fbank=%o bank=%o super=%d ebank=%o" % (fbank, bank, context.super, context.ebank))
-            bbval |= ((bank) << 10)
+                bank -= 010
+            context.log(3, "BBCON: bank=%o super=%d ebank=%o" % (bank, context.super, context.ebank))
+            bbval |= (bank << 10)
+
+            # TODO: Update, these assumptions are incorrect.  
             # Bits 9:7 are zero.
             # Bits 6:4 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
-            if bank < 030:
-                if context.super == 1:
+            if context.memmap.isFixed(expr.value):
+                context.log(3, "BBCON: fixed address")
+                if bank < 030:
+                    if context.super == 1:
+                        bbval |= 0100
+                    else:
+                        bbval |= 0060
+                elif 030 <= bank <= 033 and isSuper:
                     bbval |= 0100
                 else:
                     bbval |= 0060
-            elif 030 <= bank <= 033 and isSuper:
-                bbval |= 0100
             else:
+                context.log(3, "BBCON: erasable address")
                 bbval |= 0060
+
             # Bit 3 is zero.
             # Bits 2:0 equals the current EBANK= code.
             bbval |= (context.ebank & 07)
@@ -524,8 +530,10 @@ class Directive(Opcode):
                 bank = context.memmap.pseudoToBank(pa)
                 if 030 <= bank <= 037:
                     context.super = 0
+                    context.log(3, "SBANK=: setting superbit to 0")
                 else:
                     context.super = 1
+                    context.log(3, "SBANK=: setting superbit to 1")
             else:
                 context.error("operand must be in fixed memory")
 
