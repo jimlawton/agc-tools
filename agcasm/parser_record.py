@@ -110,7 +110,7 @@ class ParserRecord:
         text += "%06d,%06d " % (self.global_linenum, self.linenum)
         if RecordType.isIgnored(self.type):
             if self.context.debug:
-                text += 64 * ' '
+                text += 69 * ' '
             else:
                 text += 29 * ' '
         else:
@@ -133,6 +133,8 @@ class ParserRecord:
                     text += ' '
                     text += self.context.memmap.bankToString(MemoryType.FIXED, self.context.fbank)
                     text += ' '
+                    text += '[S%d]' % (self.super)
+                    text += ' '
                     text += "(%02d,%02d) " % (self.interpArgs, self.interpArgCount)
                     if self.argcode != None and self.argcode > 0:
                         text += "%05o " % (self.argcode)
@@ -154,7 +156,7 @@ class ParserRecord:
                     text += " ????? " + 6 * ' '
             else:
                 if self.context.debug:
-                    text += 48 * ' '
+                    text += 53 * ' '
                 else:
                     text += 13 * ' '
         text += "   %s" % self.srcline
