@@ -76,7 +76,7 @@ class Assembler:
             operands = None
             comment = None
 
-            self.context.log(7, "assemble: %d/%d (%d) \"%s\"" % (self.context.linenum, len(lines), self.context.global_linenum, self.context.srcline))
+            self.context.log(7, "assemble: %s %d/%d (%d) \"%s\"" % (srcfile, self.context.linenum, len(lines), self.context.global_linenum, self.context.srcline))
 
             if line.startswith('$'):
                 modname = line[1:].split()[0]
