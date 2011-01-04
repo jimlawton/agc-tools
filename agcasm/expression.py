@@ -99,7 +99,10 @@ class Expression:
                     self.complete = True
 
         if self.complete == True:
-            self.context.log(5, "expression: complete, value=%05o" % (self.value))
+            if addressExpr:
+                self.context.log(5, "expression: complete, value=%05o (%s)" % (self.value, self.context.memmap.pseudoToSegmentedString(self.value)))
+            else:
+                self.context.log(5, "expression: complete, value=%05o" % (self.value))
         else:
             self.context.log(5, "expression: incomplete")
 
