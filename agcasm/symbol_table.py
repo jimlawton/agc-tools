@@ -53,7 +53,7 @@ class SymbolTableEntry:
             text += "%s " % self.context.memmap.pseudoToSegmentedString(self.value)
         if self.context.debug:
             if self.file != None and self.line != 0:
-                text += "%-42s " % ("%s:%d" % (self.file, self.line))
+                text += "%-48s " % ("%s:%d" % (self.file, self.line))
             else:
                 text += 43 * ' '
             if self.symbolic:
