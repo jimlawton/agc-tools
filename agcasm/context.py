@@ -271,7 +271,7 @@ class Context:
         return self.memmap.banks[memtype][bank].size
 
     def printBanks(self):
-        text = "LOC=%06o EB=%02o FB=%02o " % (self.loc, self.ebank, self.fbank)
+        text = "LOC=%06o EB=%02o FB=%02o SB=%o " % (self.loc, self.ebank, self.fbank, self.super)
         text += "EBs: "
         for eb in self.ebankloc.keys():
             if self.ebankloc[eb] > 0:
