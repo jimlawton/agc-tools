@@ -258,34 +258,32 @@ class Directive(Opcode):
         bank = None
         expr = AddressExpression(context, operands)
         if expr.complete:
+            if not context.memmap.isFixed(expr.value):
+                context.error("BBCON operand must be in fixed memory")
             bank = context.memmap.getBankNumber(expr.value)
             bbval = 0
-            # Bits 14:10 of the generated word contain the bank number.
-            isSuper = False
-            if bank >= 040:
-                isSuper = True
-                bank -= 010
+            # Bits 14:10 of the generated word contain the bank number. Bit 15 is always zero.
             context.log(3, "BBCON: bank=%o super=%d ebank=%o" % (bank, context.super, context.ebank))
-            bbval |= (bank << 10)
+            if bank >= 040:
+                bbval |= ((bank - 010) << 10)
+            else:
+                bbval |= (bank << 10)
 
-            # TODO: Update, these assumptions are incorrect.  
             # Bits 9:7 are zero.
-            # Bits 6:4 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
-            if context.memmap.isFixed(expr.value):
-                context.log(3, "BBCON: fixed address")
-                if bank < 030:
-                    if context.super == 1:
-                        bbval |= 0100
-                    else:
-                        bbval |= 0060
-                elif 030 <= bank <= 033 and isSuper:
+            # Bits 6:4: 
+            #  FB < 030, SB=0:   011
+            #  FB < 030, SB=1:   100
+            #  030 <= FB <= 037: 011
+            #  FB > 037:         100
+            if bank < 030:
+                if context.super == 1:
                     bbval |= 0100
                 else:
                     bbval |= 0060
-            else:
-                context.log(3, "BBCON: erasable address")
+            elif 030 <= bank <= 037:
                 bbval |= 0060
-
+            elif bank > 037:
+                bbval |= 0100
             # Bit 3 is zero.
             # Bits 2:0 equals the current EBANK= code.
             bbval |= (context.ebank & 07)
