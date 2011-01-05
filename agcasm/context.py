@@ -154,7 +154,7 @@ class Context:
         self.addSymbol = True
         self.reparse = False
         self.loc = 0
-        self.super = 0
+        self.super = 1
         self.ebank = 0
         self.fbank = 0
         self.complementNext = False
