@@ -43,6 +43,7 @@ class Context:
         self.memmap = MemoryMap(arch, options.verbose)
         self.lastEbank = 0
         self.previousWasEbankEquals = False
+        self.previousWasIndex = False
         self.code = []
         self.records = []
         self.srcline = None
@@ -104,6 +105,7 @@ class Context:
         text += "mode=%d\n" % self.mode
         text += "lastEbank=%s\n" % self.lastEbank
         text += "previousWasEbankEquals=%s\n" % self.previousWasEbankEquals
+        text += "previousWasIndex=%s\n" % self.previousWasIndex
         text += "code: %s\n" % self.code
         text += "srcline: %s\n" % self.srcline
         text += "interpMode=%s\n" % self.interpMode
@@ -139,6 +141,7 @@ class Context:
         self.mode = OpcodeType.BASIC
         self.lastEbank = 0
         self.previousWasEbankEquals = False
+        self.previousWasIndex = False
         self.code = []
         self.srcline = None
         self.interpMode = False
@@ -171,6 +174,7 @@ class Context:
             self.mode = record.mode
             self.lastEbank = record.lastEbank
             self.previousWasEbankEquals = record.previousWasEbankEquals
+            self.previousWasIndex = record.previousWasIndex
             self.complementNext = record.complementNext
             self.super = record.super
             self.ebank = record.ebank
@@ -186,6 +190,7 @@ class Context:
         if partial == False:
             record.lastEbank = self.lastEbank
             record.previousWasEbankEquals = self.previousWasEbankEquals
+            record.previousWasIndex = self.previousWasIndex
             record.complementNext = self.complementNext
             record.mode = self.mode
             record.loc = self.loc

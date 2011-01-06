@@ -50,6 +50,7 @@ class ParserRecord:
         self.loc = context.loc
         self.lastEbank = context.lastEbank
         self.previousWasEbankEquals = context.previousWasEbankEquals
+        self.previousWasIndex = context.previousWasIndex
         self.global_linenum = context.global_linenum
         self.argcode = None
         self.interpArgs = 0
@@ -76,6 +77,7 @@ class ParserRecord:
         self.fbank = self.context.fbank
         self.lastEbank = self.context.lastEbank
         self.previousWasEbankEquals = self.context.previousWasEbankEquals
+        self.previousWasIndex = self.context.previousWasIndex
         self.interpArgs = self.context.interpArgs
         self.interpArgCount = self.context.interpArgCount
 
