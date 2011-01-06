@@ -60,7 +60,9 @@ class Assembler:
         lines = sfile.readlines()
         self.context.log(7, "assemble: file %s, lines %d" % (srcfile, len(lines)))
         sfile.close()
+        
         for line in lines:
+            indentError = False
             if line.endswith('\n'):
                 line = line[:-1]
             srcline = line.expandtabs(8)
@@ -158,16 +160,18 @@ class Assembler:
                     if opcode not in self.context.opcodes[OpcodeType.DIRECTIVE] and \
                        (opcode not in self.context.opcodes[self.context.mode] or \
                        (opcode in self.context.opcodes[self.context.mode] and opcode != self.context.opcodes[self.context.mode][opcode].mnemonic)) or \
-                       opcode == "TC" or opcode == "VN" or opcode == "MM":
+                       ((opcode == "TC" or opcode == "VN" or opcode == "MM") and operands == None):
                         # Handle stand-alone interpretive operands.
                         operands = newoperands
                         opcode = None
+                    else:
+                        indentError = True
 
             self.context.log(7, "assemble: label='%s' opcode='%s' operands=%s [%d]" % (label, opcode, operands, opindex))
 
             self.context.previousRecord = self.context.currentRecord
             self.context.currentRecord = self._makeNewRecord(srcline, RecordType.NONE, label, pseudolabel, opcode, operands, comment)
-            if line.startswith('\t+') or line.startswith(' \t+') or \
+            if indentError or line.startswith('\t+') or line.startswith(' \t+') or \
                line.startswith('\t-') or line.startswith(' \t-'):
                 # It's a pseudo-label.
                 self.context.warn("bad indentation")
