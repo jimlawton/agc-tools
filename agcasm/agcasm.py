@@ -51,16 +51,22 @@ def main():
             parser.error("File \"%s\" does not exist" % arg)
             sys.exit(1)
 
-    listfile = open(args[0].split('.')[0] + ".lst", 'w')
-    symtabfile = open(args[0].split('.')[0] + ".symtab", 'w')
-    binfile = open(args[0] + ".bin", 'wb')
-    logfile = open(args[0].split('.')[0] + ".log", 'w')
+    buildname = os.path.basename(os.getcwd())
+    
+    firstfile = args[0]
+    firstfilename = args[0].split('.')[0]
+    
+    listfile = open(firstfilename + ".lst", 'w')
+    symtabfile = open(firstfilename + ".symtab", 'w')
+    binfile = open(firstfile + ".bin", 'wb')
+    logfile = open(firstfilename + ".log", 'w')
 
     context = Context(Architecture.AGC4_B2, listfile, binfile, options, int(options.logLevel), logfile)
     assembler = Assembler(context)
     context.assembler = assembler
 
     if options.debug:
+        print "Build:", buildname 
         endTime = time.time()
         delta = endTime - startTime
         totalTime += delta
@@ -88,7 +94,7 @@ def main():
 
     context.saveCurrentBank()
 
-    if not options.syntaxOnly:
+    if options.syntaxOnly == False and context.errors == 0:
         assembler.info("Resolving symbols...", source=False)
         startTime = time.time()
         try:
