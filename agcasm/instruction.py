@@ -21,7 +21,6 @@
 from opcode import Opcode, OpcodeType, OperandType
 from expression import AddressExpression
 from record_type import RecordType
-from memory import AddressType
 
 # NOTE: Must be a new-style class.
 class Instruction(Opcode):
@@ -58,32 +57,6 @@ class Instruction(Opcode):
                             if context.debug:
                                 context.currentRecord.target = expr.value
                             address = context.memmap.pseudoToAddress(pa)
-                            if self.addressType == AddressType.FIXED_9:
-                                if context.memmap.isFixed(expr.value) or context.previousWasIndex == True:
-                                    address &= 0777
-                                else:
-                                    context.error("Address must be in fixed memory")
-                            elif self.addressType == AddressType.FIXED_12:
-                                if context.memmap.isFixed(expr.value) or context.previousWasIndex == True:
-                                    address &= 07777
-                                else:
-                                    context.error("Address must be in fixed memory")
-                            elif self.addressType == AddressType.ERASABLE_10:
-                                if context.memmap.isErasable(expr.value) or context.previousWasIndex == True:
-                                    address &= 01777
-                                else:
-                                    context.error("Address must be in erasable memory")
-                            elif self.addressType == AddressType.ERASABLE_12:
-                                if context.memmap.isErasable(expr.value) or context.previousWasIndex == True:
-                                    address &= 07777
-                                else:
-                                    context.error("Address must be in erasable memory")
-                            elif self.addressType == AddressType.GENERAL_12:
-                                address &= 07777
-                            elif self.addressType == AddressType.CHANNEL:
-                                address &= 0777
-                            else:
-                                context.error("Invalid address type")
                             context.currentRecord.code = [ (self.opcode + address) & 077777 ]
                         context.currentRecord.operandType = expr.refType
                         context.currentRecord.complete = True
@@ -104,9 +77,6 @@ class Instruction(Opcode):
             if self.mnemonic != "EXTEND" and self.mnemonic != "INDEX":
                 context.mode = OpcodeType.BASIC
 
-        if self.mnemonic != "INDEX" and context.previousWasIndex:
-            context.previousWasIndex = False
-
         if context.currentRecord.complete:
             if self.numwords == 1:
                 context.log(5, "generated code %05o" % (context.currentRecord.code[0]))
@@ -115,9 +85,6 @@ class Instruction(Opcode):
 
     def parse_EXTEND(self, context, operands):
         context.mode = OpcodeType.EXTENDED
-
-    def parse_INDEX(self, context, operands):
-        context.previousWasIndex = True
 
     def parse_MinusCCS(self, context, operands):
         words = []
