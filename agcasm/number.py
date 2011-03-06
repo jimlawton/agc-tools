@@ -97,6 +97,8 @@ class Number:
         # Splitting will then correctly find the scale factor fields.
         text = text.replace('B', ' B')
         text = text.replace('E', ' E')
+        if text.strip().startswith('B') or text.strip().startswith('E'):
+            text = "1 " + text
         fields = text.split()
         bscale = 0
         escale = 0
@@ -502,6 +504,17 @@ def test_dp_dec():
         "8.E8B-30":                 (027657, 001000),
         "7.E6B-29":                 (000325, 023740),
         "6495000.B-29":             (000306, 006614),
+        "B-1":                      (020000, 000000),
+        "B-2":                      (010000, 000000),
+        "B-3":                      (004000, 000000),
+        "B-4":                      (002000, 000000),
+        "B-10":                     (000020, 000000),
+        "B-12":                     (000004, 000000),
+        "B-13":                     (000002, 000000),
+        "B-17":                     (000000, 004000),
+        "B-25":                     (000000, 000010),
+        "B-28":                     (000000, 000001),
+        "E-5 B14":                  (005174, 013261),
     }
     return test(Number.DECIMAL, 2, testdata)
 
