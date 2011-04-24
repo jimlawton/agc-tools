@@ -126,12 +126,11 @@ class Number:
                     escale = self.scaleFactor(efield)
                 else:
                     mantissa = field
-        else:
-            if not '.' in mantissa:
-                if self.size == 1:
-                    bscale = self.scaleFactor("B-14")
-                else:
-                    bscale = self.scaleFactor("B-28")
+        if bscale == 0 and '.' not in mantissa:
+            if self.size == 1:
+                bscale = self.scaleFactor("B-14")
+            else:
+                bscale = self.scaleFactor("B-28")
         if mantissa.endswith('D'):
             mantissa = mantissa[:-1]
         if mantissa.startswith('-'):
@@ -145,7 +144,7 @@ class Number:
             realval *= escale
         if realval > 1.0:
             print >>sys.stderr, "Error, invalid number, greater than 1.0 (%s)" % (text)
-            sys.exit()
+            return
         value = 0
         if self.size == 1:
             rangeval = 14
@@ -407,6 +406,8 @@ def test_sp_dec():
         "-2.547990  B-3":   065635,
         "-4.151220  B-3":   057311,
         "-5.813617  B-3":   050575,
+        "1.5 B+4":          000030,
+        "250 B+4":          007640,
     }
     return test(Number.DECIMAL, 1, testdata)
 
@@ -515,6 +516,7 @@ def test_dp_dec():
         "B-25":                     (000000, 000010),
         "B-28":                     (000000, 000001),
         "E-5 B14":                  (005174, 013261),
+        "25 E3":                    (000001, 020650),
     }
     return test(Number.DECIMAL, 2, testdata)
 
