@@ -25,6 +25,7 @@ from opcode import OpcodeType
 from parser_record import ParserRecord
 from record_type import RecordType
 from interpretive import Interpretive
+from number import Number
 
 class Assembler:
     """Class defining an AGC assembler."""
@@ -112,19 +113,26 @@ class Assembler:
                 line = line[:line.index('#')]
             fields = line.split()
             if not line.startswith(' ') and not line.startswith('\t'):
-                label = fields[0]
-                if len(fields) == 1:
-                    # Label only.
-                    self.context.symtab.add(label, None, self.context.loc, 0, RecordType.LABEL)
-                    record = self._makeNewRecord(srcline, RecordType.LABEL, label, None, None, None, comment)
-                    record.complete = True
-                    self.context.records.append(record)
-                    self.context.log(7, "assemble: added record %d" % (len(self.context.records) - 1))
-                    continue
+                if line.startswith('+') or line.startswith('-'):
+                    # Check if label is [+-]number, which is a pseudo-label.
+                    checknum = fields[0][1:]
+                    checkval = Number(checknum)
+                    if checkval.isValid():
+                        # It's a pseudo-label.
+                        pseudolabel = fields[0]
+                if pseudolabel == None:
+                    label = fields[0]
+                    if len(fields) == 1:
+                        # Label only.
+                        self.context.symtab.add(label, None, self.context.loc, 0, RecordType.LABEL)
+                        record = self._makeNewRecord(srcline, RecordType.LABEL, label, None, None, None, comment)
+                        record.complete = True
+                        self.context.records.append(record)
+                        self.context.log(7, "assemble: added record %d" % (len(self.context.records) - 1))
+                        continue
                 fields = fields[1:]
             else:
-                if line.startswith(' +') or line.startswith('\t+') or line.startswith(' \t+') or \
-                   line.startswith(' -') or line.startswith('\t-') or line.startswith(' \t-'):
+                if line.strip(' ').startswith('+') or line.strip(' ').startswith('-'):
                     # It's a pseudo-label.
                     pseudolabel = fields[0]
                     fields = fields[1:]
