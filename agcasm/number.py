@@ -313,7 +313,7 @@ def testGeneral(data):
 
     print "Unspecified: %d passed, %d failed of %d total" % (npassed, nfailed, npassed+nfailed)
     print
-    return (passed, failed)
+    return (npassed, nfailed)
 
 def test_sp_oct():
     testdata = {
