@@ -31,7 +31,7 @@ class Number:
     DECIMAL_RE = re.compile("^[+-]*[0-9]+[D]*[ ]*(E[+-]*[0-9]+)*[ ]*(B[+-]*[0-9]+)*[*]*$")
     FLOAT_RE   = re.compile("^[+-]*[0-9]*\.[0-9]+[ ]*(E[+-]*[0-9]+)* *(B[+-]*[0-9]+)*[*]*$")
 
-    def __init__(self, text, forcetype=None, size=1):
+    def __init__(self, text, forcetype=None, size=1, debug=False):
         self.valid = False
         self.text = text.strip()
         self.type = None
@@ -46,16 +46,25 @@ class Number:
         if text.endswith('*'):
             text = text[:-1]
 
+        if debug:
+            print "text: \"%s\"" % text
+
         if forcetype != None:
             if forcetype == Number.OCTAL:
-                self._getOctal(text)
+                self._getOctal(text, debug)
             elif forcetype == Number.DECIMAL:
-                self._getDecimal(text)
+                self._getDecimal(text, debug)
         else:
             if self.OCTAL_RE.search(text):
-                self._getOctal(text)
+                if debug:
+                    print "Octal format detected"
+                self._getOctal(text, debug)
             elif self.DECIMAL_RE.search(text) or self.FLOAT_RE.search(text):
-                self._getDecimal(text)
+                if debug:
+                    print "Decimal format detected"
+                self._getDecimal(text, debug)
+            else:
+                print >>sys.stderr, "Error: could not detect number format"
 
     def scaleFactor(self, text):
         retval = 1.0
@@ -65,7 +74,13 @@ class Number:
             retval = pow(2.0, int(text[1:]))
         return retval
 
-    def _getOctal(self, text):
+    def scalePower(self, text):
+        retval = 0
+        if text.startswith('E') or text.startswith('B'):
+            retval = int(text[1:])
+        return retval
+
+    def _getOctal(self, text, debug=False):
         negate = False
         self.type = Number.OCTAL
         if text.startswith('-'):
@@ -90,7 +105,7 @@ class Number:
                 self.value[1] = ~self.value[1] & 077777
         self.valid = True
 
-    def _getDecimal(self, text):
+    def _getDecimal(self, text, debug=False):
         negate = False
         self.type = Number.DECIMAL
         # Add spaces in before scale factors in case they are not present. 
@@ -99,7 +114,10 @@ class Number:
         text = text.replace('E', ' E')
         if text.strip().startswith('B') or text.strip().startswith('E'):
             text = "1 " + text
+        if debug:
+            print "text:", text
         fields = text.split()
+        bpower = None
         bscale = 0
         escale = 0
         mantissa = text
@@ -117,7 +135,10 @@ class Number:
                     if field == 'B':
                         bfield += fields[i+1]
                         skip = True
-                    bscale = self.scaleFactor(bfield)
+                    bpower = self.scalePower(bfield)
+                    if bpower > 0:
+                        bpower -= 14 * self.size
+                    bscale = self.scaleFactor("B%d" % bpower)
                 elif field.startswith('E'):
                     efield = field
                     if field == 'E':
@@ -126,30 +147,35 @@ class Number:
                     escale = self.scaleFactor(efield)
                 else:
                     mantissa = field
-        if bscale == 0 and '.' not in mantissa:
-            if self.size == 1:
-                bscale = self.scaleFactor("B-14")
-            else:
-                bscale = self.scaleFactor("B-28")
         if mantissa.endswith('D'):
             mantissa = mantissa[:-1]
         if mantissa.startswith('-'):
             negate = True
         if mantissa.startswith('-') or mantissa.startswith('+'):
             mantissa = mantissa[1:]
+        if debug:
+            print "mantissa:", mantissa
         realval = float(mantissa)
+        if debug:
+            print "realval:", realval
+        #if not mantissa.startswith('.') and not mantissa.startswith('0.') and bpower == None:
+        if '.' not in mantissa and bpower == None:
+            bpower = -14 * self.size
+            bscale = self.scaleFactor("B%d" % bpower)
+        if debug:
+            print "bpower:", bpower
+            print "bscale:", bscale
         if bscale != 0:
             realval *= bscale
         if escale != 0:
             realval *= escale
+        if debug:
+            print "realval (scaled):", realval
         if realval > 1.0:
             print >>sys.stderr, "Error, invalid number, greater than 1.0 (%s)" % (text)
             return
         value = 0
-        if self.size == 1:
-            rangeval = 14
-        else:
-            rangeval = 28
+        rangeval = 14 * self.size
         for i in range(rangeval):
             value = value << 1
             if realval >= 0.5:
@@ -177,6 +203,8 @@ class Number:
             self.value = value
         else:
             self.value = [ value, i ]
+        if debug:
+            print "value:", value
         self.valid = True
 
     def isValid(self):
@@ -186,7 +214,13 @@ class Number:
         return ~self.value
 
     def __str__(self):
-        text = " ".join([ "%05o" % x for x in self.value ])
+        if self.valid:
+            if self.size == 1:
+                text = "%05o" % self.value
+            else:
+                text = " ".join([ "%05o" % x for x in self.value ])
+        else:
+            text = "(invalid)"
         return text
 
 class Octal(Number):
@@ -577,26 +611,45 @@ def test_general():
 if __name__=="__main__":
     print "AGC Number classes tester..."
 
-    passed = failed = 0
-
-    (passed, failed) = test_sp_oct()
-
-    (pass2, fail2) = test_sp_dec()
-    passed += pass2
-    failed += fail2
-
-    (pass3, fail3) = test_dp_oct()
-    passed += pass3
-    failed += fail3
-
-    (pass4, fail4) = test_dp_dec()
-    passed += pass4
-    failed += fail4
-
-    (pass5, fail5) = test_general()
-    passed += pass5
-    failed += fail5
-
-    print "Overall: %d passed, %d failed of %d total" % (passed, failed, passed+failed)
+    size = 1
+    text = None
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "single":
+            size = 1
+            text = sys.argv[2]
+        elif sys.argv[1] == "double":
+            size = 2
+            text = sys.argv[2]
+        else:
+            text = sys.argv[1]
+            
+        print "Testing %d-word number \"%s\"" % (size, text)
+        testval = Number(text, size=size, debug=True)
+        if testval.isValid():
+            print testval
+        else:
+            print "Error: not a valid number format!"
+    else:        
+        passed = failed = 0
+    
+        (passed, failed) = test_sp_oct()
+    
+        (pass2, fail2) = test_sp_dec()
+        passed += pass2
+        failed += fail2
+    
+        (pass3, fail3) = test_dp_oct()
+        passed += pass3
+        failed += fail3
+    
+        (pass4, fail4) = test_dp_dec()
+        passed += pass4
+        failed += fail4
+    
+        (pass5, fail5) = test_general()
+        passed += pass5
+        failed += fail5
+    
+        print "Overall: %d passed, %d failed of %d total" % (passed, failed, passed+failed)
 
     sys.exit()
