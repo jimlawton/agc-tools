@@ -26,8 +26,8 @@ from memory import AddressType
 # NOTE: Must be a new-style class.
 class Instruction(Opcode):
 
-    def __init__(self, methodName, opcode, operandType=OperandType.NONE, addressType=None, numwords=1):
-        Opcode.__init__(self, methodName, methodName, opcode, operandType, False, addressType, numwords)
+    def __init__(self, methodName, opcode, operandType=OperandType.NONE, addressType=None, numwords=1, optional=False):
+        Opcode.__init__(self, methodName, methodName, opcode, operandType, optional, addressType, numwords)
         self.type = RecordType.EXEC
 
     def parse(self, context, operands):
@@ -43,7 +43,12 @@ class Instruction(Opcode):
                 context.currentRecord.complete = True
         else:
             if operands == None:
-                context.error("missing operand")
+                if self.operandOptional:
+                    context.currentRecord.code = [ self.opcode ]
+                    context.currentRecord.operandType = RecordType.NONE
+                    context.currentRecord.complete = True
+                else:
+                    context.error("missing operand")
             else:
                 if operands:
                     expr = AddressExpression(context, operands)
