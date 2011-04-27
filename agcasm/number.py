@@ -63,8 +63,6 @@ class Number:
                 if debug:
                     print "Decimal format detected"
                 self._getDecimal(text, debug)
-            else:
-                print >>sys.stderr, "Error: could not detect number format"
 
     def scaleFactor(self, text):
         retval = 1.0
@@ -164,10 +162,12 @@ class Number:
             realval *= escale
         if debug:
             print "realval (scaled):", realval
-        if realval > 1.0:
+        if realval >= 1.0:
             if divmod(realval, 1)[1] == 0:
                 # It's an integer, just convert directly to octal.
                 value = int(realval)
+                if debug:
+                    print "value (int,oct): %o" % value
             else:
                 # Float greater than 1.0, error.
                 print >>sys.stderr, "Error, invalid number, greater than 1.0 (%s)" % (text)
@@ -191,7 +191,7 @@ class Number:
             i = value & 037777
             value = (value >> 14) & 037777
         else:
-            value &= 077777
+            value &= 037777
         if negate:
             if self.size == 2:
                 value = ~value
@@ -367,6 +367,10 @@ def test_sp_oct():
 
 def test_sp_dec():
     testdata = {
+        "1":                000001,
+        "1 B-14":           000001,
+        "-1":               077776,
+        "-1 B-14":          077776,
         "16372":            037764,
         "16372  B-14":      037764,
         "-.38888":          063434,
@@ -569,6 +573,8 @@ def test_general():
         "-0":               077777,
         "1":                000001,
         "-1":               077776,
+        "1 B-14":           000001,
+        "-1 B-14":          077776,
         "10000":            010000,
         "22000":            022000,
         "77777":            077777,
