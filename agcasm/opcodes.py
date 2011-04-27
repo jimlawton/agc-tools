@@ -19,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from architecture import Architecture
-from opcode import OpcodeType, OperandType, OperandOption
+from opcode import OpcodeType, OperandType
 from memory import AddressType
 from instruction import Instruction
 from directive import Directive
