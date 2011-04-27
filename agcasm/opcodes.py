@@ -19,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from architecture import Architecture
-from opcode import OpcodeType, OperandType
+from opcode import OpcodeType, OperandType, OperandOption
 from memory import AddressType
 from instruction import Instruction
 from directive import Directive
@@ -63,7 +63,7 @@ OPCODES = {
             "RETURN": Instruction("RETURN",     000002),
             "TC":     Instruction("TC",         000000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "TCAA":   Instruction("TCAA",       054005),
-            "TCF":    Instruction("TCF",        010000,  OperandType.EXPRESSION,    AddressType.FIXED_12),
+            "TCF":    Instruction("TCF",        010000,  OperandType.EXPRESSION,    AddressType.FIXED_12,       optional=True),
             "TCR":    Instruction("TC",         000000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "TS":     Instruction("TS",         054000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
             "XCH":    Instruction("XCH",        056000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
@@ -72,7 +72,7 @@ OPCODES = {
             "ZL":     Instruction("ZL",         022007)
         },
         OpcodeType.EXTENDED: {
-            # Name                Method        Opcode   Operand
+            # Name                Method        Opcode   Operand                    Address Type
             "AUG":    Instruction("AUG",        024000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
             "BZF":    Instruction("BZF",        010000,  OperandType.EXPRESSION,    AddressType.FIXED_12),
             "BZMF":   Instruction("BZMF",       060000,  OperandType.EXPRESSION,    AddressType.FIXED_12),
