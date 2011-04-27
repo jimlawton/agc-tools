@@ -136,8 +136,6 @@ class Number:
                         bfield += fields[i+1]
                         skip = True
                     bpower = self.scalePower(bfield)
-                    if bpower > 0:
-                        bpower -= 14 * self.size
                     bscale = self.scaleFactor("B%d" % bpower)
                 elif field.startswith('E'):
                     efield = field
@@ -153,18 +151,13 @@ class Number:
             negate = True
         if mantissa.startswith('-') or mantissa.startswith('+'):
             mantissa = mantissa[1:]
-        if debug:
-            print "mantissa:", mantissa
         realval = float(mantissa)
         if debug:
+            print "mantissa:", mantissa
             print "realval:", realval
-        #if not mantissa.startswith('.') and not mantissa.startswith('0.') and bpower == None:
-        if '.' not in mantissa and bpower == None:
-            bpower = -14 * self.size
-            bscale = self.scaleFactor("B%d" % bpower)
-        if debug:
             print "bpower:", bpower
             print "bscale:", bscale
+            print "escale:", escale
         if bscale != 0:
             realval *= bscale
         if escale != 0:
@@ -172,33 +165,41 @@ class Number:
         if debug:
             print "realval (scaled):", realval
         if realval > 1.0:
-            print >>sys.stderr, "Error, invalid number, greater than 1.0 (%s)" % (text)
-            return
-        value = 0
-        rangeval = 14 * self.size
-        for i in range(rangeval):
-            value = value << 1
-            if realval >= 0.5:
-                value += 1
-                realval -= 0.5
-            realval *= 2
-        if self.size == 1:
-            limitval = 0x3fff
+            if divmod(realval, 1)[1] == 0:
+                # It's an integer, just convert directly to octal.
+                value = int(realval)
+            else:
+                # Float greater than 1.0, error.
+                print >>sys.stderr, "Error, invalid number, greater than 1.0 (%s)" % (text)
+                return
         else:
-            limitval = 0xfffffff
-        if realval >= 0.5 and value < limitval:
-            value += 1
+            value = 0
+            rangeval = 14 * self.size
+            for i in range(rangeval):
+                value = value << 1
+                if realval >= 0.5:
+                    value += 1
+                    realval -= 0.5
+                realval *= 2
+            if self.size == 1:
+                limitval = 037777
+            else:
+                limitval = 01777777777
+            if realval >= 0.5 and value < limitval:
+                value += 1
         if self.size == 2:
-            i = value & 0x3fff
-            value = (value >> 14) & 0x3fff
+            i = value & 037777
+            value = (value >> 14) & 037777
+        else:
+            value &= 077777
         if negate:
             if self.size == 2:
                 value = ~value
                 i = ~i
-                i &= 0x7fff
-                value &= 0x7fff
+                i &= 077777
+                value &= 077777
             else:
-                value = ~value & 0x7fff
+                value = ~value & 077777
         if self.size == 1:
             self.value = value
         else:
@@ -427,7 +428,14 @@ def test_sp_dec():
         "-.147762":         073212,
         "-.193289":         071640,
         "-.602557":         054557,
+        ".99999":           037777,
         "-.99999":          040000,
+        ".999999":          037777,
+        "-.999999":         040000,
+        ".5":               020000,
+        "-.5":              057777,
+        ".33333":           012525,
+        "-.33333":          065252,
         "-.0478599  B-3":   077635,
         "-.0683663  B-3":   077563,
         "-.1343468  B-3":   077354,
