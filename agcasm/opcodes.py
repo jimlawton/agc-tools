@@ -26,7 +26,7 @@ from directive import Directive
 from interpretive import Interpretive, InterpretiveType
 
 OPCODES = {
-    Architecture.AGC4_B2 : {
+    Architecture.AGC4_B2: {
         # In AGC4 architecture, all instructions are single-word.
         OpcodeType.BASIC: {
             # Name                Method        Opcode   Operand Type               Address Type
