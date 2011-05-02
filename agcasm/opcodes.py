@@ -26,7 +26,7 @@ from directive import Directive
 from interpretive import Interpretive, InterpretiveType
 
 OPCODES = {
-    Architecture.AGC4_B2 : {
+    Architecture.AGC4_B2: {
         # In AGC4 architecture, all instructions are single-word.
         OpcodeType.BASIC: {
             # Name                Method        Opcode   Operand Type               Address Type
@@ -63,7 +63,7 @@ OPCODES = {
             "RETURN": Instruction("RETURN",     000002),
             "TC":     Instruction("TC",         000000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "TCAA":   Instruction("TCAA",       054005),
-            "TCF":    Instruction("TCF",        010000,  OperandType.EXPRESSION,    AddressType.FIXED_12),
+            "TCF":    Instruction("TCF",        010000,  OperandType.EXPRESSION,    AddressType.FIXED_12,       optional=True),
             "TCR":    Instruction("TC",         000000,  OperandType.EXPRESSION,    AddressType.GENERAL_12),
             "TS":     Instruction("TS",         054000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
             "XCH":    Instruction("XCH",        056000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
@@ -72,7 +72,7 @@ OPCODES = {
             "ZL":     Instruction("ZL",         022007)
         },
         OpcodeType.EXTENDED: {
-            # Name                Method        Opcode   Operand
+            # Name                Method        Opcode   Operand                    Address Type
             "AUG":    Instruction("AUG",        024000,  OperandType.EXPRESSION,    AddressType.ERASABLE_10),
             "BZF":    Instruction("BZF",        010000,  OperandType.EXPRESSION,    AddressType.FIXED_12),
             "BZMF":   Instruction("BZMF",       060000,  OperandType.EXPRESSION,    AddressType.FIXED_12),
