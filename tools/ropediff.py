@@ -101,6 +101,8 @@ def main():
     options.outfile = None
     if options.outfilename:
         options.outfile = open(options.outfilename, "w")
+    else:
+        options.outfile = sys.stdout
 
     if len(args) < 2:
         parser.error("Two core files must be supplied!")
@@ -133,8 +135,10 @@ def main():
     leftcore = open(cores[0], "rb")
     rightcore = open(cores[1], "rb")
 
-    leftlst = os.path.join(os.path.abspath(os.path.dirname(cores[0])), "*.lst")
-    rightlst = os.path.join(os.path.abspath(os.path.dirname(cores[1])), "*.lst")
+    leftdir = os.path.abspath(os.path.dirname(cores[0]))
+    leftlst = os.path.join(leftdir, "*.lst")
+    rightdir = os.path.abspath(os.path.dirname(cores[1]))
+    rightlst = os.path.join(rightdir, "*.lst")
     lfiles = glob.glob(leftlst)
     lfiles.extend(glob.glob(rightlst))
     # Remove duplicates.
@@ -171,18 +175,18 @@ def main():
     difftotal = 0
 
     modlist = []
-    srcfiles = glob.glob("*.agc")
-    srcfiles.remove("MAIN.agc")
+    srcfiles = glob.glob(os.path.join(leftdir, "*.agc"))
+    srcfiles.remove(os.path.join(leftdir, "MAIN.agc"))
     if "Templates.agc" in srcfiles:
-        srcfiles.remove("Template.agc")
+        srcfiles.remove(os.path.join(leftdir, "Template.agc"))
     for srcfile in srcfiles:
-        modlist.append(srcfile.split('.')[0])
+        modlist.append(os.path.basename(srcfile).split('.')[0])
     for module in modlist:
         diffcount[module] = 0
 
     log("Reading MAIN.agc... ", verbose=True)
     includelist = []
-    mainfile = open("MAIN.agc", "r")
+    mainfile = open(os.path.join(leftdir, "MAIN.agc"), "r")
     mainlines = mainfile.readlines()
     for line in mainlines:
         if line.startswith('$'):
