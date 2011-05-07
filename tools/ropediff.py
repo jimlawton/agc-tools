@@ -299,7 +299,7 @@ def main():
                 if baddr.endswith('.'):
                     baddr = baddr[:-1]
                 if address == baddr:
-                    diff.setloc(0, "Bugger", "%s%s%s%s" % (15 * ' ', baddr, 11 * ' ', bval))
+                    diff.setloc(0, "Checksum", "%s%s%s%s" % (15 * ' ', baddr, 11 * ' ', bval))
                     #log("found bugger at address %s" % address)
                     foundBugger = True
                     break
