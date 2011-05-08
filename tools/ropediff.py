@@ -158,8 +158,7 @@ def main():
                 if l.endswith("MAIN.lst"):
                     lfiles.remove(l)
             if len(lfiles) > 1:
-                print lfiles
-                print "Warning: multiple listing files, using %s!" % (lfiles[0])
+                print >>sys.stderr, "Warning: multiple listing files, using %s!" % (lfiles[0])
         listfile = lfiles[0]
         if not os.path.isfile(listfile):
             parser.error("File \"%s\" does not exist" % listfile)
