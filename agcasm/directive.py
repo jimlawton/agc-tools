@@ -151,22 +151,24 @@ class Directive(Opcode):
                 bank = context.memmap.getBankNumber(pa)
                 word2 = 0
                 # Bits 14:10 of the generated word contain the bank number.
-                isSuper = False
                 if bank >= 040:
-                    isSuper = True
-                    bank -= 010
-                word2 |= ((bank) << 10)
-                # Bits 9:7 are zero.
-                # Bits 6:4 are 000 if F-Bank < 030, 011 if F-Bank is 030-037, or 100 if F-Bank is 040-043.
+                    word2 |= ((bank - 010) << 10)
+                else:
+                    word2 |= (bank << 10)
+                # Bits 6:4: 
+                #  FB < 030, SB=0:   011
+                #  FB < 030, SB=1:   100
+                #  030 <= FB <= 037: 011
+                #  FB > 037:         100
                 if bank < 030:
-                    if context.super:
+                    if context.super == 1:
                         word2 |= 0100
                     else:
                         word2 |= 0060
-                elif 030 <= bank <= 033 and isSuper:
-                    word2 |= 0100
-                else:
+                elif 030 <= bank <= 037:
                     word2 |= 0060
+                elif bank > 037:
+                    word2 |= 0100
                 # Bit 3 is zero.
                 # Bits 2:0 equals the current EBANK= code.
                 word2 |= (context.ebank & 07)
@@ -526,7 +528,7 @@ class Directive(Opcode):
                 context.currentRecord.operandType = expr.refType
                 context.currentRecord.complete = True
                 bank = context.memmap.pseudoToBank(pa)
-                if 030 <= bank <= 037:
+                if bank <= 037:
                     context.super = 0
                     context.log(3, "SBANK=: setting superbit to 0")
                 else:
