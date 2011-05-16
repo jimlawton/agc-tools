@@ -58,7 +58,10 @@ class CoreDiff:
         else:
             line += "     "
         line += "%-48s " % (self.module)
-        line += "%-100s" % self.srcline
+        srcline = self.srcline
+        if self.srcline:
+            srcline = self.srcline.rstrip()
+        line += "%s" % (srcline)
         return line
 
     def __cmp__(self, other):
