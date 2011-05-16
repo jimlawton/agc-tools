@@ -82,6 +82,8 @@ def main():
     global options
 
     parser = OptionParser("usage: %prog [options] core1 core2")
+    parser.add_option("-c", "--no-checksums", action="store_false", dest="checksums", default=True,
+                      help="Discard differences in checksums.")
     parser.add_option("-N", "--no-super", action="store_true", dest="noSuper", default=False,
                       help="Discard differences in which one word has 100 in bits 5,6,7 and the other has 011.")
     parser.add_option("-S", "--only-super", action="store_true", dest="onlySuper", default=False,
@@ -249,6 +251,7 @@ def main():
     module = None
     pagenum = 0
     address = 0
+    checkdiffs = 0
 
     log("Building module/page/line list... ", verbose=True)
     for line in open(listfile, "r"):
@@ -299,6 +302,7 @@ def main():
                     baddr = baddr[:-1]
                 if address == baddr:
                     diff.setloc(0, "Checksum", "%s%s%s%s" % (15 * ' ', baddr, 11 * ' ', bval))
+                    checkdiffs += 1
                     #log("found bugger at address %s" % address)
                     foundBugger = True
                     break
@@ -308,7 +312,10 @@ def main():
             print >>sys.stderr, "Error: address %s not found in listing file" % (address)
 
     log("")
-    log("%s %d" % ("Total differences:", difftotal))
+    if options.checksums:
+        log("%s %d" % ("Total differences:", difftotal))
+    else:
+        log("%s %d" % ("Total differences:", difftotal - checkdiffs))
     log("")
 
     if difftotal > 0:
@@ -316,7 +323,8 @@ def main():
         log("---------------- ----- ----- ---- ------------------------------------------------ -------------- -------           -------------------------------------------------------------------------------------------------------")
         log("")
         for diff in diffs:
-            log(diff.__str__())
+            if options.checksums == True or (options.checksums == False and diff.module != "Checksum"):
+                log(diff.__str__())
 
         if options.analyse:
 
