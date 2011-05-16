@@ -263,6 +263,9 @@ class Context:
                 oldbank = self.fbank
                 self.fbank = bank
                 self.log(4, "switched FB: %02o -> %02o" % (oldbank, self.fbank))
+                if bank > 037:
+                    self.super = 1
+                    self.log(3, "BANK: setting superbit to 1")
             self.setLoc(self.memmap.segmentedToPseudo(MemoryType.FIXED, self.fbank, self.fbankloc[self.fbank]))
             self.log(4, "switched FB to %s" % (self.memmap.pseudoToSegmentedString(self.loc)))
 
