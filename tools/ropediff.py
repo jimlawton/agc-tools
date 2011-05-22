@@ -323,13 +323,13 @@ def main():
 
     if difftotal > 0:
         log("Core address     Left  Right Page Module                                           Line Number    Address           Source")
-        log("---------------- ----- ----- ---- ------------------------------------------------ -------------- -------           -------------------------------------------------------------------------------------------------------")
+        log("---------------- ----- ----- ---- ------------------------------------------------ -------------- -------           ------------------------------------------------")
         log("")
         for diff in diffs:
             if options.checksums == True or (options.checksums == False and diff.module != "Checksum"):
                 log(diff.__str__())
 
-        if options.analyse:
+        if options.stats:
 
             diffblocks = []
             index = 0
