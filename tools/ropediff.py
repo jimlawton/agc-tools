@@ -43,9 +43,10 @@ class CoreDiff:
         self.module = None
         self.srcline = None
 
-    def setloc(self, pagenum, module, srcline):
+    def setloc(self, pagenum, module, linenum, srcline):
         self.pagenum = pagenum      # Listing page number.
         self.module = module        # Source module.
+        self.linenum = linenum      # Listing line number.
         self.srcline = srcline      # Source line.
         self.srcline = srcline[:100]
         if self.srcline.endswith('\n'):
@@ -98,6 +99,8 @@ def main():
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False,
                       help="Print extra information.")
     parser.add_option("-o", "--output", dest="outfilename", help="Write output to file.", metavar="FILE")
+    parser.add_option("-a", "--annotate", action="store_true", dest="annotate", default=False,
+                      help="Output a modified listing annotated with core differences.")
 
     (options, args) = parser.parse_args()
 
@@ -174,6 +177,12 @@ def main():
 
         log("Analysing listing file... ", verbose=True)
         blocks = listing_analyser.analyse(listfile)
+
+    options.annofile = None
+    if options.annotate:
+        if listfile == None:
+            sys.exit("Annotate option specified, but no input listing file found")
+        options.annofile = open(listfile + ".anno", 'w')
 
     diffcount = {}
     difftotal = 0
@@ -255,9 +264,11 @@ def main():
     pagenum = 0
     address = 0
     checkdiffs = 0
+    linenum = 0
 
     log("Building module/page/line list... ", verbose=True)
     for line in open(listfile, "r"):
+        linenum += 1
         elems = line.split()
         if len(elems) > 0:
             if not line.startswith(' '):
@@ -273,7 +284,7 @@ def main():
                             if len(elems) > 2:
                                 if elems[1][0].isdigit() and elems[2][0].isdigit() and len(elems[2]) == 5:
                                     address = elems[1]
-                                    lines[address] = (module, pagenum, line)
+                                    lines[address] = (module, pagenum, linenum, line)
                                     if len(elems) > 3:
                                         # Handle 2-word quantities, yaYUL outputs listing for the two combined at the address of the first.
                                         if elems[3][0].isdigit() and len(elems[3]) == 5:
@@ -286,7 +297,7 @@ def main():
                                                 offset = int(address, 8)
                                                 offset += 1
                                                 address = "%04o" % offset
-                                            lines[address] = (module, pagenum, line)
+                                            lines[address] = (module, pagenum, linenum, line)
                 if line.startswith("Bugger"):
                     buggers.append(line)
 
@@ -294,8 +305,8 @@ def main():
     for diff in diffs:
         address = diff.address.strip()
         if address in lines.keys():
-            (module, pagenum, line) = lines[address]
-            diff.setloc(pagenum, module, line)
+            (module, pagenum, linenum, line) = lines[address]
+            diff.setloc(pagenum, module, linenum, line)
         elif diff.srcline == None:
             foundBugger = False
             for bugger in buggers:
@@ -304,9 +315,8 @@ def main():
                 if baddr.endswith('.'):
                     baddr = baddr[:-1]
                 if address == baddr:
-                    diff.setloc(0, "Checksum", "%s%s%s%s" % (15 * ' ', baddr, 11 * ' ', bval))
+                    diff.setloc(0, "Checksum", 0, "%s%s%s%s" % (15 * ' ', baddr, 11 * ' ', bval))
                     checkdiffs += 1
-                    #log("found bugger at address %s" % address)
                     foundBugger = True
                     break
             if not foundBugger:
@@ -328,6 +338,11 @@ def main():
         for diff in diffs:
             if options.checksums == True or (options.checksums == False and diff.module != "Checksum"):
                 log(diff.__str__())
+
+        if options.annofile:
+            linenum = 0
+            # TODO
+            pass
 
         if options.stats:
 
@@ -407,6 +422,9 @@ def main():
                 log("-" * 80)
 
     log("Done", verbose=True)
+
+    if options.annofile:
+        options.annofile.close()
 
     if options.outfile:
         options.outfile.close()
