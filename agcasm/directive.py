@@ -181,6 +181,9 @@ class Directive(Opcode):
         if context.previousWasEbankEquals == True:
             context.currentRecord.update()
             context.revertEbank()
+        #if context.previousWasSbankEquals == True:
+        #    context.currentRecord.update()
+        #    context.revertSuper()
 
     def parse_2DEC(self, context, operands):
         op = DoubleDecimal(" ".join(operands))
@@ -296,6 +299,9 @@ class Directive(Opcode):
         if context.previousWasEbankEquals == True:
             context.currentRecord.update()
             context.revertEbank()
+        #if context.previousWasSbankEquals == True:
+        #    context.currentRecord.update()
+        #    context.revertSuper()
 
     def parse_BBCONstar(self, context, operands):
         context.currentRecord.code = [ 066100 ]
@@ -304,7 +310,10 @@ class Directive(Opcode):
         if context.previousWasEbankEquals == True:
             context.currentRecord.update()
             context.revertEbank()
-            # TODO: recalculate sbank, based on superbit=1.
+        #if context.previousWasSbankEquals == True:
+        #    context.currentRecord.update()
+        #    context.revertSuper()
+        #    # TODO: recalculate sbank, based on superbit=1.
         return True
 
     def parse_BLOCK(self, context, operands):

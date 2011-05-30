@@ -43,6 +43,7 @@ class Context:
         self.memmap = MemoryMap(arch, options.verbose)
         self.lastEbank = 0
         self.previousWasEbankEquals = False
+        self.previousWasSbankEquals = False
         self.previousWasIndex = False
         self.code = []
         self.records = []
@@ -80,6 +81,7 @@ class Context:
         self.ebank = 0      # Current E-Bank.
         self.fbank = 0      # Current F-Bank.
         self.super = 0      # Superbank bit (0/1).
+        self.lastSuper = 0
 
         self.ebankloc = {}  # Saved current location for each erasable bank.
         self.fbankloc = {}  # Saved current location for each fixed bank.
@@ -105,6 +107,7 @@ class Context:
         text += "mode=%d\n" % self.mode
         text += "lastEbank=%s\n" % self.lastEbank
         text += "previousWasEbankEquals=%s\n" % self.previousWasEbankEquals
+        text += "previousWasSbankEquals=%s\n" % self.previousWasSbankEquals
         text += "previousWasIndex=%s\n" % self.previousWasIndex
         text += "code: %s\n" % self.code
         text += "srcline: %s\n" % self.srcline
@@ -141,6 +144,7 @@ class Context:
         self.mode = OpcodeType.BASIC
         self.lastEbank = 0
         self.previousWasEbankEquals = False
+        self.previousWasSbankEquals = False
         self.previousWasIndex = False
         self.code = []
         self.srcline = None
@@ -174,6 +178,7 @@ class Context:
             self.mode = record.mode
             self.lastEbank = record.lastEbank
             self.previousWasEbankEquals = record.previousWasEbankEquals
+            self.previousWasSbankEquals = record.previousWasSbankEquals
             self.previousWasIndex = record.previousWasIndex
             self.complementNext = record.complementNext
             self.super = record.super
@@ -190,6 +195,7 @@ class Context:
         if partial == False:
             record.lastEbank = self.lastEbank
             record.previousWasEbankEquals = self.previousWasEbankEquals
+            record.previousWasSbankEquals = self.previousWasSbankEquals
             record.previousWasIndex = self.previousWasIndex
             record.complementNext = self.complementNext
             record.mode = self.mode
@@ -255,6 +261,15 @@ class Context:
                 if self.memmap.isErasable(self.loc):
                     self.setLoc(self.memmap.segmentedToPseudo(MemoryType.ERASABLE, self.lastEbank, self.ebankloc[self.lastEbank]))
                 self.previousWasEbankEquals = False
+
+    def revertSuper(self):
+        if not self.reparse:
+            self.printBanks()
+            if self.previousWasSbankEquals == True:
+                self.saveCurrentBank()
+                self.super = self.lastSuper
+                self.log(4, "reverted SB: %o -> %o" % (self.lastSuper, self.super))
+                self.previousWasSbankEquals = False
 
     def switchFBank(self, bank=None):
         if not self.reparse:
