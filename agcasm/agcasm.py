@@ -56,10 +56,12 @@ def main():
     firstfile = args[0]
     firstfilename = args[0].split('.')[0]
     
-    listfile = open(firstfilename + ".lst", 'w')
-    symtabfile = open(firstfilename + ".symtab", 'w')
+    listfile = open(firstfile + ".lst", 'w')
+    symtabfile = open(firstfile + ".symtab", 'w')
     binfile = open(firstfile + ".bin", 'wb')
-    logfile = open(firstfilename + ".log", 'w')
+    logfile = None
+    if options.logLevel > 0:
+        logfile = open(firstfilename + ".log", 'w')
 
     context = Context(Architecture.AGC4_B2, listfile, binfile, options, int(options.logLevel), logfile)
     assembler = Assembler(context)
@@ -282,7 +284,8 @@ def main():
     listfile.close()
     symtabfile.close()
     binfile.close()
-    logfile.close()
+    if logfile:
+        logfile.close()
 
     if options.debug:
         print "Total time: %3.2f seconds" % totalTime
