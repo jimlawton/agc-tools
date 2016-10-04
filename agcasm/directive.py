@@ -548,7 +548,10 @@ class Directive(Opcode):
 
     def parse_SETLOC(self, context, operands):
         expr = AddressExpression(context, operands)
-        context.log(3, "SETLOC: \"%s\" (%06o)" % (operands, expr.value))
+        if expr.value is None:
+            context.log(3, "SETLOC: \"%s\" (%s)" % (operands, expr.value))
+        else:
+            context.log(3, "SETLOC: \"%s\" (%06o)" % (operands, expr.value))
         if expr.complete:
             pa = expr.value
             context.currentRecord.target = pa
